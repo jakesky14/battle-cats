@@ -1,0 +1,607 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Battle Cats</title>
+<style>
+  * { box-sizing: border-box; }
+  :root {
+    --panel: #1c2233;
+    --panel2: #262d42;
+    --edge: #38415c;
+    --gold: #ffd35a;
+    --good: #6ee7a0;
+    --bad: #ff6b6b;
+    --text: #e8ecf6;
+    --muted: #97a1bd;
+  }
+  html, body {
+    margin: 0; height: 100%;
+    background: #0d1018;
+    color: var(--text);
+    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+  }
+  #app {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 8px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  /* ---- Top HUD ---- */
+  #hud {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--panel);
+    border: 1px solid var(--edge);
+    border-radius: 12px;
+    padding: 8px 12px;
+    flex-wrap: wrap;
+  }
+  .money-wrap { flex: 1 1 220px; min-width: 200px; }
+  .money-line { display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; }
+  #moneyText { font-size: 20px; font-weight: 800; color: var(--gold); }
+  .bar { height: 10px; background: #0d1018; border-radius: 6px; overflow: hidden; margin-top: 4px; border: 1px solid var(--edge); }
+  #walletFill { height: 100%; width: 0%; background: linear-gradient(90deg,#ffcf3f,#ffe89a); transition: width .08s linear; }
+
+  #worker { text-align: center; }
+  #workerBtn {
+    background: linear-gradient(180deg,#3a7bd5,#2a5db0);
+    color: #fff; border: none; border-radius: 10px;
+    padding: 8px 14px; font-weight: 700; cursor: pointer;
+    font-size: 13px; line-height: 1.2;
+  }
+  #workerBtn:disabled { filter: grayscale(.6) brightness(.7); cursor: not-allowed; }
+  #workerBtn small { display:block; font-weight:500; opacity:.85; font-size:11px; }
+
+  .basehp { text-align: center; min-width: 120px; }
+  .basehp .label { font-size: 11px; color: var(--muted); }
+  .basehp .num { font-weight: 800; font-size: 15px; }
+  .basehp.enemy .num { color: var(--bad); }
+  .basehp.player .num { color: var(--good); }
+
+  /* ---- Battlefield ---- */
+  #field { flex: 1 1 auto; position: relative; border-radius: 12px; overflow: hidden; border: 1px solid var(--edge); min-height: 200px; }
+  canvas { display: block; width: 100%; height: 100%; }
+
+  #overlay {
+    position: absolute; inset: 0;
+    background: rgba(8,10,18,.82);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 14px; text-align: center; padding: 20px;
+    backdrop-filter: blur(2px);
+  }
+  #overlay.hidden { display: none; }
+  #overlay h1 { margin: 0; font-size: 34px; }
+  #overlay p { margin: 0; color: var(--muted); max-width: 520px; line-height: 1.5; }
+  #overlay button {
+    background: linear-gradient(180deg,#ffcf3f,#f0a800);
+    color: #201800; border: none; border-radius: 10px;
+    padding: 12px 26px; font-weight: 800; font-size: 16px; cursor: pointer;
+  }
+
+  /* ---- Unit dock ---- */
+  #dock {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 6px;
+  }
+  .unit {
+    position: relative;
+    background: var(--panel2);
+    border: 1px solid var(--edge);
+    border-radius: 10px;
+    padding: 6px 3px 5px;
+    cursor: pointer;
+    text-align: center;
+    user-select: none;
+    overflow: hidden;
+    transition: transform .05s, border-color .1s;
+  }
+  .unit:hover { border-color: var(--gold); }
+  .unit:active { transform: translateY(1px); }
+  .unit.disabled { cursor: not-allowed; opacity: .55; }
+  .unit .emoji { font-size: 22px; line-height: 1; }
+  .unit .name { font-size: 10px; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .unit .cost { font-size: 11px; font-weight: 800; color: var(--gold); }
+  .unit .key { position: absolute; top: 2px; left: 4px; font-size: 9px; color: var(--muted); }
+  .unit .cool {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    background: rgba(10,12,20,.72);
+    pointer-events: none;
+  }
+  @media (max-width: 620px) {
+    #dock { grid-template-columns: repeat(5, 1fr); }
+    .unit .name { font-size: 9px; }
+  }
+</style>
+
+<div id="app">
+  <div id="hud">
+    <div class="money-wrap">
+      <div class="money-line">
+        <span id="moneyText">¢0</span>
+        <span id="incomeText" style="color:var(--muted)"></span>
+      </div>
+      <div class="bar"><div id="walletFill"></div></div>
+    </div>
+    <div id="worker">
+      <button id="workerBtn">Upgrade Income<small id="workerSub"></small></button>
+    </div>
+    <div class="basehp player"><div class="label">🏠 Your Base</div><div class="num" id="pBaseHp"></div></div>
+    <div class="basehp enemy"><div class="label">🏰 Enemy Base</div><div class="num" id="eBaseHp"></div></div>
+  </div>
+
+  <div id="field">
+    <canvas id="cv"></canvas>
+    <div id="overlay">
+      <h1 id="ovTitle">🐱 Battle Cats</h1>
+      <p id="ovText">Deploy cats to smash the enemy base before they smash yours.
+        Gain money over time, spend it on units, and upgrade your income to afford the big guys.
+        Click a unit (or press its number key) to deploy. Press <b>E</b> to upgrade income.</p>
+      <button id="ovBtn">Start Battle</button>
+    </div>
+  </div>
+
+  <div id="dock"></div>
+</div>
+
+<script>
+(() => {
+  "use strict";
+
+  // ---------------------------------------------------------------------------
+  // Config
+  // ---------------------------------------------------------------------------
+  const FIELD = 1000;                 // logical battlefield length
+  const P_BASE_X = 40;                // player base position
+  const E_BASE_X = FIELD - 40;        // enemy base position
+  const PLAYER_BASE_HP = 4000;
+  const ENEMY_BASE_HP  = 12000;
+
+  // Cat roster. range = attack range. cycle = seconds between attacks (foreswing+backswing).
+  // fore = foreswing seconds (attack animation time before damage lands). tgt = "single" or "area".
+  // speed for cat/tank/axe is the real Battle Cats speed stat * SPEED_SCALE -> px/sec.
+  // Other units below are placeholder px/sec speeds pending their real stats. cd = deploy recharge.
+  const SPEED_SCALE = 6;
+  const CATS = [
+    { id:"cat",    name:"Cat",       emoji:"🐱", cost:75,  hp:250,  dmg:20,  range:140, cycle:1.23, fore:0.27, tgt:"single", speed:8*SPEED_SCALE,  cd:2,  color:"#f4f4f4" },
+    { id:"tank",   name:"Tank Cat",  emoji:"🛡️", cost:150, hp:1000, dmg:5,   range:110, cycle:2.23, fore:0.27, tgt:"area",   speed:8*SPEED_SCALE,  cd:2,  color:"#c9a26a" },
+    { id:"axe",    name:"Axe Cat",   emoji:"🪓", cost:300, hp:500,  dmg:62,  range:150, cycle:0.90, fore:0.27, tgt:"single", speed:12*SPEED_SCALE, cd:2,  color:"#e06b4a" },
+    { id:"gross",  name:"Gross Cat", emoji:"🤢", cost:130, hp:340,  dmg:60,  range:62,  cycle:1.4,  fore:0.35, tgt:"single", speed:32,             cd:8,  color:"#7cc36a" },
+    { id:"bird",   name:"Bird Cat",  emoji:"🐦", cost:95,  hp:130,  dmg:40,  range:100, cycle:1.0,  fore:0.25, tgt:"single", speed:58,             cd:6,  color:"#5fb0ff" },
+    { id:"cow",    name:"Cow Cat",   emoji:"🐮", cost:45,  hp:90,   dmg:34,  range:40,  cycle:0.55, fore:0.14, tgt:"single", speed:78,             cd:3,  color:"#ffe0e0" },
+    { id:"fish",   name:"Fish Cat",  emoji:"🐟", cost:115, hp:200,  dmg:55,  range:46,  cycle:0.85, fore:0.21, tgt:"single", speed:64,             cd:7,  color:"#4fd0d8" },
+    { id:"lizard", name:"Lizard Cat",emoji:"🦎", cost:160, hp:220,  dmg:78,  range:140, cycle:1.6,  fore:0.4,  tgt:"single", speed:34,             cd:9,  color:"#8be06a" },
+    { id:"dragon", name:"Dragon Cat",emoji:"🐲", cost:320, hp:850,  dmg:95,  range:105, cycle:1.3,  fore:0.33, tgt:"single", speed:40,             cd:15, color:"#b07bff" },
+    { id:"titan",  name:"Titan Cat", emoji:"👹", cost:650, hp:2800, dmg:220, range:52,  cycle:2.4,  fore:0.6,  tgt:"single", speed:20,             cd:30, color:"#ff8c3b" },
+  ];
+
+  // Enemy roster.
+  const ENEMIES = {
+    doge:   { name:"Doge",   emoji:"🐶", hp:130,  dmg:16,  range:42, cycle:1.0, fore:0.2,  tgt:"single", speed:30, color:"#e8e0d0", w:26 },
+    those:  { name:"Snake",  emoji:"🐍", hp:90,   dmg:22,  range:40, cycle:0.8, fore:0.15, tgt:"single", speed:52, color:"#a0d060", w:24 },
+    snache: { name:"Snache", emoji:"👺", hp:280,  dmg:32,  range:46, cycle:1.2, fore:0.25, tgt:"single", speed:36, color:"#ff9a8a", w:30 },
+    pigge:  { name:"Pigge",  emoji:"🐷", hp:420,  dmg:64,  range:50, cycle:1.3, fore:0.3,  tgt:"single", speed:42, color:"#ffb3c8", w:32 },
+    hippoe: { name:"Hippoe", emoji:"🦛", hp:950,  dmg:44,  range:46, cycle:1.6, fore:0.35, tgt:"single", speed:24, color:"#9aa8c0", w:40 },
+    boss:   { name:"Teacher Bun", emoji:"👿", hp:4500, dmg:170, range:60, cycle:2.0, fore:0.4, tgt:"single", speed:20, color:"#c04040", w:54 },
+  };
+
+  const WORKER_MAX = 20;
+  const workerIncome = lv => 18 + 14 * (lv - 1);       // ¢/sec
+  const workerWallet = lv => 320 + 220 * (lv - 1);     // wallet cap
+  const workerCost   = lv => Math.floor(90 * Math.pow(1.55, lv - 1)); // cost to reach lv+1
+
+  // ---------------------------------------------------------------------------
+  // State
+  // ---------------------------------------------------------------------------
+  let G;
+  function newGame() {
+    G = {
+      running: false,
+      over: false,
+      won: false,
+      time: 0,
+      money: 160,
+      workerLv: 1,
+      units: [],            // player + enemy units
+      pBase: { x:P_BASE_X, hp:PLAYER_BASE_HP, max:PLAYER_BASE_HP, team:"player", isBase:true },
+      eBase: { x:E_BASE_X, hp:ENEMY_BASE_HP, max:ENEMY_BASE_HP, team:"enemy", isBase:true },
+      cooldowns: CATS.map(() => 0),
+      spawnTimer: 3,
+      bossSpawned: false,
+      fx: [],               // floating hit sparks
+    };
+  }
+
+  // ---------------------------------------------------------------------------
+  // DOM
+  // ---------------------------------------------------------------------------
+  const cv = document.getElementById("cv");
+  const ctx = cv.getContext("2d");
+  const dock = document.getElementById("dock");
+  const moneyText = document.getElementById("moneyText");
+  const incomeText = document.getElementById("incomeText");
+  const walletFill = document.getElementById("walletFill");
+  const workerBtn = document.getElementById("workerBtn");
+  const workerSub = document.getElementById("workerSub");
+  const pBaseHpEl = document.getElementById("pBaseHp");
+  const eBaseHpEl = document.getElementById("eBaseHp");
+  const overlay = document.getElementById("overlay");
+  const ovTitle = document.getElementById("ovTitle");
+  const ovText = document.getElementById("ovText");
+  const ovBtn = document.getElementById("ovBtn");
+
+  // Build unit dock
+  const unitEls = CATS.map((c, i) => {
+    const el = document.createElement("div");
+    el.className = "unit";
+    const keyLabel = i === 9 ? "0" : String(i + 1);
+    el.innerHTML =
+      `<div class="key">${keyLabel}</div>` +
+      `<div class="emoji">${c.emoji}</div>` +
+      `<div class="name">${c.name}</div>` +
+      `<div class="cost">¢${c.cost}</div>` +
+      `<div class="cool" style="height:0%"></div>`;
+    el.addEventListener("click", () => deploy(i));
+    dock.appendChild(el);
+    return el;
+  });
+
+  // ---------------------------------------------------------------------------
+  // Actions
+  // ---------------------------------------------------------------------------
+  function deploy(i) {
+    if (!G.running || G.over) return;
+    const c = CATS[i];
+    if (G.cooldowns[i] > 0 || G.money < c.cost) return;
+    G.money -= c.cost;
+    G.cooldowns[i] = c.cd;
+    G.units.push({
+      def: c, team: "player",
+      x: P_BASE_X + 10,
+      hp: c.hp, max: c.hp,
+      swing: -1, swung: false, flash: 0, w: 30,
+    });
+  }
+
+  function upgradeWorker() {
+    if (!G.running || G.over) return;
+    if (G.workerLv >= WORKER_MAX) return;
+    const cost = workerCost(G.workerLv);
+    if (G.money < cost) return;
+    G.money -= cost;
+    G.workerLv++;
+  }
+
+  function spawnEnemy(type) {
+    const e = ENEMIES[type];
+    G.units.push({
+      def: e, team: "enemy",
+      x: E_BASE_X - 10,
+      hp: e.hp, max: e.hp,
+      swing: -1, swung: false, flash: 0, w: e.w,
+    });
+  }
+
+  function pickEnemyType() {
+    const t = G.time;
+    const roll = Math.random();
+    if (t < 25) return roll < 0.6 ? "doge" : "those";
+    if (t < 55) {
+      if (roll < 0.4) return "doge";
+      if (roll < 0.7) return "those";
+      if (roll < 0.92) return "snache";
+      return "pigge";
+    }
+    if (t < 95) {
+      if (roll < 0.25) return "those";
+      if (roll < 0.5) return "snache";
+      if (roll < 0.75) return "pigge";
+      if (roll < 0.92) return "hippoe";
+      return "boss";
+    }
+    // late game
+    if (roll < 0.2) return "snache";
+    if (roll < 0.45) return "pigge";
+    if (roll < 0.7) return "hippoe";
+    if (roll < 0.85) return "those";
+    return "boss";
+  }
+
+  workerBtn.addEventListener("click", upgradeWorker);
+
+  ovBtn.addEventListener("click", () => {
+    if (G && G.running) return;
+    startGame();
+  });
+
+  window.addEventListener("keydown", (e) => {
+    if (!G.running || G.over) {
+      if (e.key === "Enter") startGame();
+      return;
+    }
+    if (e.key >= "1" && e.key <= "9") deploy(parseInt(e.key, 10) - 1);
+    else if (e.key === "0") deploy(9);
+    else if (e.key.toLowerCase() === "e") upgradeWorker();
+  });
+
+  // ---------------------------------------------------------------------------
+  // Game loop
+  // ---------------------------------------------------------------------------
+  function startGame() {
+    newGame();
+    G.running = true;
+    overlay.classList.add("hidden");
+  }
+
+  function endGame(won) {
+    G.over = true;
+    G.running = false;
+    G.won = won;
+    ovTitle.textContent = won ? "🎉 Victory!" : "💀 Defeat";
+    ovText.textContent = won
+      ? `You crushed the enemy base in ${G.time.toFixed(0)}s. Well fought, general!`
+      : "Your base was destroyed. Regroup and try again — deploy meatshields, then push with damage cats.";
+    ovBtn.textContent = "Play Again";
+    overlay.classList.remove("hidden");
+  }
+
+  function targetsInRange(u) {
+    // opposing units + opposing base within attack range
+    const foeTeam = u.team === "player" ? "enemy" : "player";
+    const list = [];
+    for (const o of G.units) {
+      if (o.team !== foeTeam || o.hp <= 0) continue;
+      if (Math.abs(o.x - u.x) <= u.def.range) list.push(o);
+    }
+    const base = u.team === "player" ? G.eBase : G.pBase;
+    if (Math.abs(base.x - u.x) <= u.def.range) list.push(base);
+    return list;
+  }
+
+  function update(dt) {
+    G.time += dt;
+
+    // Money
+    const income = workerIncome(G.workerLv);
+    const cap = workerWallet(G.workerLv);
+    G.money = Math.min(cap, G.money + income * dt);
+
+    // Cooldowns
+    for (let i = 0; i < G.cooldowns.length; i++)
+      if (G.cooldowns[i] > 0) G.cooldowns[i] = Math.max(0, G.cooldowns[i] - dt);
+
+    // Enemy spawning
+    G.spawnTimer -= dt;
+    if (G.spawnTimer <= 0) {
+      spawnEnemy(pickEnemyType());
+      const interval = Math.max(1.4, 5.5 - G.time / 28);
+      G.spawnTimer = interval * (0.7 + Math.random() * 0.6);
+    }
+    // one-time boss surge when enemy base is hurt
+    if (!G.bossSpawned && G.eBase.hp < G.eBase.max * 0.5) {
+      G.bossSpawned = true;
+      spawnEnemy("boss");
+      spawnEnemy("hippoe");
+    }
+
+    // Units: movement + combat
+    for (const u of G.units) {
+      if (u.hp <= 0) continue;
+      if (u.flash > 0) u.flash = Math.max(0, u.flash - dt);
+      const dir = u.team === "player" ? 1 : -1;
+      const targets = targetsInRange(u);
+
+      if (targets.length > 0) {
+        if (u.swing < 0) { u.swing = 0; u.swung = false; }
+        u.swing += dt;
+        if (!u.swung && u.swing >= u.def.fore) {
+          u.swung = true;
+          const hits = u.def.tgt === "area"
+            ? targets
+            : [targets.reduce((a, b) => Math.abs(a.x - u.x) <= Math.abs(b.x - u.x) ? a : b)];
+          for (const t of hits) {
+            t.hp -= u.def.dmg;
+            t.flash = 0.12;
+          }
+          G.fx.push({ x: (u.x + hits[0].x) / 2, y: 0, life: 0.25, t: u.team });
+        }
+        if (u.swing >= u.def.cycle) u.swing = -1;
+      } else {
+        u.swing = -1;
+        u.x += dir * u.def.speed * dt;
+        u.x = Math.max(P_BASE_X + 6, Math.min(E_BASE_X - 6, u.x));
+      }
+    }
+
+    // Remove dead
+    G.units = G.units.filter(u => u.hp > 0);
+
+    // FX
+    for (const f of G.fx) f.life -= dt;
+    G.fx = G.fx.filter(f => f.life > 0);
+
+    // Win / lose
+    if (G.eBase.hp <= 0) endGame(true);
+    else if (G.pBase.hp <= 0) endGame(false);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Rendering
+  // ---------------------------------------------------------------------------
+  function resize() {
+    const r = cv.parentElement.getBoundingClientRect();
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    cv.width = Math.floor(r.width * dpr);
+    cv.height = Math.floor(r.height * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    view.w = r.width; view.h = r.height;
+  }
+  const view = { w: 900, h: 300 };
+  window.addEventListener("resize", resize);
+
+  const X = x => (x / FIELD) * view.w;   // logical -> screen x
+
+  function drawBackground() {
+    const h = view.h, w = view.w;
+    const groundY = h * 0.72;
+    // sky
+    let g = ctx.createLinearGradient(0, 0, 0, groundY);
+    g.addColorStop(0, "#2a3350"); g.addColorStop(1, "#3d4a6e");
+    ctx.fillStyle = g; ctx.fillRect(0, 0, w, groundY);
+    // ground
+    g = ctx.createLinearGradient(0, groundY, 0, h);
+    g.addColorStop(0, "#4a7a3a"); g.addColorStop(1, "#2f4d26");
+    ctx.fillStyle = g; ctx.fillRect(0, groundY, w, h - groundY);
+    ctx.fillStyle = "rgba(255,255,255,.06)";
+    ctx.fillRect(0, groundY, w, 3);
+    return groundY;
+  }
+
+  function drawBase(base, groundY, isEnemy) {
+    const x = X(base.x), w = view.w;
+    const bw = 46, bh = 90;
+    const bx = isEnemy ? x - bw + 18 : x - 18;
+    const by = groundY - bh + 6;
+    ctx.fillStyle = isEnemy ? "#6b3b3b" : "#3b526b";
+    ctx.strokeStyle = base.flash > 0 ? "#fff" : "rgba(0,0,0,.4)";
+    ctx.lineWidth = 3;
+    roundRect(bx, by, bw, bh, 8); ctx.fill(); ctx.stroke();
+    // flag / icon
+    ctx.font = "26px serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillText(isEnemy ? "🏰" : "🏠", bx + bw / 2, by + bh / 2);
+    // hp bar
+    const ratio = Math.max(0, base.hp / base.max);
+    ctx.fillStyle = "rgba(0,0,0,.5)";
+    ctx.fillRect(bx, by - 12, bw, 7);
+    ctx.fillStyle = isEnemy ? "#ff6b6b" : "#6ee7a0";
+    ctx.fillRect(bx, by - 12, bw * ratio, 7);
+  }
+
+  function drawUnit(u, groundY) {
+    const x = X(u.x);
+    const d = u.def;
+    const bodyH = 26 + Math.min(28, (d.hp || u.max) / 60);
+    const bodyW = (u.w || 30) * 0.9;
+    const y = groundY - 4;
+    const isPlayer = u.team === "player";
+
+    // shadow
+    ctx.fillStyle = "rgba(0,0,0,.25)";
+    ctx.beginPath();
+    ctx.ellipse(x, y + 2, bodyW * 0.55, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // body
+    ctx.save();
+    ctx.translate(x, y - bodyH / 2);
+    if (!isPlayer) ctx.scale(-1, 1); // face left
+    ctx.fillStyle = u.flash > 0 ? "#ffffff" : (d.color || "#ddd");
+    ctx.strokeStyle = isPlayer ? "rgba(30,40,70,.6)" : "rgba(60,20,20,.6)";
+    ctx.lineWidth = 2;
+    roundRectPath(-bodyW / 2, -bodyH / 2, bodyW, bodyH, 7);
+    ctx.fill(); ctx.stroke();
+    ctx.restore();
+
+    // face / emoji
+    ctx.font = Math.round(bodyH * 0.62) + "px serif";
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillText(d.emoji, x, y - bodyH / 2);
+
+    // hp bar
+    const ratio = Math.max(0, u.hp / u.max);
+    const bw = Math.max(24, bodyW);
+    const by = y - bodyH - 8;
+    ctx.fillStyle = "rgba(0,0,0,.55)";
+    ctx.fillRect(x - bw / 2, by, bw, 4);
+    ctx.fillStyle = isPlayer ? "#7fe0a0" : "#ff7b7b";
+    ctx.fillRect(x - bw / 2, by, bw * ratio, 4);
+  }
+
+  function drawFx(groundY) {
+    for (const f of G.fx) {
+      const a = f.life / 0.25;
+      ctx.fillStyle = `rgba(255,${f.t === "player" ? 220 : 120},80,${a})`;
+      const s = 10 * (1 - a) + 4;
+      ctx.font = s + 12 + "px serif";
+      ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillText("💥", X(f.x), groundY - 30 - (1 - a) * 14);
+    }
+  }
+
+  function render() {
+    ctx.clearRect(0, 0, view.w, view.h);
+    const groundY = drawBackground();
+    drawBase(G.pBase, groundY, false);
+    drawBase(G.eBase, groundY, true);
+    // draw enemies behind cats slightly by sorting on x
+    const sorted = [...G.units].sort((a, b) => a.x - b.x);
+    for (const u of sorted) drawUnit(u, groundY);
+    drawFx(groundY);
+  }
+
+  function roundRect(x, y, w, h, r) { roundRectPath(x, y, w, h, r); }
+  function roundRectPath(x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
+  // ---------------------------------------------------------------------------
+  // HUD sync
+  // ---------------------------------------------------------------------------
+  function syncHud() {
+    const cap = workerWallet(G.workerLv);
+    moneyText.textContent = "¢" + Math.floor(G.money);
+    incomeText.textContent = "+" + workerIncome(G.workerLv) + "/s  ·  cap ¢" + cap;
+    walletFill.style.width = (100 * G.money / cap) + "%";
+
+    if (G.workerLv >= WORKER_MAX) {
+      workerBtn.disabled = true;
+      workerBtn.innerHTML = "Income MAX<small>Lv " + G.workerLv + "</small>";
+    } else {
+      const cost = workerCost(G.workerLv);
+      workerBtn.disabled = !G.running || G.money < cost;
+      workerBtn.innerHTML = "Upgrade Income<small>Lv " + G.workerLv + " → " + (G.workerLv + 1) + "  ·  ¢" + cost + "</small>";
+    }
+
+    pBaseHpEl.textContent = Math.max(0, Math.ceil(G.pBase.hp)) + " / " + G.pBase.max;
+    eBaseHpEl.textContent = Math.max(0, Math.ceil(G.eBase.hp)) + " / " + G.eBase.max;
+
+    for (let i = 0; i < CATS.length; i++) {
+      const el = unitEls[i];
+      const c = CATS[i];
+      const cd = G.cooldowns[i];
+      const affordable = G.money >= c.cost && cd <= 0 && G.running;
+      el.classList.toggle("disabled", !affordable);
+      const coolEl = el.lastElementChild;
+      coolEl.style.height = cd > 0 ? (100 * cd / c.cd) + "%" : "0%";
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Main loop
+  // ---------------------------------------------------------------------------
+  let last = performance.now();
+  function frame(now) {
+    let dt = (now - last) / 1000;
+    last = now;
+    if (dt > 0.05) dt = 0.05; // clamp
+    if (G.running && !G.over) update(dt);
+    render();
+    syncHud();
+    requestAnimationFrame(frame);
+  }
+
+  newGame();
+  resize();
+  requestAnimationFrame(frame);
+})();
+</script>
