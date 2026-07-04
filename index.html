@@ -133,6 +133,7 @@
     flex-direction: column;
     padding: 18px 16px;
     position: relative;
+    overflow-y: auto;
   }
   .screen-title {
     align-self: flex-start;
@@ -252,6 +253,43 @@
   .equip-grid .grid-item .emoji { font-size: 24px; }
   .equip-grid .grid-item .name { font-size: 10px; color: #f4e2b8; margin-top: 2px; }
   .equip-grid .grid-item .cost { font-size: 10px; color: #ffe45a; font-weight: 700; }
+
+  .energy-display {
+    position: absolute; right: 16px; bottom: 84px;
+    background: rgba(0,0,0,.35); border-radius: 8px;
+    padding: 8px 16px; font-size: 15px; font-weight: 700;
+  }
+
+  .test-btn {
+    align-self: flex-start; margin-top: 10px;
+    background: #7a3fbf; color: #fff; border: none; border-radius: 8px;
+    padding: 6px 14px; font-weight: 700; font-size: 12px; cursor: pointer;
+  }
+
+  .meta-grid {
+    margin-top: 18px; display: grid; grid-template-columns: repeat(2, 1fr);
+    gap: 8px; max-width: 460px;
+  }
+  .meta-btn {
+    background: rgba(0,0,0,.3); border-radius: 8px; padding: 8px 12px;
+    cursor: pointer; border: 2px solid transparent;
+  }
+  .meta-btn.disabled { opacity: .5; cursor: not-allowed; }
+  .meta-btn.maxed { cursor: default; border-color: #6fd08a; }
+  .meta-btn .meta-name { font-size: 12px; font-weight: 800; color: #f4e2b8; }
+  .meta-btn .meta-lv { font-size: 11px; color: #cbb27e; margin-top: 2px; }
+  .meta-btn .meta-cost { font-size: 11px; color: #8fd1ff; font-weight: 700; margin-top: 2px; }
+
+  #cannon { text-align: center; }
+  #cannonBtn {
+    background: linear-gradient(180deg,#ff8a4c,#d85a1f);
+    color: #fff; border: none; border-radius: 10px;
+    padding: 8px 14px; font-weight: 800; cursor: pointer;
+    font-size: 13px; line-height: 1.2; min-width: 130px;
+  }
+  #cannonBtn:disabled { filter: grayscale(.5) brightness(.8); cursor: not-allowed; }
+  .cannon-bar { height: 8px; background: #0d1018; border-radius: 6px; overflow: hidden; margin-top: 4px; border: 1px solid var(--edge); width: 130px; }
+  #cannonFill { height: 100%; width: 0%; background: linear-gradient(90deg,#ff8a4c,#ffd35a); transition: width .08s linear; }
 </style>
 
 <div id="mainMenu" class="screen">
@@ -261,12 +299,14 @@
     <button class="menu-btn upgrade" id="menuUpgradeBtn"><span class="ico">⬆️</span>UPGRADE</button>
     <button class="menu-btn equip" id="menuEquipBtn"><span class="ico">🐱</span>EQUIP</button>
   </div>
+  <div class="energy-display">⚡ Energy: <span id="energyAmt">100</span> / <span id="energyMax">100</span></div>
   <div class="cat-food">🍡 Cat Food: <span id="catFoodAmt">0</span></div>
 </div>
 
 <div id="upgradeScreen" class="screen hidden">
   <div class="screen-title">Upgrade</div>
   <div class="xp-display">XP <span id="upgradeXpAmt">0</span></div>
+  <button class="test-btn" id="testXpBtn">TEST: +100,000 XP</button>
   <div class="cat-strip" id="catStrip"></div>
   <div class="upgrade-panel">
     <div class="upgrade-cat-name" id="upgradeCatName"></div>
@@ -275,6 +315,7 @@
   </div>
   <button class="levelup-btn" id="levelUpBtn">LEVEL UP!!</button>
   <div class="upgrade-desc" id="upgradeDesc"></div>
+  <div class="meta-grid" id="metaGrid"></div>
   <button class="back-btn" id="upgradeBackBtn">Back</button>
 </div>
 
@@ -305,6 +346,10 @@
     </div>
     <div id="worker">
       <button id="workerBtn">Upgrade Income<small id="workerSub"></small></button>
+    </div>
+    <div id="cannon">
+      <button id="cannonBtn" disabled>CHARGING 0%</button>
+      <div class="cannon-bar"><div id="cannonFill"></div></div>
     </div>
     <div class="basehp player"><div class="label">🏠 Your Base</div><div class="num" id="pBaseHp"></div></div>
     <div class="basehp enemy"><div class="label">🏰 Enemy Base</div><div class="num" id="eBaseHp"></div></div>
@@ -359,19 +404,25 @@
   ];
 
   // Enemy roster.
+  // drop = ¢ money awarded to the player when this enemy is killed (Accountant boosts this).
   const ENEMIES = {
-    doge:   { name:"Doge",   emoji:"🐶", hp:130,  dmg:16,  range:42, cycle:1.0, fore:0.2,  tgt:"single", speed:30, trait:"Traitless", color:"#e8e0d0", w:26 },
-    those:  { name:"Snake",  emoji:"🐍", hp:90,   dmg:22,  range:40, cycle:0.8, fore:0.15, tgt:"single", speed:52, trait:"Red",       color:"#a0d060", w:24 },
-    snache: { name:"Snache", emoji:"👺", hp:280,  dmg:32,  range:46, cycle:1.2, fore:0.25, tgt:"single", speed:36, trait:"Traitless", color:"#ff9a8a", w:30 },
-    pigge:  { name:"Pigge",  emoji:"🐷", hp:420,  dmg:64,  range:50, cycle:1.3, fore:0.3,  tgt:"single", speed:42, trait:"Red",       color:"#ffb3c8", w:32 },
-    hippoe: { name:"Hippoe", emoji:"🦛", hp:950,  dmg:44,  range:46, cycle:1.6, fore:0.35, tgt:"single", speed:24, trait:"Traitless", color:"#9aa8c0", w:40 },
-    boss:   { name:"Teacher Bun", emoji:"👿", hp:4500, dmg:170, range:60, cycle:2.0, fore:0.4, tgt:"single", speed:20, trait:"Traitless", color:"#c04040", w:54 },
+    doge:   { name:"Doge",   emoji:"🐶", hp:130,  dmg:16,  range:42, cycle:1.0, fore:0.2,  tgt:"single", speed:30, trait:"Traitless", color:"#e8e0d0", w:26, drop:10 },
+    those:  { name:"Snake",  emoji:"🐍", hp:90,   dmg:22,  range:40, cycle:0.8, fore:0.15, tgt:"single", speed:52, trait:"Red",       color:"#a0d060", w:24, drop:8 },
+    snache: { name:"Snache", emoji:"👺", hp:280,  dmg:32,  range:46, cycle:1.2, fore:0.25, tgt:"single", speed:36, trait:"Traitless", color:"#ff9a8a", w:30, drop:20 },
+    pigge:  { name:"Pigge",  emoji:"🐷", hp:420,  dmg:64,  range:50, cycle:1.3, fore:0.3,  tgt:"single", speed:42, trait:"Red",       color:"#ffb3c8", w:32, drop:30 },
+    hippoe: { name:"Hippoe", emoji:"🦛", hp:950,  dmg:44,  range:46, cycle:1.6, fore:0.35, tgt:"single", speed:24, trait:"Traitless", color:"#9aa8c0", w:40, drop:60 },
+    boss:   { name:"Teacher Bun", emoji:"👿", hp:4500, dmg:170, range:60, cycle:2.0, fore:0.4, tgt:"single", speed:20, trait:"Traitless", color:"#c04040", w:54, drop:250 },
   };
 
   const WORKER_MAX = 8;
-  const workerIncome = lv => 170 * Math.pow(1.05, lv - 1); // ¢/sec, +5% per level
-  const workerWallet = lv => 200 + 50 * (lv - 1);      // wallet cap, +50 per income upgrade
-  const workerCost   = lv => 100 * lv;                  // cost to reach lv+1
+  // Worker Cat Rate (meta upgrade) raises the base ¢/sec rate; in-battle level still adds +5%/level on top.
+  const workerIncome = lv => (170 + 3 * (profile.meta.workerRate - 1)) * Math.pow(1.05, lv - 1);
+  // Worker Cat Wallet (meta upgrade) raises both the base cap and the per-in-battle-level increment.
+  const workerWallet = lv => {
+    const m = profile.meta.workerWallet;
+    return (200 + 100 * (m - 1)) + 50 * m * (lv - 1);
+  };
+  const workerCost = lv => 100 * lv;                    // cost to reach lv+1 (in-battle ¢, unaffected by meta)
 
   const XP_PER_WIN = 1000;
   const catLevelMult = lv => 1 + 0.2 * (lv - 1);        // +20% of base HP/DMG per level
@@ -463,13 +514,67 @@
     xp: 0,
     catLevels: Object.fromEntries(CATS.map(c => [c.id, 1])),
     equip: ["cat", null, null, null, null, null, null, null, null, null],
+    meta: {
+      cannonPower: 1, cannonRange: 1, cannonCharge: 1,
+      workerRate: 1, workerWallet: 1,
+      baseDefense: 1, research: 1, accountant: 1, study: 1, catEnergy: 1,
+    },
+    energy: 100,
+    lastEnergyTs: Date.now(),
   };
+
+  const META_MAX = 20;
+  const metaCost = lv => 400 * lv; // XP cost to reach lv+1 (uniform placeholder across all 10 stats)
+  const META_LIST = [
+    { key: "cannonPower",  label: "CAT CANNON POWER" },
+    { key: "cannonRange",  label: "CAT CANNON RANGE" },
+    { key: "cannonCharge", label: "CAT CANNON CHARGE" },
+    { key: "workerRate",   label: "WORKER CAT RATE" },
+    { key: "workerWallet", label: "WORKER CAT WALLET" },
+    { key: "baseDefense",  label: "BASE DEFENSE" },
+    { key: "research",     label: "RESEARCH" },
+    { key: "accountant",   label: "ACCOUNTANT" },
+    { key: "study",        label: "STUDY" },
+    { key: "catEnergy",    label: "CAT ENERGY" },
+  ];
+
+  function energyMax() { return 100 + 10 * (profile.meta.catEnergy - 1); }
+  function regenEnergy() {
+    const now = Date.now();
+    const gained = Math.floor((now - profile.lastEnergyTs) / 60000);
+    if (gained > 0) {
+      profile.energy = Math.min(energyMax(), profile.energy + gained);
+      profile.lastEnergyTs += gained * 60000;
+    }
+  }
+
+  function playerBaseMaxHp() { return PLAYER_BASE_HP + 1000 * (profile.meta.baseDefense - 1); }
+  function cdReduction() { return profile.meta.research >= 2 ? 0.2 * (profile.meta.research - 1) : 0; }
+  function moneyDropMult() { return profile.meta.accountant >= 2 ? 1 + 0.05 * (profile.meta.accountant - 1) : 1; }
+  function winXpMult() { return profile.meta.study >= 2 ? 1 + 0.05 * (profile.meta.study - 1) : 1; }
+
+  // Cat Cannon: real-game numbers (range 6000, beam 600) scaled by RANGE_SCALE to fit our field,
+  // matching every other range stat in this game. Frame-based adjustments assume the real 30fps engine.
+  const CANNON_FPS = 30;
+  const CANNON_BASE_GAUGE = 95;                    // seconds
+  const CANNON_BASE_DMG = 50;
+  const CANNON_BASE_RANGE = 6000 * RANGE_SCALE;    // 2400
+  const CANNON_RANGE_PER_LV = 200 * RANGE_SCALE;   // 80
+  const CANNON_BEAM_WIDTH = 600 * RANGE_SCALE;     // 240
+
+  function cannonDamage() { return CANNON_BASE_DMG * profile.meta.cannonPower; }
+  function cannonRange() { return CANNON_BASE_RANGE + CANNON_RANGE_PER_LV * (profile.meta.cannonRange - 1); }
+  function cannonGaugeTime() {
+    const frameAdj = 50 * (profile.meta.cannonPower - 1) - 50 * (profile.meta.cannonCharge - 1);
+    return Math.max(5, CANNON_BASE_GAUGE + frameAdj / CANNON_FPS);
+  }
 
   // ---------------------------------------------------------------------------
   // State
   // ---------------------------------------------------------------------------
   let G;
   function newGame() {
+    const pHp = playerBaseMaxHp();
     G = {
       running: false,
       over: false,
@@ -477,8 +582,9 @@
       time: 0,
       money: 160,
       workerLv: 1,
+      cannonGauge: 0,
       units: [],            // player + enemy units
-      pBase: { x:P_BASE_X, hp:PLAYER_BASE_HP, max:PLAYER_BASE_HP, team:"player", isBase:true },
+      pBase: { x:P_BASE_X, hp:pHp, max:pHp, team:"player", isBase:true },
       eBase: { x:E_BASE_X, hp:ENEMY_BASE_HP, max:ENEMY_BASE_HP, team:"enemy", isBase:true },
       cooldowns: roster.map(() => 0),
       spawnTimer: 3,
@@ -498,6 +604,8 @@
   const walletFill = document.getElementById("walletFill");
   const workerBtn = document.getElementById("workerBtn");
   const workerSub = document.getElementById("workerSub");
+  const cannonBtn = document.getElementById("cannonBtn");
+  const cannonFill = document.getElementById("cannonFill");
   const pBaseHpEl = document.getElementById("pBaseHp");
   const eBaseHpEl = document.getElementById("eBaseHp");
   const overlay = document.getElementById("overlay");
@@ -539,7 +647,7 @@
     if (!c) return;
     if (G.cooldowns[i] > 0 || G.money < c.cost) return;
     G.money -= c.cost;
-    G.cooldowns[i] = c.cd;
+    G.cooldowns[i] = Math.max(0.2, c.cd - cdReduction());
     const lvl = profile.catLevels[c.id] || 1;
     const form = evolvedForm(c, lvl);
     const mult = catLevelMult(lvl);
@@ -571,6 +679,32 @@
     });
   }
 
+  // Cat Cannon: targets the enemy unit closest to the player base (if within range), then
+  // sweeps a beam from that point toward the enemy base, up to CANNON_BEAM_WIDTH. Never
+  // damages the enemy base itself.
+  function fireCannon() {
+    if (!G.running || G.over) return;
+    if (G.cannonGauge < cannonGaugeTime()) return;
+    const enemies = G.units.filter(u => u.team === "enemy" && u.hp > 0);
+    if (enemies.length === 0) return;
+    const closest = enemies.reduce((a, b) =>
+      Math.abs(a.x - P_BASE_X) <= Math.abs(b.x - P_BASE_X) ? a : b);
+    if (Math.abs(closest.x - P_BASE_X) > cannonRange()) return;
+
+    const beamFrom = closest.x;
+    const beamTo = Math.max(beamFrom - CANNON_BEAM_WIDTH, E_BASE_X);
+    const lo = Math.min(beamFrom, beamTo), hi = Math.max(beamFrom, beamTo);
+    const dmg = cannonDamage();
+    for (const u of enemies) {
+      if (u.x >= lo && u.x <= hi) {
+        u.hp -= dmg;
+        u.flash = 0.2;
+      }
+    }
+    G.fx.push({ beam: true, x1: beamFrom, x2: beamTo, life: 0.3 });
+    G.cannonGauge = 0;
+  }
+
   function pickEnemyType() {
     const t = G.time;
     const roll = Math.random();
@@ -597,6 +731,7 @@
   }
 
   workerBtn.addEventListener("click", upgradeWorker);
+  cannonBtn.addEventListener("click", fireCannon);
 
   ovBtn.addEventListener("click", () => {
     if (G && G.running) return;
@@ -610,13 +745,30 @@
   const upgradeScreen = document.getElementById("upgradeScreen");
   const equipScreen = document.getElementById("equipScreen");
   const appEl = document.getElementById("app");
+  const energyAmtEl = document.getElementById("energyAmt");
+  const energyMaxEl = document.getElementById("energyMax");
+  const menuBattleBtnEl = document.getElementById("menuBattleBtn");
+  const ENERGY_PER_BATTLE = 10;
+
+  function renderMainMenu() {
+    regenEnergy();
+    energyAmtEl.textContent = Math.floor(profile.energy);
+    energyMaxEl.textContent = energyMax();
+    const enough = profile.energy >= ENERGY_PER_BATTLE;
+    menuBattleBtnEl.disabled = !enough;
+    menuBattleBtnEl.style.opacity = enough ? "1" : ".5";
+  }
 
   function showScreen(el) {
     [mainMenu, upgradeScreen, equipScreen, appEl].forEach(s => s.classList.add("hidden"));
     el.classList.remove("hidden");
+    if (el === mainMenu) renderMainMenu();
   }
 
   document.getElementById("menuBattleBtn").addEventListener("click", () => {
+    regenEnergy();
+    if (profile.energy < ENERGY_PER_BATTLE) { renderMainMenu(); return; }
+    profile.energy -= ENERGY_PER_BATTLE;
     buildDock();
     showScreen(appEl);
     resize();
@@ -644,7 +796,37 @@
   const upgradeCatNeed = document.getElementById("upgradeCatNeed");
   const upgradeDesc = document.getElementById("upgradeDesc");
   const levelUpBtn = document.getElementById("levelUpBtn");
+  const metaGridEl = document.getElementById("metaGrid");
+  const testXpBtn = document.getElementById("testXpBtn");
   let selectedUpgradeCat = CATS[0].id;
+
+  function renderMetaGrid() {
+    metaGridEl.innerHTML = "";
+    META_LIST.forEach(m => {
+      const lv = profile.meta[m.key];
+      const el = document.createElement("div");
+      if (lv >= META_MAX) {
+        el.className = "meta-btn maxed";
+        el.innerHTML = `<div class="meta-name">${m.label}</div><div class="meta-lv">MAX (Lv ${META_MAX})</div>`;
+      } else {
+        const cost = metaCost(lv);
+        el.className = "meta-btn" + (profile.xp < cost ? " disabled" : "");
+        el.innerHTML = `<div class="meta-name">${m.label}</div><div class="meta-lv">Lv ${lv} → ${lv + 1}</div><div class="meta-cost">${cost} XP</div>`;
+        el.addEventListener("click", () => {
+          if (profile.xp < cost) return;
+          profile.xp -= cost;
+          profile.meta[m.key] = lv + 1;
+          renderUpgradeScreen();
+        });
+      }
+      metaGridEl.appendChild(el);
+    });
+  }
+
+  testXpBtn.addEventListener("click", () => {
+    profile.xp += 100000;
+    renderUpgradeScreen();
+  });
 
   function renderUpgradeScreen() {
     catStrip.innerHTML = "";
@@ -673,6 +855,7 @@
       upgradeCatNeed.textContent = "NEED XP " + need;
       levelUpBtn.disabled = profile.xp < need;
     }
+    renderMetaGrid();
   }
 
   levelUpBtn.addEventListener("click", () => {
@@ -757,7 +940,7 @@
     G.over = true;
     G.running = false;
     G.won = won;
-    if (won) profile.xp += XP_PER_WIN;
+    if (won) profile.xp += Math.round(XP_PER_WIN * winXpMult());
     ovTitle.textContent = won ? "🎉 Victory!" : "💀 Defeat";
     ovText.textContent = won
       ? `You crushed the enemy base in ${G.time.toFixed(0)}s. Well fought, general! +${XP_PER_WIN} XP`
@@ -798,6 +981,9 @@
     const income = workerIncome(G.workerLv);
     const cap = workerWallet(G.workerLv);
     G.money = Math.min(cap, G.money + income * dt);
+
+    // Cat Cannon charge
+    G.cannonGauge = Math.min(cannonGaugeTime(), G.cannonGauge + dt);
 
     // Cooldowns
     for (let i = 0; i < G.cooldowns.length; i++)
@@ -843,6 +1029,15 @@
         u.swing = -1;
         u.x += dir * u.def.speed * dt;
         u.x = Math.max(E_BASE_X + 6, Math.min(P_BASE_X - 6, u.x));
+      }
+    }
+
+    // Money drops from killed enemies
+    const dropMult = moneyDropMult();
+    for (const u of G.units) {
+      if (u.hp <= 0 && u.team === "enemy") {
+        const drop = (u.def.drop || 0) * dropMult;
+        G.money = Math.min(workerWallet(G.workerLv), G.money + drop);
       }
     }
 
@@ -943,7 +1138,14 @@
 
   function drawFx(groundY) {
     for (const f of G.fx) {
-      const a = f.life / 0.25;
+      const a = f.life / (f.beam ? 0.3 : 0.25);
+      if (f.beam) {
+        const x1 = X(f.x1), x2 = X(f.x2);
+        const y = groundY - 40;
+        ctx.fillStyle = `rgba(255,140,40,${a * 0.85})`;
+        ctx.fillRect(Math.min(x1, x2), y - 6, Math.abs(x2 - x1), 12);
+        continue;
+      }
       ctx.fillStyle = `rgba(255,${f.t === "player" ? 220 : 120},80,${a})`;
       const s = 10 * (1 - a) + 4;
       ctx.font = s + 12 + "px serif";
@@ -995,6 +1197,13 @@
     pBaseHpEl.textContent = Math.max(0, Math.ceil(G.pBase.hp)) + " / " + G.pBase.max;
     eBaseHpEl.textContent = Math.max(0, Math.ceil(G.eBase.hp)) + " / " + G.eBase.max;
 
+    const gaugeTime = cannonGaugeTime();
+    const gaugeRatio = Math.min(1, G.cannonGauge / gaugeTime);
+    cannonFill.style.width = (gaugeRatio * 100) + "%";
+    const ready = gaugeRatio >= 1;
+    cannonBtn.disabled = !ready || !G.running;
+    cannonBtn.textContent = ready ? "FIRE" : "CHARGING " + Math.floor(gaugeRatio * 100) + "%";
+
     for (let i = 0; i < roster.length; i++) {
       const el = unitEls[i];
       const c = roster[i];
@@ -1014,6 +1223,8 @@
     let dt = (now - last) / 1000;
     last = now;
     if (dt > 0.05) dt = 0.05; // clamp
+    regenEnergy();
+    if (!mainMenu.classList.contains("hidden")) renderMainMenu();
     if (G.running && !G.over) update(dt);
     render();
     syncHud();
@@ -1023,6 +1234,7 @@
   buildDock();
   newGame();
   resize();
+  renderMainMenu();
   requestAnimationFrame(frame);
 })();
 </script>
