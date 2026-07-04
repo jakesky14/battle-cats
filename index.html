@@ -553,13 +553,15 @@
   function moneyDropMult() { return profile.meta.accountant >= 2 ? 1 + 0.05 * (profile.meta.accountant - 1) : 1; }
   function winXpMult() { return profile.meta.study >= 2 ? 1 + 0.05 * (profile.meta.study - 1) : 1; }
 
-  // Cat Cannon: real-game numbers (range 6000, beam 600) scaled by RANGE_SCALE to fit our field,
-  // matching every other range stat in this game. Frame-based adjustments assume the real 30fps engine.
+  // Cat Cannon: enemy search range stays the literal real-game value (6000, +200/level) - on our
+  // 1000-wide field that means it's effectively always in range. Beam width (600) is still scaled
+  // by RANGE_SCALE to fit the field, matching every other range stat in this game. Frame-based
+  // adjustments assume the real 30fps engine.
   const CANNON_FPS = 30;
   const CANNON_BASE_GAUGE = 95;                    // seconds
   const CANNON_BASE_DMG = 50;
-  const CANNON_BASE_RANGE = 6000 * RANGE_SCALE;    // 2400
-  const CANNON_RANGE_PER_LV = 200 * RANGE_SCALE;   // 80
+  const CANNON_BASE_RANGE = 6000;
+  const CANNON_RANGE_PER_LV = 200;
   const CANNON_BEAM_WIDTH = 600 * RANGE_SCALE;     // 240
 
   function cannonDamage() { return CANNON_BASE_DMG * profile.meta.cannonPower; }
