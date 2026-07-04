@@ -146,35 +146,36 @@
     box-shadow: 0 3px 0 rgba(0,0,0,.3);
   }
   .menu-buttons {
-    margin-top: 22px;
+    margin-top: 84px;
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    width: 220px;
+    gap: 24px;
+    width: 440px;
   }
   .menu-btn {
-    display: flex; align-items: center; gap: 10px;
-    font-size: 18px; font-weight: 800; letter-spacing: .5px;
+    display: flex; align-items: center; gap: 20px;
+    font-size: 36px; font-weight: 800; letter-spacing: .5px;
     color: #fff;
-    border: none; border-radius: 10px;
-    padding: 14px 18px;
+    border: none; border-radius: 20px;
+    padding: 28px 36px;
     cursor: pointer;
-    box-shadow: 0 4px 0 rgba(0,0,0,.35);
+    box-shadow: 0 8px 0 rgba(0,0,0,.35);
     text-align: left;
   }
-  .menu-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(0,0,0,.35); }
-  .menu-btn .ico { font-size: 22px; }
+  .menu-btn:active { transform: translateY(4px); box-shadow: 0 4px 0 rgba(0,0,0,.35); }
+  .menu-btn .ico { font-size: 44px; }
   .menu-btn.battle  { background: linear-gradient(180deg,#4fa3ff,#1f74dd); }
   .menu-btn.upgrade { background: linear-gradient(180deg,#6fd08a,#2f9d55); }
   .menu-btn.equip   { background: linear-gradient(180deg,#e0a95f,#b9773a); }
 
   .cat-food {
-    margin-top: auto;
-    align-self: flex-start;
+    position: absolute;
+    right: 16px;
+    bottom: 16px;
     background: rgba(0,0,0,.35);
     border-radius: 8px;
-    padding: 6px 12px;
-    font-size: 14px;
+    padding: 12px 24px;
+    font-size: 28px;
     font-weight: 700;
   }
 
@@ -186,6 +187,71 @@
     border: 3px solid #3f2a17; border-radius: 8px;
     padding: 8px 20px; font-weight: 800; cursor: pointer;
   }
+
+  .xp-display {
+    position: absolute; top: 18px; right: 16px;
+    font-weight: 800; color: #ffe89a; font-size: 15px;
+  }
+
+  .cat-strip {
+    display: flex; gap: 8px; margin-top: 60px; overflow-x: auto; padding-bottom: 6px;
+  }
+  .cat-strip .strip-item {
+    flex: 0 0 auto; width: 56px; height: 56px; border-radius: 10px;
+    background: #3f2a17; border: 3px solid transparent;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px; cursor: pointer;
+  }
+  .cat-strip .strip-item.selected { border-color: #ffd35a; }
+  .upgrade-panel {
+    margin-top: 16px; background: rgba(0,0,0,.3); border-radius: 10px;
+    padding: 14px 18px; max-width: 420px;
+  }
+  .upgrade-cat-name { font-size: 20px; font-weight: 800; color: #f4e2b8; }
+  .upgrade-cat-level { color: #cbb27e; margin-top: 4px; }
+  .upgrade-cat-need { color: #8fd1ff; font-weight: 700; margin-top: 4px; }
+  .levelup-btn {
+    margin-top: 14px; align-self: flex-start;
+    background: linear-gradient(180deg,#ffe45a,#f0a800);
+    color: #4a2e00; border: none; border-radius: 10px;
+    padding: 12px 24px; font-weight: 900; font-size: 16px; cursor: pointer;
+    box-shadow: 0 4px 0 rgba(0,0,0,.35);
+  }
+  .levelup-btn:disabled { filter: grayscale(.6) brightness(.7); cursor: not-allowed; }
+  .upgrade-desc { color: #f4e2b8; opacity: .8; margin-top: 14px; max-width: 420px; font-size: 13px; }
+
+  .equip-slots { display: flex; gap: 6px; margin-top: 60px; flex-wrap: wrap; }
+  .equip-slot {
+    width: 52px; height: 52px; border-radius: 8px;
+    background: rgba(0,0,0,.35); border: 2px solid #3f2a17;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px; cursor: pointer; color: #f4e2b8;
+  }
+  .equip-slot.selected { border-color: #ffd35a; }
+  .equip-slot.empty { opacity: .5; font-size: 18px; }
+  .equip-detail {
+    margin-top: 16px; display: flex; align-items: center; gap: 16px;
+    background: rgba(0,0,0,.3); border-radius: 10px; padding: 12px 16px;
+    max-width: 460px;
+  }
+  .equip-detail-rarity {
+    background: #e8c46a; color: #5a3a10; font-weight: 800;
+    padding: 3px 10px; border-radius: 6px; font-size: 12px; align-self: flex-start;
+  }
+  .equip-detail-name { font-size: 18px; font-weight: 800; color: #f4e2b8; }
+  .equip-detail-level, .equip-detail-cost { color: #cbb27e; font-size: 13px; }
+  .equip-grid {
+    margin-top: 14px; display: grid; grid-template-columns: repeat(5, 1fr);
+    gap: 8px; max-width: 460px;
+  }
+  .equip-grid .grid-item {
+    background: rgba(0,0,0,.3); border-radius: 8px; padding: 8px 4px;
+    text-align: center; cursor: pointer; border: 2px solid transparent;
+  }
+  .equip-grid .grid-item.equipped { border-color: #6fd08a; }
+  .equip-grid .grid-item .emoji { font-size: 24px; }
+  .equip-grid .grid-item .name { font-size: 10px; color: #f4e2b8; margin-top: 2px; }
+  .equip-grid .grid-item .cost { font-size: 10px; color: #ffe45a; font-weight: 700; }
 </style>
 
 <div id="mainMenu" class="screen">
@@ -200,13 +266,31 @@
 
 <div id="upgradeScreen" class="screen hidden">
   <div class="screen-title">Upgrade</div>
-  <p class="placeholder-text">Coming soon.</p>
+  <div class="xp-display">XP <span id="upgradeXpAmt">0</span></div>
+  <div class="cat-strip" id="catStrip"></div>
+  <div class="upgrade-panel">
+    <div class="upgrade-cat-name" id="upgradeCatName"></div>
+    <div class="upgrade-cat-level" id="upgradeCatLevel"></div>
+    <div class="upgrade-cat-need" id="upgradeCatNeed"></div>
+  </div>
+  <button class="levelup-btn" id="levelUpBtn">LEVEL UP!!</button>
+  <div class="upgrade-desc" id="upgradeDesc"></div>
   <button class="back-btn" id="upgradeBackBtn">Back</button>
 </div>
 
 <div id="equipScreen" class="screen hidden">
   <div class="screen-title">Equip</div>
-  <p class="placeholder-text">Coming soon.</p>
+  <div class="xp-display">XP <span id="equipXpAmt">0</span></div>
+  <div class="equip-slots" id="equipSlots"></div>
+  <div class="equip-detail">
+    <div>
+      <div class="equip-detail-rarity">Normal</div>
+      <div class="equip-detail-name" id="equipDetailName">Select a cat</div>
+      <div class="equip-detail-level" id="equipDetailLevel"></div>
+      <div class="equip-detail-cost" id="equipDetailCost"></div>
+    </div>
+  </div>
+  <div class="equip-grid" id="equipGrid"></div>
   <button class="back-btn" id="equipBackBtn">Back</button>
 </div>
 
@@ -286,8 +370,19 @@
 
   const WORKER_MAX = 8;
   const workerIncome = lv => 170 * Math.pow(1.05, lv - 1); // ¢/sec, +5% per level
-  const workerWallet = () => 200;                      // wallet cap (flat, no Cat Bank upgrade yet)
+  const workerWallet = lv => 200 + 50 * (lv - 1);      // wallet cap, +50 per income upgrade
   const workerCost   = lv => 100 * lv;                  // cost to reach lv+1
+
+  const XP_PER_WIN = 1000;
+  const catXpCost = lv => 200 * lv;                     // XP cost to reach lv+1
+  const catLevelMult = lv => 1 + 0.05 * (lv - 1);       // +5% HP/DMG per level
+
+  // Persistent meta-progression: survives between battles (not just per-battle G state).
+  const profile = {
+    xp: 0,
+    catLevels: Object.fromEntries(CATS.map(c => [c.id, 1])),
+    equip: ["cat", null, null, null, null, null, null, null, null, null],
+  };
 
   // ---------------------------------------------------------------------------
   // State
@@ -304,7 +399,7 @@
       units: [],            // player + enemy units
       pBase: { x:P_BASE_X, hp:PLAYER_BASE_HP, max:PLAYER_BASE_HP, team:"player", isBase:true },
       eBase: { x:E_BASE_X, hp:ENEMY_BASE_HP, max:ENEMY_BASE_HP, team:"enemy", isBase:true },
-      cooldowns: CATS.map(() => 0),
+      cooldowns: roster.map(() => 0),
       spawnTimer: 3,
       bossSpawned: false,
       fx: [],               // floating hit sparks
@@ -330,35 +425,45 @@
   const ovBtn = document.getElementById("ovBtn");
   const ovMenuBtn = document.getElementById("ovMenuBtn");
 
-  // Build unit dock
-  const unitEls = CATS.map((c, i) => {
-    const el = document.createElement("div");
-    el.className = "unit";
-    const keyLabel = String(i + 1);
-    el.innerHTML =
-      `<div class="key">${keyLabel}</div>` +
-      `<div class="emoji">${c.emoji}</div>` +
-      `<div class="name">${c.name}</div>` +
-      `<div class="cost">¢${c.cost}</div>` +
-      `<div class="cool" style="height:0%"></div>`;
-    el.addEventListener("click", () => deploy(i));
-    dock.appendChild(el);
-    return el;
-  });
+  // Build unit dock from the player's equipped loadout (Equip screen controls this).
+  let roster = [];
+  let unitEls = [];
+  function buildDock() {
+    roster = profile.equip.filter(Boolean).map(id => CATS.find(c => c.id === id));
+    dock.innerHTML = "";
+    dock.style.gridTemplateColumns = `repeat(${Math.max(roster.length, 1)}, 1fr)`;
+    unitEls = roster.map((c, i) => {
+      const el = document.createElement("div");
+      el.className = "unit";
+      const keyLabel = String(i + 1);
+      el.innerHTML =
+        `<div class="key">${keyLabel}</div>` +
+        `<div class="emoji">${c.emoji}</div>` +
+        `<div class="name">${c.name}</div>` +
+        `<div class="cost">¢${c.cost}</div>` +
+        `<div class="cool" style="height:0%"></div>`;
+      el.addEventListener("click", () => deploy(i));
+      dock.appendChild(el);
+      return el;
+    });
+  }
 
   // ---------------------------------------------------------------------------
   // Actions
   // ---------------------------------------------------------------------------
   function deploy(i) {
     if (!G.running || G.over) return;
-    const c = CATS[i];
+    const c = roster[i];
+    if (!c) return;
     if (G.cooldowns[i] > 0 || G.money < c.cost) return;
     G.money -= c.cost;
     G.cooldowns[i] = c.cd;
+    const mult = catLevelMult(profile.catLevels[c.id] || 1);
+    const hp = c.hp * mult;
     G.units.push({
-      def: c, team: "player",
+      def: { ...c, dmg: c.dmg * mult }, team: "player",
       x: P_BASE_X - 10,
-      hp: c.hp, max: c.hp,
+      hp, max: hp,
       swing: -1, swung: false, flash: 0, w: 30,
     });
   }
@@ -428,14 +533,113 @@
   }
 
   document.getElementById("menuBattleBtn").addEventListener("click", () => {
+    buildDock();
     showScreen(appEl);
+    resize();
     startGame();
   });
-  document.getElementById("menuUpgradeBtn").addEventListener("click", () => showScreen(upgradeScreen));
-  document.getElementById("menuEquipBtn").addEventListener("click", () => showScreen(equipScreen));
+  document.getElementById("menuUpgradeBtn").addEventListener("click", () => {
+    renderUpgradeScreen();
+    showScreen(upgradeScreen);
+  });
+  document.getElementById("menuEquipBtn").addEventListener("click", () => {
+    renderEquipScreen();
+    showScreen(equipScreen);
+  });
   document.getElementById("upgradeBackBtn").addEventListener("click", () => showScreen(mainMenu));
   document.getElementById("equipBackBtn").addEventListener("click", () => showScreen(mainMenu));
   ovMenuBtn.addEventListener("click", () => showScreen(mainMenu));
+
+  // ---------------------------------------------------------------------------
+  // Upgrade screen: spend XP to permanently level up a cat's HP/DMG.
+  // ---------------------------------------------------------------------------
+  const catStrip = document.getElementById("catStrip");
+  const upgradeXpAmt = document.getElementById("upgradeXpAmt");
+  const upgradeCatName = document.getElementById("upgradeCatName");
+  const upgradeCatLevel = document.getElementById("upgradeCatLevel");
+  const upgradeCatNeed = document.getElementById("upgradeCatNeed");
+  const upgradeDesc = document.getElementById("upgradeDesc");
+  const levelUpBtn = document.getElementById("levelUpBtn");
+  let selectedUpgradeCat = CATS[0].id;
+
+  function renderUpgradeScreen() {
+    catStrip.innerHTML = "";
+    CATS.forEach(c => {
+      const el = document.createElement("div");
+      el.className = "strip-item" + (c.id === selectedUpgradeCat ? " selected" : "");
+      el.textContent = c.emoji;
+      el.addEventListener("click", () => { selectedUpgradeCat = c.id; renderUpgradeScreen(); });
+      catStrip.appendChild(el);
+    });
+
+    const c = CATS.find(c => c.id === selectedUpgradeCat);
+    const lvl = profile.catLevels[c.id];
+    const need = catXpCost(lvl);
+    const mult = catLevelMult(lvl);
+    upgradeXpAmt.textContent = Math.floor(profile.xp);
+    upgradeCatName.textContent = c.name;
+    upgradeCatLevel.textContent = "Level " + lvl;
+    upgradeCatNeed.textContent = "NEED XP " + need;
+    upgradeDesc.textContent = `HP ${Math.round(c.hp * mult)} · DMG ${Math.round(c.dmg * mult)} · Cost ¢${c.cost}`;
+    levelUpBtn.disabled = profile.xp < need;
+  }
+
+  levelUpBtn.addEventListener("click", () => {
+    const c = CATS.find(c => c.id === selectedUpgradeCat);
+    const lvl = profile.catLevels[c.id];
+    const need = catXpCost(lvl);
+    if (profile.xp < need) return;
+    profile.xp -= need;
+    profile.catLevels[c.id] = lvl + 1;
+    renderUpgradeScreen();
+  });
+
+  // ---------------------------------------------------------------------------
+  // Equip screen: choose which cats occupy the 10 loadout slots used in battle.
+  // ---------------------------------------------------------------------------
+  const equipSlotsEl = document.getElementById("equipSlots");
+  const equipGridEl = document.getElementById("equipGrid");
+  const equipDetailName = document.getElementById("equipDetailName");
+  const equipDetailLevel = document.getElementById("equipDetailLevel");
+  const equipDetailCost = document.getElementById("equipDetailCost");
+  const equipXpAmt = document.getElementById("equipXpAmt");
+  let selectedSlot = 0;
+
+  function renderEquipScreen() {
+    equipXpAmt.textContent = Math.floor(profile.xp);
+
+    equipSlotsEl.innerHTML = "";
+    profile.equip.forEach((id, i) => {
+      const el = document.createElement("div");
+      const c = id ? CATS.find(c => c.id === id) : null;
+      el.className = "equip-slot" + (i === selectedSlot ? " selected" : "") + (c ? "" : " empty");
+      el.textContent = c ? c.emoji : (i + 1);
+      el.addEventListener("click", () => { selectedSlot = i; renderEquipScreen(); });
+      equipSlotsEl.appendChild(el);
+    });
+
+    equipGridEl.innerHTML = "";
+    CATS.forEach(c => {
+      const el = document.createElement("div");
+      const equippedSlot = profile.equip.indexOf(c.id);
+      el.className = "grid-item" + (equippedSlot !== -1 ? " equipped" : "");
+      el.innerHTML = `<div class="emoji">${c.emoji}</div><div class="name">${c.name}</div><div class="cost">¢${c.cost}</div>`;
+      el.addEventListener("click", () => {
+        const currentSlot = profile.equip.indexOf(c.id);
+        if (currentSlot === selectedSlot) {
+          profile.equip[selectedSlot] = null;
+        } else {
+          if (currentSlot !== -1) profile.equip[currentSlot] = null;
+          profile.equip[selectedSlot] = c.id;
+        }
+        equipDetailName.textContent = c.name;
+        equipDetailLevel.textContent = "Level " + profile.catLevels[c.id];
+        equipDetailCost.textContent = "Cost ¢" + c.cost;
+        renderEquipScreen();
+      });
+      equipGridEl.appendChild(el);
+    });
+  }
 
   window.addEventListener("keydown", (e) => {
     if (appEl.classList.contains("hidden")) return;
@@ -460,9 +664,10 @@
     G.over = true;
     G.running = false;
     G.won = won;
+    if (won) profile.xp += XP_PER_WIN;
     ovTitle.textContent = won ? "🎉 Victory!" : "💀 Defeat";
     ovText.textContent = won
-      ? `You crushed the enemy base in ${G.time.toFixed(0)}s. Well fought, general!`
+      ? `You crushed the enemy base in ${G.time.toFixed(0)}s. Well fought, general! +${XP_PER_WIN} XP`
       : "Your base was destroyed. Regroup and try again — deploy meatshields, then push with damage cats.";
     ovBtn.textContent = "Play Again";
     ovMenuBtn.classList.remove("hidden");
@@ -697,9 +902,9 @@
     pBaseHpEl.textContent = Math.max(0, Math.ceil(G.pBase.hp)) + " / " + G.pBase.max;
     eBaseHpEl.textContent = Math.max(0, Math.ceil(G.eBase.hp)) + " / " + G.eBase.max;
 
-    for (let i = 0; i < CATS.length; i++) {
+    for (let i = 0; i < roster.length; i++) {
       const el = unitEls[i];
-      const c = CATS[i];
+      const c = roster[i];
       const cd = G.cooldowns[i];
       const affordable = G.money >= c.cost && cd <= 0 && G.running;
       el.classList.toggle("disabled", !affordable);
@@ -722,6 +927,7 @@
     requestAnimationFrame(frame);
   }
 
+  buildDock();
   newGame();
   resize();
   requestAnimationFrame(frame);
