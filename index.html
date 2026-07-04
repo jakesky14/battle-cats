@@ -374,8 +374,36 @@
   const workerCost   = lv => 100 * lv;                  // cost to reach lv+1
 
   const XP_PER_WIN = 1000;
-  const catLevelMult = lv => 1 + 0.05 * (lv - 1);       // +5% HP/DMG per level
+  const catLevelMult = lv => 1 + 0.2 * (lv - 1);        // +20% of base HP/DMG per level
   const CAT_LEVEL_MAX = 50;
+  const EVOLVE_LEVEL = 10;
+
+  // Evolved (2nd) forms, unlocked at level 10. Only name/emoji change for most cats;
+  // Gross/Bird/Lizard also get real stat tweaks to their evolved cycle/foreswing/damage.
+  const EVOLUTIONS = {
+    cat:    { name: "Macho Cat",      emoji: "💪" },
+    tank:   { name: "Wall Cat",       emoji: "🧱" },
+    axe:    { name: "Brave Cat",      emoji: "🦸" },
+    gross:  { name: "Sexy Legs Cat",  emoji: "🦵", cycle: 4.17, fore: 0.20 },
+    cow:    { name: "Giraffe Cat",    emoji: "🦒" },
+    bird:   { name: "UFO Cat",        emoji: "🛸", cycle: 1.90, fore: 0.60, dmgMult: 494 / 420 },
+    fish:   { name: "Whale Cat",      emoji: "🐋" },
+    lizard: { name: "Dragon Cat",     emoji: "🐉", cycle: 4.23, fore: 0.27 },
+    titan:  { name: "Mythical Titan", emoji: "🔱" },
+  };
+
+  function evolvedForm(c, lvl) {
+    const evo = EVOLUTIONS[c.id];
+    if (lvl < EVOLVE_LEVEL || !evo) return c;
+    return {
+      ...c,
+      name: evo.name,
+      emoji: evo.emoji,
+      cycle: evo.cycle !== undefined ? evo.cycle : c.cycle,
+      fore: evo.fore !== undefined ? evo.fore : c.fore,
+      dmg: evo.dmgMult ? c.dmg * evo.dmgMult : c.dmg,
+    };
+  }
 
   // Real per-cat XP cost tables. Keyed by target level (cost paid while at level-1 to reach it).
   const CAT_XP_TABLE = {
@@ -486,13 +514,14 @@
     dock.innerHTML = "";
     dock.style.gridTemplateColumns = `repeat(${Math.max(roster.length, 1)}, 1fr)`;
     unitEls = roster.map((c, i) => {
+      const form = evolvedForm(c, profile.catLevels[c.id] || 1);
       const el = document.createElement("div");
       el.className = "unit";
       const keyLabel = String(i + 1);
       el.innerHTML =
         `<div class="key">${keyLabel}</div>` +
-        `<div class="emoji">${c.emoji}</div>` +
-        `<div class="name">${c.name}</div>` +
+        `<div class="emoji">${form.emoji}</div>` +
+        `<div class="name">${form.name}</div>` +
         `<div class="cost">¢${c.cost}</div>` +
         `<div class="cool" style="height:0%"></div>`;
       el.addEventListener("click", () => deploy(i));
@@ -511,10 +540,12 @@
     if (G.cooldowns[i] > 0 || G.money < c.cost) return;
     G.money -= c.cost;
     G.cooldowns[i] = c.cd;
-    const mult = catLevelMult(profile.catLevels[c.id] || 1);
-    const hp = c.hp * mult;
+    const lvl = profile.catLevels[c.id] || 1;
+    const form = evolvedForm(c, lvl);
+    const mult = catLevelMult(lvl);
+    const hp = Math.round(form.hp * mult);
     G.units.push({
-      def: { ...c, dmg: c.dmg * mult }, team: "player",
+      def: { ...form, dmg: Math.round(form.dmg * mult) }, team: "player",
       x: P_BASE_X - 10,
       hp, max: hp,
       swing: -1, swung: false, flash: 0, w: 30,
@@ -618,16 +649,18 @@
   function renderUpgradeScreen() {
     catStrip.innerHTML = "";
     CATS.forEach(c => {
+      const form = evolvedForm(c, profile.catLevels[c.id] || 1);
       const el = document.createElement("div");
       el.className = "strip-item" + (c.id === selectedUpgradeCat ? " selected" : "");
-      el.textContent = c.emoji;
+      el.textContent = form.emoji;
       el.addEventListener("click", () => { selectedUpgradeCat = c.id; renderUpgradeScreen(); });
       catStrip.appendChild(el);
     });
 
-    const c = CATS.find(c => c.id === selectedUpgradeCat);
-    const lvl = profile.catLevels[c.id];
-    const need = catXpCost(c.id, lvl);
+    const base = CATS.find(c => c.id === selectedUpgradeCat);
+    const lvl = profile.catLevels[base.id];
+    const c = evolvedForm(base, lvl);
+    const need = catXpCost(base.id, lvl);
     const mult = catLevelMult(lvl);
     upgradeXpAmt.textContent = Math.floor(profile.xp);
     upgradeCatName.textContent = c.name;
@@ -670,18 +703,20 @@
     profile.equip.forEach((id, i) => {
       const el = document.createElement("div");
       const c = id ? CATS.find(c => c.id === id) : null;
+      const form = c ? evolvedForm(c, profile.catLevels[c.id] || 1) : null;
       el.className = "equip-slot" + (i === selectedSlot ? " selected" : "") + (c ? "" : " empty");
-      el.textContent = c ? c.emoji : (i + 1);
+      el.textContent = form ? form.emoji : (i + 1);
       el.addEventListener("click", () => { selectedSlot = i; renderEquipScreen(); });
       equipSlotsEl.appendChild(el);
     });
 
     equipGridEl.innerHTML = "";
     CATS.forEach(c => {
+      const form = evolvedForm(c, profile.catLevels[c.id] || 1);
       const el = document.createElement("div");
       const equippedSlot = profile.equip.indexOf(c.id);
       el.className = "grid-item" + (equippedSlot !== -1 ? " equipped" : "");
-      el.innerHTML = `<div class="emoji">${c.emoji}</div><div class="name">${c.name}</div><div class="cost">¢${c.cost}</div>`;
+      el.innerHTML = `<div class="emoji">${form.emoji}</div><div class="name">${form.name}</div><div class="cost">¢${c.cost}</div>`;
       el.addEventListener("click", () => {
         const currentSlot = profile.equip.indexOf(c.id);
         if (currentSlot === selectedSlot) {
@@ -690,7 +725,7 @@
           if (currentSlot !== -1) profile.equip[currentSlot] = null;
           profile.equip[selectedSlot] = c.id;
         }
-        equipDetailName.textContent = c.name;
+        equipDetailName.textContent = form.name;
         equipDetailLevel.textContent = "Level " + profile.catLevels[c.id];
         equipDetailCost.textContent = "Cost ¢" + c.cost;
         renderEquipScreen();
