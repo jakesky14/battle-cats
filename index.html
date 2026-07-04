@@ -81,6 +81,11 @@
     color: #201800; border: none; border-radius: 10px;
     padding: 12px 26px; font-weight: 800; font-size: 16px; cursor: pointer;
   }
+  #overlay #ovMenuBtn {
+    background: transparent;
+    color: var(--text);
+    border: 2px solid var(--edge);
+  }
 
   /* ---- Unit dock ---- */
   #dock {
@@ -116,9 +121,96 @@
     #dock { grid-template-columns: repeat(3, 1fr); }
     .unit .name { font-size: 9px; }
   }
+
+  .hidden { display: none !important; }
+
+  .screen {
+    height: 100%;
+    background:
+      repeating-linear-gradient(0deg, rgba(0,0,0,.08) 0 2px, transparent 2px 34px),
+      linear-gradient(160deg, #8a5a34, #6e4527 55%, #5a3a20);
+    display: flex;
+    flex-direction: column;
+    padding: 18px 16px;
+    position: relative;
+  }
+  .screen-title {
+    align-self: flex-start;
+    background: #f4e2b8;
+    color: #6e4527;
+    border: 3px solid #3f2a17;
+    border-radius: 8px;
+    padding: 6px 18px;
+    font-weight: 800;
+    font-size: 18px;
+    box-shadow: 0 3px 0 rgba(0,0,0,.3);
+  }
+  .menu-buttons {
+    margin-top: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 220px;
+  }
+  .menu-btn {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 18px; font-weight: 800; letter-spacing: .5px;
+    color: #fff;
+    border: none; border-radius: 10px;
+    padding: 14px 18px;
+    cursor: pointer;
+    box-shadow: 0 4px 0 rgba(0,0,0,.35);
+    text-align: left;
+  }
+  .menu-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(0,0,0,.35); }
+  .menu-btn .ico { font-size: 22px; }
+  .menu-btn.battle  { background: linear-gradient(180deg,#4fa3ff,#1f74dd); }
+  .menu-btn.upgrade { background: linear-gradient(180deg,#6fd08a,#2f9d55); }
+  .menu-btn.equip   { background: linear-gradient(180deg,#e0a95f,#b9773a); }
+
+  .cat-food {
+    margin-top: auto;
+    align-self: flex-start;
+    background: rgba(0,0,0,.35);
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .placeholder-text { color: #f4e2b8; opacity: .85; margin-top: 30px; }
+  .back-btn {
+    margin-top: auto;
+    align-self: flex-start;
+    background: #f4e2b8; color: #6e4527;
+    border: 3px solid #3f2a17; border-radius: 8px;
+    padding: 8px 20px; font-weight: 800; cursor: pointer;
+  }
 </style>
 
-<div id="app">
+<div id="mainMenu" class="screen">
+  <div class="screen-title">Cat Base</div>
+  <div class="menu-buttons">
+    <button class="menu-btn battle" id="menuBattleBtn"><span class="ico">⚔️</span>BATTLE</button>
+    <button class="menu-btn upgrade" id="menuUpgradeBtn"><span class="ico">⬆️</span>UPGRADE</button>
+    <button class="menu-btn equip" id="menuEquipBtn"><span class="ico">🐱</span>EQUIP</button>
+  </div>
+  <div class="cat-food">🍡 Cat Food: <span id="catFoodAmt">0</span></div>
+</div>
+
+<div id="upgradeScreen" class="screen hidden">
+  <div class="screen-title">Upgrade</div>
+  <p class="placeholder-text">Coming soon.</p>
+  <button class="back-btn" id="upgradeBackBtn">Back</button>
+</div>
+
+<div id="equipScreen" class="screen hidden">
+  <div class="screen-title">Equip</div>
+  <p class="placeholder-text">Coming soon.</p>
+  <button class="back-btn" id="equipBackBtn">Back</button>
+</div>
+
+<div id="app" class="hidden">
   <div id="hud">
     <div class="money-wrap">
       <div class="money-line">
@@ -142,6 +234,7 @@
         Gain money over time, spend it on units, and upgrade your income to afford the big guys.
         Click a unit (or press its number key) to deploy. Press <b>E</b> to upgrade income.</p>
       <button id="ovBtn">Start Battle</button>
+      <button id="ovMenuBtn" class="hidden">Main Menu</button>
     </div>
   </div>
 
@@ -235,6 +328,7 @@
   const ovTitle = document.getElementById("ovTitle");
   const ovText = document.getElementById("ovText");
   const ovBtn = document.getElementById("ovBtn");
+  const ovMenuBtn = document.getElementById("ovMenuBtn");
 
   // Build unit dock
   const unitEls = CATS.map((c, i) => {
@@ -320,7 +414,31 @@
     startGame();
   });
 
+  // ---------------------------------------------------------------------------
+  // Screen navigation
+  // ---------------------------------------------------------------------------
+  const mainMenu = document.getElementById("mainMenu");
+  const upgradeScreen = document.getElementById("upgradeScreen");
+  const equipScreen = document.getElementById("equipScreen");
+  const appEl = document.getElementById("app");
+
+  function showScreen(el) {
+    [mainMenu, upgradeScreen, equipScreen, appEl].forEach(s => s.classList.add("hidden"));
+    el.classList.remove("hidden");
+  }
+
+  document.getElementById("menuBattleBtn").addEventListener("click", () => {
+    showScreen(appEl);
+    startGame();
+  });
+  document.getElementById("menuUpgradeBtn").addEventListener("click", () => showScreen(upgradeScreen));
+  document.getElementById("menuEquipBtn").addEventListener("click", () => showScreen(equipScreen));
+  document.getElementById("upgradeBackBtn").addEventListener("click", () => showScreen(mainMenu));
+  document.getElementById("equipBackBtn").addEventListener("click", () => showScreen(mainMenu));
+  ovMenuBtn.addEventListener("click", () => showScreen(mainMenu));
+
   window.addEventListener("keydown", (e) => {
+    if (appEl.classList.contains("hidden")) return;
     if (!G.running || G.over) {
       if (e.key === "Enter") startGame();
       return;
@@ -347,6 +465,7 @@
       ? `You crushed the enemy base in ${G.time.toFixed(0)}s. Well fought, general!`
       : "Your base was destroyed. Regroup and try again — deploy meatshields, then push with damage cats.";
     ovBtn.textContent = "Play Again";
+    ovMenuBtn.classList.remove("hidden");
     overlay.classList.remove("hidden");
   }
 
