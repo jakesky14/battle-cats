@@ -156,8 +156,8 @@
   // Config
   // ---------------------------------------------------------------------------
   const FIELD = 1000;                 // logical battlefield length
-  const P_BASE_X = 40;                // player base position
-  const E_BASE_X = FIELD - 40;        // enemy base position
+  const P_BASE_X = FIELD - 40;         // player base position (right side)
+  const E_BASE_X = 40;                 // enemy base position (left side)
   const PLAYER_BASE_HP = 4000;
   const ENEMY_BASE_HP  = 12000;
 
@@ -178,7 +178,7 @@
     { id:"cow",    name:"Cow Cat",   emoji:"🐮", cost:750,  hp:1250, dmg:32,  range:140*RANGE_SCALE, cycle:0.33, fore:0.20, tgt:"single", speed:30*SPEED_SCALE, cd:2,    trait:"Traitless", strongAgainst:[],      color:"#ffe0e0" },
     { id:"fish",   name:"Fish Cat",  emoji:"🐟", cost:1200, hp:1750, dmg:450, range:150*RANGE_SCALE, cycle:1.77, fore:0.33, tgt:"single", speed:10*SPEED_SCALE, cd:4.2,  trait:"Traitless", strongAgainst:[],      color:"#4fd0d8" },
     { id:"lizard", name:"Lizard Cat",emoji:"🦎", cost:1500, hp:2000, dmg:875, range:400*RANGE_SCALE, cycle:4.30, fore:0.33, tgt:"single", speed:10*SPEED_SCALE, cd:10.2, trait:"Traitless", strongAgainst:[],      color:"#8be06a" },
-    { id:"titan",  name:"Titan Cat", emoji:"👹", cost:650,  hp:2800, dmg:220, range:52,              cycle:2.4,  fore:0.6,  tgt:"single", speed:20,             cd:30,   trait:"Traitless", strongAgainst:[],      color:"#ff8c3b" },
+    { id:"titan",  name:"Titan Cat", emoji:"👹", cost:1950, hp:2500, dmg:700, range:150*RANGE_SCALE, cycle:2.23, fore:0.6,  tgt:"area",   speed:8*SPEED_SCALE,  cd:18.2, trait:"Traitless", strongAgainst:[],      color:"#ff8c3b" },
   ];
 
   // Enemy roster.
@@ -191,10 +191,10 @@
     boss:   { name:"Teacher Bun", emoji:"👿", hp:4500, dmg:170, range:60, cycle:2.0, fore:0.4, tgt:"single", speed:20, trait:"Traitless", color:"#c04040", w:54 },
   };
 
-  const WORKER_MAX = 20;
+  const WORKER_MAX = 8;
   const workerIncome = lv => 170 * Math.pow(1.05, lv - 1); // ¢/sec, +5% per level
-  const workerWallet = lv => 320 + 220 * (lv - 1);     // wallet cap
-  const workerCost   = lv => Math.floor(90 * Math.pow(1.55, lv - 1)); // cost to reach lv+1
+  const workerWallet = () => 200;                      // wallet cap (flat, no Cat Bank upgrade yet)
+  const workerCost   = lv => 100 * lv;                  // cost to reach lv+1
 
   // ---------------------------------------------------------------------------
   // State
@@ -263,7 +263,7 @@
     G.cooldowns[i] = c.cd;
     G.units.push({
       def: c, team: "player",
-      x: P_BASE_X + 10,
+      x: P_BASE_X - 10,
       hp: c.hp, max: c.hp,
       swing: -1, swung: false, flash: 0, w: 30,
     });
@@ -282,7 +282,7 @@
     const e = ENEMIES[type];
     G.units.push({
       def: e, team: "enemy",
-      x: E_BASE_X - 10,
+      x: E_BASE_X + 10,
       hp: e.hp, max: e.hp,
       swing: -1, swung: false, flash: 0, w: e.w,
     });
@@ -404,7 +404,7 @@
     for (const u of G.units) {
       if (u.hp <= 0) continue;
       if (u.flash > 0) u.flash = Math.max(0, u.flash - dt);
-      const dir = u.team === "player" ? 1 : -1;
+      const dir = u.team === "player" ? -1 : 1;
       const targets = targetsInRange(u);
 
       if (targets.length > 0) {
@@ -425,7 +425,7 @@
       } else {
         u.swing = -1;
         u.x += dir * u.def.speed * dt;
-        u.x = Math.max(P_BASE_X + 6, Math.min(E_BASE_X - 6, u.x));
+        u.x = Math.max(E_BASE_X + 6, Math.min(P_BASE_X - 6, u.x));
       }
     }
 
@@ -476,7 +476,7 @@
   function drawBase(base, groundY, isEnemy) {
     const x = X(base.x), w = view.w;
     const bw = 46, bh = 90;
-    const bx = isEnemy ? x - bw + 18 : x - 18;
+    const bx = isEnemy ? x - 18 : x - bw + 18;
     const by = groundY - bh + 6;
     ctx.fillStyle = isEnemy ? "#6b3b3b" : "#3b526b";
     ctx.strokeStyle = base.flash > 0 ? "#fff" : "rgba(0,0,0,.4)";
@@ -510,7 +510,7 @@
     // body
     ctx.save();
     ctx.translate(x, y - bodyH / 2);
-    if (!isPlayer) ctx.scale(-1, 1); // face left
+    if (isPlayer) ctx.scale(-1, 1); // face left
     ctx.fillStyle = u.flash > 0 ? "#ffffff" : (d.color || "#ddd");
     ctx.strokeStyle = isPlayer ? "rgba(30,40,70,.6)" : "rgba(60,20,20,.6)";
     ctx.lineWidth = 2;
@@ -522,15 +522,6 @@
     ctx.font = Math.round(bodyH * 0.62) + "px serif";
     ctx.textAlign = "center"; ctx.textBaseline = "middle";
     ctx.fillText(d.emoji, x, y - bodyH / 2);
-
-    // hp bar
-    const ratio = Math.max(0, u.hp / u.max);
-    const bw = Math.max(24, bodyW);
-    const by = y - bodyH - 8;
-    ctx.fillStyle = "rgba(0,0,0,.55)";
-    ctx.fillRect(x - bw / 2, by, bw, 4);
-    ctx.fillStyle = isPlayer ? "#7fe0a0" : "#ff7b7b";
-    ctx.fillRect(x - bw / 2, by, bw * ratio, 4);
   }
 
   function drawFx(groundY) {
