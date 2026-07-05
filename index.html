@@ -391,16 +391,17 @@
   const RANGE_SCALE = 0.4;
   // trait = this unit's own trait (matters when an enemy is strongAgainst it).
   // strongAgainst = enemy traits this unit deals 1.5x damage to, and takes 0.5x damage from.
+  // kb = knockback count: gets knocked back after losing each 1/kb chunk of max HP (last one on death).
   const CATS = [
-    { id:"cat",    name:"Cat",       emoji:"🐱", cost:75,   hp:250,  dmg:20,  range:140*RANGE_SCALE, cycle:1.23, fore:0.27, tgt:"single", speed:8*SPEED_SCALE,  cd:2,    trait:"Traitless", strongAgainst:[],      color:"#f4f4f4" },
-    { id:"tank",   name:"Tank Cat",  emoji:"🛡️", cost:150,  hp:1000, dmg:5,   range:110*RANGE_SCALE, cycle:2.23, fore:0.27, tgt:"area",   speed:8*SPEED_SCALE,  cd:2,    trait:"Traitless", strongAgainst:[],      color:"#c9a26a" },
-    { id:"axe",    name:"Axe Cat",   emoji:"🪓", cost:300,  hp:500,  dmg:62,  range:150*RANGE_SCALE, cycle:0.90, fore:0.27, tgt:"single", speed:12*SPEED_SCALE, cd:2,    trait:"Traitless", strongAgainst:["Red"], color:"#e06b4a" },
-    { id:"gross",  name:"Gross Cat", emoji:"🤢", cost:600,  hp:1000, dmg:250, range:350*RANGE_SCALE, cycle:4.23, fore:0.27, tgt:"single", speed:10*SPEED_SCALE, cd:2.2,  trait:"Traitless", strongAgainst:[],      color:"#7cc36a" },
-    { id:"bird",   name:"Bird Cat",  emoji:"🐦", cost:975,  hp:750,  dmg:350, range:170*RANGE_SCALE, cycle:1.63, fore:0.33, tgt:"area",   speed:10*SPEED_SCALE, cd:2,    trait:"Traitless", strongAgainst:[],      color:"#5fb0ff" },
-    { id:"cow",    name:"Cow Cat",   emoji:"🐮", cost:750,  hp:1250, dmg:32,  range:140*RANGE_SCALE, cycle:0.33, fore:0.20, tgt:"single", speed:30*SPEED_SCALE, cd:2,    trait:"Traitless", strongAgainst:[],      color:"#ffe0e0" },
-    { id:"fish",   name:"Fish Cat",  emoji:"🐟", cost:1200, hp:1750, dmg:450, range:150*RANGE_SCALE, cycle:1.77, fore:0.33, tgt:"single", speed:10*SPEED_SCALE, cd:4.2,  trait:"Traitless", strongAgainst:[],      color:"#4fd0d8" },
-    { id:"lizard", name:"Lizard Cat",emoji:"🦎", cost:1500, hp:2000, dmg:875, range:400*RANGE_SCALE, cycle:4.30, fore:0.33, tgt:"single", speed:10*SPEED_SCALE, cd:10.2, trait:"Traitless", strongAgainst:[],      color:"#8be06a" },
-    { id:"titan",  name:"Titan Cat", emoji:"👹", cost:1950, hp:2500, dmg:700, range:150*RANGE_SCALE, cycle:2.23, fore:0.6,  tgt:"area",   speed:8*SPEED_SCALE,  cd:18.2, trait:"Traitless", strongAgainst:[],      color:"#ff8c3b" },
+    { id:"cat",    name:"Cat",       emoji:"🐱", cost:75,   hp:250,  dmg:20,  range:140*RANGE_SCALE, cycle:1.23, fore:0.27, tgt:"single", speed:8*SPEED_SCALE,  cd:2,    kb:3, trait:"Traitless", strongAgainst:[],      color:"#f4f4f4" },
+    { id:"tank",   name:"Tank Cat",  emoji:"🛡️", cost:150,  hp:1000, dmg:5,   range:110*RANGE_SCALE, cycle:2.23, fore:0.27, tgt:"area",   speed:8*SPEED_SCALE,  cd:2,    kb:1, trait:"Traitless", strongAgainst:[],      color:"#c9a26a" },
+    { id:"axe",    name:"Axe Cat",   emoji:"🪓", cost:300,  hp:500,  dmg:62,  range:150*RANGE_SCALE, cycle:0.90, fore:0.27, tgt:"single", speed:12*SPEED_SCALE, cd:2,    kb:3, trait:"Traitless", strongAgainst:["Red"], color:"#e06b4a" },
+    { id:"gross",  name:"Gross Cat", emoji:"🤢", cost:600,  hp:1000, dmg:250, range:350*RANGE_SCALE, cycle:4.23, fore:0.27, tgt:"single", speed:10*SPEED_SCALE, cd:2.2,  kb:3, trait:"Traitless", strongAgainst:[],      color:"#7cc36a" },
+    { id:"bird",   name:"Bird Cat",  emoji:"🐦", cost:975,  hp:750,  dmg:350, range:170*RANGE_SCALE, cycle:1.63, fore:0.33, tgt:"area",   speed:10*SPEED_SCALE, cd:2,    kb:4, trait:"Traitless", strongAgainst:[],      color:"#5fb0ff" },
+    { id:"cow",    name:"Cow Cat",   emoji:"🐮", cost:750,  hp:1250, dmg:32,  range:140*RANGE_SCALE, cycle:0.33, fore:0.20, tgt:"single", speed:30*SPEED_SCALE, cd:2,    kb:5, trait:"Traitless", strongAgainst:[],      color:"#ffe0e0" },
+    { id:"fish",   name:"Fish Cat",  emoji:"🐟", cost:1200, hp:1750, dmg:450, range:150*RANGE_SCALE, cycle:1.77, fore:0.33, tgt:"single", speed:10*SPEED_SCALE, cd:4.2,  kb:3, trait:"Traitless", strongAgainst:["Red"], color:"#4fd0d8" },
+    { id:"lizard", name:"Lizard Cat",emoji:"🦎", cost:1500, hp:2000, dmg:875, range:400*RANGE_SCALE, cycle:4.30, fore:0.33, tgt:"single", speed:10*SPEED_SCALE, cd:10.2, kb:3, trait:"Traitless", strongAgainst:[],      color:"#8be06a" },
+    { id:"titan",  name:"Titan Cat", emoji:"👹", cost:1950, hp:2500, dmg:700, range:150*RANGE_SCALE, cycle:2.23, fore:0.6,  tgt:"area",   speed:8*SPEED_SCALE,  cd:18.2, kb:1, trait:"Traitless", strongAgainst:[],      color:"#ff8c3b" },
   ];
 
   // Enemy roster.
@@ -658,7 +659,7 @@
       def: { ...form, dmg: Math.round(form.dmg * mult) }, team: "player",
       x: P_BASE_X - 10,
       hp, max: hp,
-      swing: -1, swung: false, flash: 0, w: 30,
+      swing: -1, swung: false, flash: 0, w: 30, kbCount: 0,
     });
   }
 
@@ -677,7 +678,7 @@
       def: e, team: "enemy",
       x: E_BASE_X + 10,
       hp: e.hp, max: e.hp,
-      swing: -1, swung: false, flash: 0, w: e.w,
+      swing: -1, swung: false, flash: 0, w: e.w, kbCount: 0,
     });
   }
 
@@ -701,6 +702,7 @@
       if (u.x >= lo && u.x <= hi) {
         u.hp -= dmg;
         u.flash = 0.2;
+        applyKnockback(u);
       }
     }
     G.fx.push({ beam: true, x1: beamFrom, x2: beamTo, life: 0.3 });
@@ -976,6 +978,24 @@
     return dmg;
   }
 
+  // Knockback: a unit with kb=N gets pushed back once per 1/N chunk of max HP lost
+  // (the Nth and final knockback lands exactly at death). Bases have no kb stat.
+  const KNOCKBACK_DISTANCE = 24;
+  function applyKnockback(u) {
+    if (!u.def) return;
+    const kb = u.def.kb || 1;
+    while (u.kbCount < kb) {
+      const thresholdHp = u.max * (kb - (u.kbCount + 1)) / kb;
+      if (u.hp > thresholdHp + 1e-6) break;
+      const pushDir = u.team === "player" ? 1 : -1;
+      u.x = Math.max(E_BASE_X + 6, Math.min(P_BASE_X - 6, u.x + pushDir * KNOCKBACK_DISTANCE));
+      u.swing = -1;
+      u.swung = false;
+      u.flash = 0.2;
+      u.kbCount++;
+    }
+  }
+
   function update(dt) {
     G.time += dt;
 
@@ -1023,6 +1043,7 @@
           for (const t of hits) {
             t.hp -= damageAmount(u, t);
             t.flash = 0.12;
+            applyKnockback(t);
           }
           G.fx.push({ x: (u.x + hits[0].x) / 2, y: 0, life: 0.25, t: u.team });
         }
