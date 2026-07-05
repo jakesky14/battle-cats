@@ -290,6 +290,67 @@
   #cannonBtn:disabled { filter: grayscale(.5) brightness(.8); cursor: not-allowed; }
   .cannon-bar { height: 8px; background: #0d1018; border-radius: 6px; overflow: hidden; margin-top: 4px; border: 1px solid var(--edge); width: 130px; }
   #cannonFill { height: 100%; width: 0%; background: linear-gradient(90deg,#ff8a4c,#ffd35a); transition: width .08s linear; }
+
+  #quitBtn {
+    background: transparent; color: var(--bad); border: 2px solid var(--bad);
+    border-radius: 10px; padding: 8px 14px; font-weight: 700; cursor: pointer; font-size: 13px;
+  }
+
+  .capsule-row {
+    position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 12px;
+  }
+  .capsule-btn, .storage-btn {
+    border: none; border-radius: 10px; padding: 12px 22px;
+    font-weight: 800; font-size: 15px; cursor: pointer;
+    box-shadow: 0 4px 0 rgba(0,0,0,.3);
+  }
+  .capsule-btn { background: linear-gradient(180deg,#ffcf3f,#f0a800); color: #201800; }
+  .storage-btn { background: linear-gradient(180deg,#8fb8ff,#4d78d0); color: #fff; }
+
+  .capsule-main { display: flex; flex-direction: column; align-items: center; margin-top: 50px; gap: 14px; }
+  .capsule-icon { font-size: 100px; }
+  .capsule-icon.spinning { animation: capsule-spin 1.2s linear; }
+  @keyframes capsule-spin { from { transform: rotate(0deg); } to { transform: rotate(1080deg); } }
+  .capsule-tickets { color: #f4e2b8; font-weight: 700; }
+  .capsule-roll-btn {
+    background: linear-gradient(180deg,#ffe45a,#f0a800); color: #4a2e00;
+    border: none; border-radius: 10px; padding: 14px 28px; font-weight: 900; font-size: 16px; cursor: pointer;
+    box-shadow: 0 4px 0 rgba(0,0,0,.35);
+  }
+  .capsule-roll-btn:disabled { filter: grayscale(.6) brightness(.7); cursor: not-allowed; }
+
+  .capsule-reveal {
+    position: absolute; inset: 0;
+    background: #4a4a4a;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
+  }
+  .reveal-icon { font-size: 90px; }
+  .reveal-name {
+    background: rgba(0,0,0,.4); color: #fff; padding: 8px 20px; border-radius: 8px;
+    font-weight: 800; font-size: 16px;
+  }
+  .reveal-buttons { display: flex; gap: 12px; }
+  .reveal-buttons button {
+    border: none; border-radius: 10px; padding: 12px 18px; font-weight: 800; cursor: pointer; font-size: 13px;
+  }
+  #revealUseBtn { background: linear-gradient(180deg,#6fd08a,#2f9d55); color: #fff; }
+  #revealXpBtn { background: linear-gradient(180deg,#5fb0ff,#1f74dd); color: #fff; }
+  #revealOkBtn { background: linear-gradient(180deg,#ffcf3f,#f0a800); color: #201800; }
+
+  .storage-list { margin-top: 20px; display: flex; flex-direction: column; gap: 8px; max-width: 460px; }
+  .storage-empty { color: #f4e2b8; opacity: .8; }
+  .storage-item {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    background: rgba(0,0,0,.3); border-radius: 8px; padding: 10px 14px;
+  }
+  .storage-item .si-name { font-weight: 800; color: #f4e2b8; }
+  .storage-item .si-buttons { display: flex; gap: 8px; }
+  .storage-item .si-buttons button {
+    border: none; border-radius: 8px; padding: 6px 12px; font-weight: 700; font-size: 12px; cursor: pointer;
+  }
+  .si-use { background: linear-gradient(180deg,#6fd08a,#2f9d55); color: #fff; }
+  .si-xp { background: linear-gradient(180deg,#5fb0ff,#1f74dd); color: #fff; }
 </style>
 
 <div id="mainMenu" class="screen">
@@ -301,6 +362,10 @@
   </div>
   <div class="energy-display">⚡ Energy: <span id="energyAmt">100</span> / <span id="energyMax">100</span></div>
   <div class="cat-food">🍡 Cat Food: <span id="catFoodAmt">0</span></div>
+  <div class="capsule-row">
+    <button class="capsule-btn" id="menuCapsuleBtn">🎰 CAT CAPSULE</button>
+    <button class="storage-btn" id="menuStorageBtn">📦 Storage</button>
+  </div>
 </div>
 
 <div id="upgradeScreen" class="screen hidden">
@@ -335,6 +400,34 @@
   <button class="back-btn" id="equipBackBtn">Back</button>
 </div>
 
+<div id="capsuleScreen" class="screen hidden">
+  <div class="screen-title">Rare Capsule Machine</div>
+  <div class="xp-display">XP <span id="capsuleXpAmt">0</span></div>
+  <div class="capsule-main">
+    <div class="capsule-icon" id="capsuleIcon">🎁</div>
+    <div class="capsule-tickets">Tickets: <span id="capsuleTicketAmt">0</span></div>
+    <button class="capsule-roll-btn" id="capsuleRollBtn">NO TICKETS</button>
+  </div>
+  <button class="back-btn" id="capsuleBackBtn">Back</button>
+
+  <div id="capsuleReveal" class="capsule-reveal hidden">
+    <div class="reveal-icon" id="revealIcon"></div>
+    <div class="reveal-name" id="revealName"></div>
+    <div class="reveal-buttons">
+      <button id="revealUseBtn">Use Now</button>
+      <button id="revealXpBtn">Change to XP</button>
+      <button id="revealOkBtn">OK</button>
+    </div>
+  </div>
+</div>
+
+<div id="storageScreen" class="screen hidden">
+  <div class="screen-title">Storage</div>
+  <div class="xp-display">XP <span id="storageXpAmt">0</span></div>
+  <div class="storage-list" id="storageList"></div>
+  <button class="back-btn" id="storageBackBtn">Back</button>
+</div>
+
 <div id="app" class="hidden">
   <div id="hud">
     <div class="money-wrap">
@@ -353,6 +446,7 @@
     </div>
     <div class="basehp player"><div class="label">🏠 Your Base</div><div class="num" id="pBaseHp"></div></div>
     <div class="basehp enemy"><div class="label">🏰 Enemy Base</div><div class="num" id="eBaseHp"></div></div>
+    <button id="quitBtn">Quit</button>
   </div>
 
   <div id="field">
@@ -427,7 +521,7 @@
 
   const XP_PER_WIN = 1000;
   const catLevelMult = lv => 1 + 0.2 * (lv - 1);        // +20% of base HP/DMG per level
-  const CAT_LEVEL_MAX = 50;
+  const CAT_LEVEL_MAX = 20;
   const EVOLVE_LEVEL = 10;
 
   // Evolved (2nd) forms, unlocked at level 10. Only name/emoji change for most cats;
@@ -506,14 +600,16 @@
              41:8000,42:14000,43:24800,44:39200,45:57200,46:78800,47:104000,48:132800,49:165200,50:201200},
   };
   function catXpCost(id, lvl) {
+    if (lvl >= CAT_LEVEL_MAX) return undefined;
     const table = CAT_XP_TABLE[id];
     return table ? table[lvl + 1] : undefined;
   }
 
-  // Persistent meta-progression: survives between battles (not just per-battle G state).
+  // Persistent meta-progression: survives between battles, and across reloads via localStorage.
   const profile = {
     xp: 0,
     catLevels: Object.fromEntries(CATS.map(c => [c.id, 1])),
+    catPlus: Object.fromEntries(CATS.map(c => [c.id, 0])), // "+N" bonus levels past the lv20 cap
     equip: ["cat", null, null, null, null, null, null, null, null, null],
     meta: {
       cannonPower: 1, cannonRange: 1, cannonCharge: 1,
@@ -522,9 +618,31 @@
     },
     energy: 100,
     lastEnergyTs: Date.now(),
+    tickets: 3,       // starting tickets; no earn mechanism exists yet, this is just to make testing possible
+    storage: [],      // capsule rewards banked via "OK", each {type:"cat", id} or {type:"orb"}
   };
 
+  const SAVE_KEY = "battleCatsProfile";
+  function saveProfile() {
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify(profile)); } catch (e) {}
+  }
+  function loadProfile() {
+    let saved;
+    try { saved = JSON.parse(localStorage.getItem(SAVE_KEY)); } catch (e) { return; }
+    if (!saved) return;
+    if (typeof saved.xp === "number") profile.xp = saved.xp;
+    if (saved.catLevels) Object.assign(profile.catLevels, saved.catLevels);
+    if (saved.catPlus) Object.assign(profile.catPlus, saved.catPlus);
+    if (Array.isArray(saved.equip) && saved.equip.length === profile.equip.length) profile.equip = saved.equip;
+    if (saved.meta) Object.assign(profile.meta, saved.meta);
+    if (typeof saved.energy === "number") profile.energy = saved.energy;
+    if (typeof saved.lastEnergyTs === "number") profile.lastEnergyTs = saved.lastEnergyTs;
+    if (typeof saved.tickets === "number") profile.tickets = saved.tickets;
+    if (Array.isArray(saved.storage)) profile.storage = saved.storage;
+  }
+
   const META_MAX = 20;
+  const metaMax = key => key === "cannonRange" ? 10 : META_MAX;
   const metaCost = lv => 400 * lv; // XP cost to reach lv+1 (uniform placeholder across all 10 stats)
   const META_LIST = [
     { key: "cannonPower",  label: "CAT CANNON POWER" },
@@ -546,6 +664,7 @@
     if (gained > 0) {
       profile.energy = Math.min(energyMax(), profile.energy + gained);
       profile.lastEnergyTs += gained * 60000;
+      saveProfile();
     }
   }
 
@@ -652,8 +771,9 @@
     G.money -= c.cost;
     G.cooldowns[i] = Math.max(0.2, c.cd - cdReduction());
     const lvl = profile.catLevels[c.id] || 1;
+    const plus = profile.catPlus[c.id] || 0;
     const form = evolvedForm(c, lvl);
-    const mult = catLevelMult(lvl);
+    const mult = catLevelMult(lvl + plus);
     const hp = Math.round(form.hp * mult);
     G.units.push({
       def: { ...form, dmg: Math.round(form.dmg * mult) }, team: "player",
@@ -736,6 +856,12 @@
 
   workerBtn.addEventListener("click", upgradeWorker);
   cannonBtn.addEventListener("click", fireCannon);
+  document.getElementById("quitBtn").addEventListener("click", () => {
+    if (!G.running) return;
+    G.running = false;
+    G.over = true;
+    showScreen(mainMenu);
+  });
 
   ovBtn.addEventListener("click", () => {
     if (G && G.running) return;
@@ -748,6 +874,8 @@
   const mainMenu = document.getElementById("mainMenu");
   const upgradeScreen = document.getElementById("upgradeScreen");
   const equipScreen = document.getElementById("equipScreen");
+  const capsuleScreen = document.getElementById("capsuleScreen");
+  const storageScreen = document.getElementById("storageScreen");
   const appEl = document.getElementById("app");
   const energyAmtEl = document.getElementById("energyAmt");
   const energyMaxEl = document.getElementById("energyMax");
@@ -764,7 +892,7 @@
   }
 
   function showScreen(el) {
-    [mainMenu, upgradeScreen, equipScreen, appEl].forEach(s => s.classList.add("hidden"));
+    [mainMenu, upgradeScreen, equipScreen, capsuleScreen, storageScreen, appEl].forEach(s => s.classList.add("hidden"));
     el.classList.remove("hidden");
     if (el === mainMenu) renderMainMenu();
   }
@@ -773,6 +901,7 @@
     regenEnergy();
     if (profile.energy < ENERGY_PER_BATTLE) { renderMainMenu(); return; }
     profile.energy -= ENERGY_PER_BATTLE;
+    saveProfile();
     buildDock();
     showScreen(appEl);
     resize();
@@ -786,8 +915,18 @@
     renderEquipScreen();
     showScreen(equipScreen);
   });
+  document.getElementById("menuCapsuleBtn").addEventListener("click", () => {
+    renderCapsuleScreen();
+    showScreen(capsuleScreen);
+  });
+  document.getElementById("menuStorageBtn").addEventListener("click", () => {
+    renderStorageScreen();
+    showScreen(storageScreen);
+  });
   document.getElementById("upgradeBackBtn").addEventListener("click", () => showScreen(mainMenu));
   document.getElementById("equipBackBtn").addEventListener("click", () => showScreen(mainMenu));
+  document.getElementById("capsuleBackBtn").addEventListener("click", () => showScreen(mainMenu));
+  document.getElementById("storageBackBtn").addEventListener("click", () => showScreen(mainMenu));
   ovMenuBtn.addEventListener("click", () => showScreen(mainMenu));
 
   // ---------------------------------------------------------------------------
@@ -808,10 +947,11 @@
     metaGridEl.innerHTML = "";
     META_LIST.forEach(m => {
       const lv = profile.meta[m.key];
+      const max = metaMax(m.key);
       const el = document.createElement("div");
-      if (lv >= META_MAX) {
+      if (lv >= max) {
         el.className = "meta-btn maxed";
-        el.innerHTML = `<div class="meta-name">${m.label}</div><div class="meta-lv">MAX (Lv ${META_MAX})</div>`;
+        el.innerHTML = `<div class="meta-name">${m.label}</div><div class="meta-lv">MAX (Lv ${max})</div>`;
       } else {
         const cost = metaCost(lv);
         el.className = "meta-btn" + (profile.xp < cost ? " disabled" : "");
@@ -820,6 +960,7 @@
           if (profile.xp < cost) return;
           profile.xp -= cost;
           profile.meta[m.key] = lv + 1;
+          saveProfile();
           renderUpgradeScreen();
         });
       }
@@ -829,6 +970,7 @@
 
   testXpBtn.addEventListener("click", () => {
     profile.xp += 100000;
+    saveProfile();
     renderUpgradeScreen();
   });
 
@@ -845,12 +987,13 @@
 
     const base = CATS.find(c => c.id === selectedUpgradeCat);
     const lvl = profile.catLevels[base.id];
+    const plus = profile.catPlus[base.id] || 0;
     const c = evolvedForm(base, lvl);
     const need = catXpCost(base.id, lvl);
-    const mult = catLevelMult(lvl);
+    const mult = catLevelMult(lvl + plus);
     upgradeXpAmt.textContent = Math.floor(profile.xp);
     upgradeCatName.textContent = c.name;
-    upgradeCatLevel.textContent = "Level " + lvl + " / " + CAT_LEVEL_MAX;
+    upgradeCatLevel.textContent = "Level " + lvl + " / " + CAT_LEVEL_MAX + (plus > 0 ? " +" + plus : "");
     upgradeDesc.textContent = `HP ${Math.round(c.hp * mult)} · DMG ${Math.round(c.dmg * mult)} · Cost ¢${c.cost}`;
     if (need === undefined) {
       upgradeCatNeed.textContent = "MAX LEVEL";
@@ -869,6 +1012,7 @@
     if (need === undefined || profile.xp < need) return;
     profile.xp -= need;
     profile.catLevels[c.id] = lvl + 1;
+    saveProfile();
     renderUpgradeScreen();
   });
 
@@ -915,9 +1059,148 @@
         equipDetailName.textContent = form.name;
         equipDetailLevel.textContent = "Level " + profile.catLevels[c.id];
         equipDetailCost.textContent = "Cost ¢" + c.cost;
+        saveProfile();
         renderEquipScreen();
       });
       equipGridEl.appendChild(el);
+    });
+  }
+
+  // ---------------------------------------------------------------------------
+  // Cat Capsule: spend tickets for a random cat (duplicate -> "+1" bonus level past
+  // the lv20 cap) or an Orb (bonus level to every meta-upgrade). Bank via OK, or
+  // resolve immediately with Use Now / Change to XP.
+  // ---------------------------------------------------------------------------
+  const CAPSULE_POOL = [...CATS.map(c => ({ type: "cat", id: c.id })), { type: "orb" }];
+
+  function rollCapsule() {
+    return CAPSULE_POOL[Math.floor(Math.random() * CAPSULE_POOL.length)];
+  }
+  function rewardName(reward) {
+    if (reward.type === "orb") return "Orb";
+    return CATS.find(c => c.id === reward.id).name;
+  }
+  function rewardEmoji(reward) {
+    if (reward.type === "orb") return "🔮";
+    return CATS.find(c => c.id === reward.id).emoji;
+  }
+  function xpTradeValue(reward) {
+    if (reward.type === "orb") return 25000;
+    const c = CATS.find(c => c.id === reward.id);
+    const costs = CATS.map(x => x.cost);
+    const minC = Math.min(...costs), maxC = Math.max(...costs);
+    return Math.round(10000 + 15000 * (c.cost - minC) / (maxC - minC));
+  }
+  function applyRewardUseNow(reward) {
+    if (reward.type === "orb") {
+      META_LIST.forEach(m => {
+        profile.meta[m.key] = Math.min(metaMax(m.key), profile.meta[m.key] + 1);
+      });
+    } else {
+      profile.catPlus[reward.id] = (profile.catPlus[reward.id] || 0) + 1;
+    }
+    saveProfile();
+  }
+  function applyRewardToXp(reward) {
+    profile.xp += xpTradeValue(reward);
+    saveProfile();
+  }
+
+  const capsuleXpAmt = document.getElementById("capsuleXpAmt");
+  const capsuleIcon = document.getElementById("capsuleIcon");
+  const capsuleTicketAmt = document.getElementById("capsuleTicketAmt");
+  const capsuleRollBtn = document.getElementById("capsuleRollBtn");
+  const capsuleReveal = document.getElementById("capsuleReveal");
+  const revealIcon = document.getElementById("revealIcon");
+  const revealName = document.getElementById("revealName");
+  const revealUseBtn = document.getElementById("revealUseBtn");
+  const revealXpBtn = document.getElementById("revealXpBtn");
+  const revealOkBtn = document.getElementById("revealOkBtn");
+  let pullQueue = [];
+
+  function renderCapsuleScreen() {
+    capsuleXpAmt.textContent = Math.floor(profile.xp);
+    capsuleTicketAmt.textContent = profile.tickets;
+    capsuleReveal.classList.add("hidden");
+    capsuleIcon.classList.remove("spinning");
+    capsuleIcon.textContent = "🎁";
+    if (profile.tickets <= 0) {
+      capsuleRollBtn.textContent = "NO TICKETS";
+      capsuleRollBtn.disabled = true;
+    } else if (profile.tickets === 1) {
+      capsuleRollBtn.textContent = "TRY ONCE";
+      capsuleRollBtn.disabled = false;
+    } else {
+      capsuleRollBtn.textContent = "TRY " + profile.tickets + " TIMES";
+      capsuleRollBtn.disabled = false;
+    }
+  }
+
+  function showNextReveal() {
+    if (pullQueue.length === 0) { renderCapsuleScreen(); return; }
+    const reward = pullQueue[0];
+    revealName.textContent = rewardName(reward);
+    revealIcon.textContent = rewardEmoji(reward);
+    capsuleReveal.classList.remove("hidden");
+  }
+
+  function resolveReveal(action) {
+    const reward = pullQueue.shift();
+    if (action === "use") applyRewardUseNow(reward);
+    else if (action === "xp") applyRewardToXp(reward);
+    else if (action === "ok") { profile.storage.push(reward); saveProfile(); }
+    showNextReveal();
+  }
+
+  capsuleRollBtn.addEventListener("click", () => {
+    if (profile.tickets <= 0) return;
+    const count = profile.tickets;
+    profile.tickets = 0;
+    pullQueue = Array.from({ length: count }, rollCapsule);
+    saveProfile();
+    capsuleRollBtn.disabled = true;
+    capsuleIcon.classList.add("spinning");
+    setTimeout(() => {
+      capsuleIcon.classList.remove("spinning");
+      showNextReveal();
+    }, 1200);
+  });
+  revealUseBtn.addEventListener("click", () => resolveReveal("use"));
+  revealXpBtn.addEventListener("click", () => resolveReveal("xp"));
+  revealOkBtn.addEventListener("click", () => resolveReveal("ok"));
+
+  const storageXpAmt = document.getElementById("storageXpAmt");
+  const storageListEl = document.getElementById("storageList");
+
+  function renderStorageScreen() {
+    storageXpAmt.textContent = Math.floor(profile.xp);
+    storageListEl.innerHTML = "";
+    if (profile.storage.length === 0) {
+      storageListEl.innerHTML = '<div class="storage-empty">Storage is empty.</div>';
+      return;
+    }
+    profile.storage.forEach((reward, i) => {
+      const el = document.createElement("div");
+      el.className = "storage-item";
+      el.innerHTML =
+        `<div class="si-name">${rewardEmoji(reward)} ${rewardName(reward)}</div>` +
+        `<div class="si-buttons">` +
+        `<button class="si-use">Use Now</button>` +
+        `<button class="si-xp">Change to XP (${xpTradeValue(reward)})</button>` +
+        `</div>`;
+      el.querySelector(".si-use").addEventListener("click", () => {
+        applyRewardUseNow(reward);
+        profile.storage.splice(i, 1);
+        saveProfile();
+        renderStorageScreen();
+      });
+      el.querySelector(".si-xp").addEventListener("click", () => {
+        applyRewardToXp(reward);
+        profile.storage.splice(i, 1);
+        saveProfile();
+        renderStorageScreen();
+      });
+      storageListEl.appendChild(el);
     });
   }
 
@@ -945,6 +1228,7 @@
     G.running = false;
     G.won = won;
     if (won) profile.xp += Math.round(XP_PER_WIN * winXpMult());
+    saveProfile();
     ovTitle.textContent = won ? "🎉 Victory!" : "💀 Defeat";
     ovText.textContent = won
       ? `You crushed the enemy base in ${G.time.toFixed(0)}s. Well fought, general! +${XP_PER_WIN} XP`
@@ -1254,6 +1538,7 @@
     requestAnimationFrame(frame);
   }
 
+  loadProfile();
   buildDock();
   newGame();
   resize();
