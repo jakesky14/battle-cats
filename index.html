@@ -269,6 +269,25 @@
   .restart-btn { background: #b3322f; }
   .test-btn:disabled { filter: grayscale(.6) brightness(.7); cursor: not-allowed; }
 
+  .daily-modal {
+    position: absolute; inset: 0;
+    background: rgba(0,0,0,.6);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .daily-modal-inner {
+    background: linear-gradient(160deg, #8a5a34, #5a3a20);
+    border: 3px solid #3f2a17; border-radius: 14px;
+    padding: 30px 40px; display: flex; flex-direction: column; align-items: center; gap: 16px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.5);
+  }
+  .daily-modal-title { font-size: 24px; font-weight: 800; color: #f4e2b8; }
+  .daily-modal-desc { color: #e8ecf6; font-size: 15px; text-align: center; }
+  .daily-claim-btn {
+    background: linear-gradient(180deg,#ffcf3f,#f0a800); color: #201800;
+    border: none; border-radius: 10px; padding: 12px 30px; font-weight: 800; font-size: 16px; cursor: pointer;
+    box-shadow: 0 4px 0 rgba(0,0,0,.3);
+  }
+
   .meta-grid {
     margin-top: 18px; display: grid; grid-template-columns: repeat(2, 1fr);
     gap: 8px; max-width: 460px;
@@ -371,6 +390,14 @@
     <button class="capsule-btn" id="menuCapsuleBtn">🎰 CAT CAPSULE</button>
     <button class="storage-btn" id="menuStorageBtn">📦 Storage</button>
   </div>
+
+  <div id="dailyRewardModal" class="daily-modal hidden">
+    <div class="daily-modal-inner">
+      <div class="daily-modal-title">🎁 Daily Reward!</div>
+      <div class="daily-modal-desc" id="dailyRewardDesc"></div>
+      <button class="daily-claim-btn" id="dailyClaimBtn">Claim</button>
+    </div>
+  </div>
 </div>
 
 <div id="upgradeScreen" class="screen hidden">
@@ -379,6 +406,7 @@
   <div class="test-row">
     <button class="test-btn" id="testXpBtn">TEST: +100,000 XP</button>
     <button class="test-btn" id="testPlusBtn">TEST: +1 PLUS LEVEL</button>
+    <button class="test-btn" id="testDailyBtn">DAILY REWARD IN 2 MINUTES</button>
     <button class="test-btn testmode-btn" id="testModeBtn">TEST MODE: OFF</button>
     <button class="test-btn restart-btn" id="restartGameBtn">RESTART GAME</button>
   </div>
@@ -678,6 +706,7 @@
     tickets: 3,       // starting tickets; no earn mechanism exists yet, this is just to make testing possible
     storage: [],      // capsule rewards banked via "OK", each {type:"cat", id} or {type:"orb"}
     testMode: false,  // when on, XP/tickets are kept topped up so testers never run dry
+    nextDailyRewardTs: 0, // 0 = already available; based on real Date.now(), survives tab/computer closing
   };
 
   const TEST_RESOURCE_AMOUNT = 999999;
@@ -706,6 +735,7 @@
     if (typeof saved.tickets === "number") profile.tickets = saved.tickets;
     if (Array.isArray(saved.storage)) profile.storage = saved.storage;
     if (typeof saved.testMode === "boolean") profile.testMode = saved.testMode;
+    if (typeof saved.nextDailyRewardTs === "number") profile.nextDailyRewardTs = saved.nextDailyRewardTs;
   }
 
   const META_MAX = 20;
@@ -952,6 +982,33 @@
   const menuBattleBtnEl = document.getElementById("menuBattleBtn");
   const ENERGY_PER_BATTLE = 10;
 
+  // Daily reward: gated on real Date.now() timestamps stored in the saved profile, so it works
+  // correctly no matter how long the tab/computer was closed - nothing here depends on the page
+  // having stayed open.
+  const DAILY_REWARD_MS = 24 * 60 * 60 * 1000;
+  const DAILY_REWARD_TICKETS = 1;
+  const DAILY_REWARD_XP = 500;
+  const dailyRewardModal = document.getElementById("dailyRewardModal");
+  const dailyRewardDesc = document.getElementById("dailyRewardDesc");
+  const dailyClaimBtn = document.getElementById("dailyClaimBtn");
+
+  function checkDailyReward() {
+    if (Date.now() >= profile.nextDailyRewardTs) {
+      dailyRewardDesc.textContent = `+${DAILY_REWARD_TICKETS} Cat Capsule Ticket, +${DAILY_REWARD_XP} XP`;
+      dailyRewardModal.classList.remove("hidden");
+    } else {
+      dailyRewardModal.classList.add("hidden");
+    }
+  }
+
+  dailyClaimBtn.addEventListener("click", () => {
+    profile.tickets += DAILY_REWARD_TICKETS;
+    profile.xp += DAILY_REWARD_XP;
+    profile.nextDailyRewardTs = Date.now() + DAILY_REWARD_MS;
+    saveProfile();
+    renderMainMenu();
+  });
+
   function renderMainMenu() {
     regenEnergy();
     energyAmtEl.textContent = Math.floor(profile.energy);
@@ -959,6 +1016,7 @@
     const enough = profile.energy >= ENERGY_PER_BATTLE;
     menuBattleBtnEl.disabled = !enough;
     menuBattleBtnEl.style.opacity = enough ? "1" : ".5";
+    checkDailyReward();
   }
 
   function showScreen(el) {
@@ -1054,6 +1112,14 @@
     renderUpgradeScreen();
   });
 
+  const testDailyBtn = document.getElementById("testDailyBtn");
+  testDailyBtn.addEventListener("click", () => {
+    if (!profile.testMode) return;
+    profile.nextDailyRewardTs = Date.now() + 2 * 60 * 1000;
+    saveProfile();
+    renderUpgradeScreen();
+  });
+
   const testModeBtn = document.getElementById("testModeBtn");
   testModeBtn.addEventListener("click", () => {
     profile.testMode = !profile.testMode;
@@ -1073,6 +1139,7 @@
     testModeBtn.textContent = "TEST MODE: " + (profile.testMode ? "ON" : "OFF");
     testModeBtn.classList.toggle("active", profile.testMode);
     testPlusBtn.disabled = !profile.testMode;
+    testDailyBtn.disabled = !profile.testMode;
     catStrip.innerHTML = "";
     CATS.forEach(c => {
       const form = evolvedForm(c, profile.catLevels[c.id] || 1, profile.catPlus[c.id] || 0);
