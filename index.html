@@ -229,16 +229,68 @@
   }
   .settings-lang-btn.active { border-color: #2f9d55; }
 
-  .cat-food {
+  .cat-food-row {
     position: absolute;
     right: 16px;
     bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .cat-food {
     background: rgba(0,0,0,.35);
     border-radius: 8px;
     padding: 12px 24px;
     font-size: 28px;
     font-weight: 700;
   }
+  .store-btn {
+    background: linear-gradient(180deg,#ffcf3f,#f0a800); color: #201800;
+    border: none; border-radius: 8px; padding: 12px 20px;
+    font-weight: 800; font-size: 18px; cursor: pointer;
+    box-shadow: 0 3px 0 rgba(0,0,0,.3);
+  }
+
+  .rank-row {
+    align-self: flex-start;
+    margin-top: 8px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .rank-btn {
+    background: rgba(0,0,0,.35); color: #f4e2b8; border: none; border-radius: 8px;
+    padding: 8px 16px; font-weight: 800; font-size: 14px; cursor: pointer;
+  }
+  .calendar-btn {
+    background: rgba(0,0,0,.35); color: #f4e2b8; border: none; border-radius: 8px;
+    padding: 8px 12px; font-size: 16px; cursor: pointer;
+  }
+
+  .rank-current { color: #f4e2b8; font-size: 18px; font-weight: 800; margin-top: 20px; }
+  .rank-next {
+    background: rgba(0,0,0,.3); border-radius: 8px; padding: 10px 16px;
+    color: #ffe45a; font-weight: 700; margin-top: 10px; max-width: 460px;
+  }
+  .rank-list { margin-top: 16px; display: flex; flex-direction: column; gap: 6px; max-width: 460px; }
+  .rank-list .rank-item { color: #cbb27e; font-size: 13px; }
+
+  .calendar-list { margin-top: 20px; display: flex; flex-direction: column; gap: 8px; max-width: 300px; }
+  .calendar-list .cal-item {
+    background: rgba(0,0,0,.3); border-radius: 8px; padding: 8px 16px;
+    color: #f4e2b8; font-weight: 700; text-align: center;
+  }
+
+  .cat-food-display { position: absolute; top: 18px; right: 16px; color: #ffe89a; font-weight: 800; font-size: 15px; }
+  .store-list { margin-top: 30px; display: flex; flex-direction: column; gap: 8px; max-width: 460px; }
+  .store-list .store-item {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    background: rgba(0,0,0,.3); border-radius: 8px; padding: 10px 16px;
+  }
+  .store-list .store-item .si-name { font-weight: 800; color: #f4e2b8; font-size: 14px; }
+  .store-list .store-item button {
+    background: linear-gradient(180deg,#ffcf3f,#f0a800); color: #201800;
+    border: none; border-radius: 8px; padding: 8px 16px; font-weight: 800; font-size: 13px; cursor: pointer;
+  }
+  .store-list .store-item button:disabled { filter: grayscale(.6) brightness(.7); cursor: not-allowed; }
 
   .placeholder-text { color: #f4e2b8; opacity: .85; margin-top: 30px; }
   .back-btn {
@@ -467,16 +519,23 @@
 
 <div id="mainMenu" class="screen hidden">
   <div class="screen-title" id="lbl-catbase">Cat Base</div>
+  <div class="rank-row">
+    <button class="rank-btn" id="userRankBtn">🏅 Rank <span id="userRankAmt">0</span></button>
+    <button class="calendar-btn" id="calendarBtn">📅</button>
+  </div>
   <div class="menu-buttons">
     <button class="menu-btn battle" id="menuBattleBtn"><span class="ico">⚔️</span><span id="lbl-battle">BATTLE</span></button>
     <button class="menu-btn upgrade" id="menuUpgradeBtn"><span class="ico">⬆️</span><span id="lbl-upgrade">UPGRADE</span></button>
     <button class="menu-btn equip" id="menuEquipBtn"><span class="ico">🐱</span><span id="lbl-equip">EQUIP</span></button>
   </div>
   <div class="energy-display">⚡ Energy: <span id="energyAmt">100</span> / <span id="energyMax">100</span></div>
-  <div class="cat-food">🍡 Cat Food: <span id="catFoodAmt">0</span></div>
+  <div class="cat-food-row">
+    <button class="store-btn" id="storeBtn">🏪 Store</button>
+    <div class="cat-food">🍡 Cat Food: <span id="catFoodAmt">0</span></div>
+  </div>
   <div class="capsule-row">
-    <button class="capsule-btn" id="menuCapsuleBtn">🎰 CAT CAPSULE</button>
     <button class="storage-btn" id="menuStorageBtn">📦 Storage</button>
+    <button class="capsule-btn" id="menuCapsuleBtn">🎰 CAT CAPSULE</button>
   </div>
 
   <div id="dailyRewardModal" class="daily-modal hidden">
@@ -488,13 +547,33 @@
   </div>
 </div>
 
+<div id="userRankScreen" class="screen hidden">
+  <div class="screen-title">User Rank</div>
+  <div class="rank-current">Current Rank: <span id="rankScreenAmt">0</span></div>
+  <div class="rank-next" id="rankNextDesc"></div>
+  <div class="rank-list" id="rankClaimedList"></div>
+  <button class="back-btn" id="userRankBackBtn">Back</button>
+</div>
+
+<div id="calendarScreen" class="screen hidden">
+  <div class="screen-title">Special Stage Calendar</div>
+  <div class="calendar-list" id="calendarList"></div>
+  <button class="back-btn" id="calendarBackBtn">Back</button>
+</div>
+
+<div id="storeScreen" class="screen hidden">
+  <div class="screen-title">Store</div>
+  <div class="cat-food-display">🍡 Cat Food: <span id="storeCatFoodAmt">0</span></div>
+  <div class="store-list" id="storeList"></div>
+  <button class="back-btn" id="storeBackBtn">Back</button>
+</div>
+
 <div id="upgradeScreen" class="screen hidden">
   <div class="screen-title">Upgrade</div>
   <div class="xp-display">XP <span id="upgradeXpAmt">0</span></div>
   <div class="test-row hidden" id="testRow">
     <button class="test-btn" id="testXpBtn">TEST: +100,000 XP</button>
     <button class="test-btn" id="testPlusBtn">TEST: +1 PLUS LEVEL</button>
-    <button class="test-btn" id="testDailyBtn">DAILY REWARD IN 2 MINUTES</button>
     <button class="test-btn restart-btn" id="restartGameBtn">RESTART GAME</button>
   </div>
   <div class="cat-strip" id="catStrip"></div>
@@ -817,13 +896,15 @@
     testMode: false,  // when on, XP/tickets are kept topped up so testers never run dry
     nextDailyRewardTs: 0, // 0 = already available; based on real Date.now(), survives tab/computer closing
     language: "English",
+    userRank: 0,   // +1 every time a cat gains a level (paid) or a "+1" bonus level (capsule Use Now)
+    claimedRankRewards: 0, // how many rank-reward tiers have been claimed, in order
+    catFood: 0,    // +10 per stage win; spendable in the Store
   };
 
   const TEST_RESOURCE_AMOUNT = 999999;
   function enforceTestMode() {
     if (!profile.testMode) return;
     profile.xp = TEST_RESOURCE_AMOUNT;
-    profile.tickets = TEST_RESOURCE_AMOUNT;
   }
 
   const SAVE_KEY = "battleCatsProfile";
@@ -847,6 +928,9 @@
     if (typeof saved.testMode === "boolean") profile.testMode = saved.testMode;
     if (typeof saved.nextDailyRewardTs === "number") profile.nextDailyRewardTs = saved.nextDailyRewardTs;
     if (typeof saved.language === "string") profile.language = saved.language;
+    if (typeof saved.userRank === "number") profile.userRank = saved.userRank;
+    if (typeof saved.claimedRankRewards === "number") profile.claimedRankRewards = saved.claimedRankRewards;
+    if (typeof saved.catFood === "number") profile.catFood = saved.catFood;
   }
 
   const META_MAX = 20;
@@ -1090,10 +1174,15 @@
   const equipScreen = document.getElementById("equipScreen");
   const capsuleScreen = document.getElementById("capsuleScreen");
   const storageScreen = document.getElementById("storageScreen");
+  const userRankScreen = document.getElementById("userRankScreen");
+  const calendarScreen = document.getElementById("calendarScreen");
+  const storeScreen = document.getElementById("storeScreen");
   const appEl = document.getElementById("app");
   const energyAmtEl = document.getElementById("energyAmt");
   const energyMaxEl = document.getElementById("energyMax");
   const menuBattleBtnEl = document.getElementById("menuBattleBtn");
+  const userRankAmtEl = document.getElementById("userRankAmt");
+  const catFoodAmtEl = document.getElementById("catFoodAmt");
   const ENERGY_PER_BATTLE = 10;
 
   // Daily reward: gated on real Date.now() timestamps stored in the saved profile, so it works
@@ -1130,16 +1219,21 @@
     const enough = profile.energy >= ENERGY_PER_BATTLE;
     menuBattleBtnEl.disabled = !enough;
     menuBattleBtnEl.style.opacity = enough ? "1" : ".5";
+    userRankAmtEl.textContent = profile.userRank || 0;
+    catFoodAmtEl.textContent = profile.catFood || 0;
     checkDailyReward();
   }
 
   function showScreen(el) {
-    [titleScreen, modeSelectScreen, settingsScreen, mainMenu, upgradeScreen, equipScreen, capsuleScreen, storageScreen, appEl]
-      .forEach(s => s.classList.add("hidden"));
+    [titleScreen, modeSelectScreen, settingsScreen, mainMenu, upgradeScreen, equipScreen, capsuleScreen, storageScreen,
+     userRankScreen, calendarScreen, storeScreen, appEl].forEach(s => s.classList.add("hidden"));
     el.classList.remove("hidden");
     if (el === mainMenu) renderMainMenu();
     if (el === titleScreen) renderTitleScreen();
     if (el === settingsScreen) renderSettingsScreen();
+    if (el === userRankScreen) renderUserRankScreen();
+    if (el === calendarScreen) renderCalendarScreen();
+    if (el === storeScreen) renderStoreScreen();
   }
 
   document.getElementById("titlePlayBtn").addEventListener("click", () => showScreen(modeSelectScreen));
@@ -1148,6 +1242,13 @@
   document.getElementById("settingsCloseBtn").addEventListener("click", () => showScreen(titleScreen));
   document.getElementById("modeBattleCatsBtn").addEventListener("click", () => showScreen(mainMenu));
   // Legend Stages: intentionally does nothing yet.
+
+  document.getElementById("userRankBtn").addEventListener("click", () => showScreen(userRankScreen));
+  document.getElementById("userRankBackBtn").addEventListener("click", () => showScreen(mainMenu));
+  document.getElementById("calendarBtn").addEventListener("click", () => showScreen(calendarScreen));
+  document.getElementById("calendarBackBtn").addEventListener("click", () => showScreen(mainMenu));
+  document.getElementById("storeBtn").addEventListener("click", () => showScreen(storeScreen));
+  document.getElementById("storeBackBtn").addEventListener("click", () => showScreen(mainMenu));
 
   const titleTestModeBtn = document.getElementById("testModeBtn");
   titleTestModeBtn.addEventListener("click", () => {
@@ -1161,6 +1262,90 @@
     titleTestModeBtn.textContent = "TEST MODE: " + (profile.testMode ? "ON" : "OFF");
     titleTestModeBtn.classList.toggle("active", profile.testMode);
     applyLanguage();
+  }
+
+  const rankScreenAmtEl = document.getElementById("rankScreenAmt");
+  const rankNextDescEl = document.getElementById("rankNextDesc");
+  const rankClaimedListEl = document.getElementById("rankClaimedList");
+
+  function renderUserRankScreen() {
+    const rank = profile.userRank || 0;
+    rankScreenAmtEl.textContent = rank;
+    // Auto-advance claimedRankRewards to every threshold reached, in order (display-only - see note above).
+    while (profile.claimedRankRewards < RANK_REWARDS.length && RANK_REWARDS[profile.claimedRankRewards][0] <= rank) {
+      profile.claimedRankRewards++;
+    }
+    saveProfile();
+
+    const next = RANK_REWARDS[profile.claimedRankRewards];
+    rankNextDescEl.textContent = next
+      ? `Next: Rank ${next[0]} - ${next[1]}`
+      : "All listed rewards claimed!";
+
+    rankClaimedListEl.innerHTML = "";
+    for (let i = profile.claimedRankRewards - 1; i >= 0; i--) {
+      const [threshold, text] = RANK_REWARDS[i];
+      const el = document.createElement("div");
+      el.className = "rank-item";
+      el.textContent = `✓ Rank ${threshold} - ${text}`;
+      rankClaimedListEl.appendChild(el);
+    }
+  }
+
+  const SPECIAL_STAGE_DATES = ["Feb 8","Mar 20","Aug 11","Sep 14","Sep 15","Sep 22","Oct 3","Oct 25"];
+  const calendarListEl = document.getElementById("calendarList");
+  function renderCalendarScreen() {
+    calendarListEl.innerHTML = "";
+    SPECIAL_STAGE_DATES.forEach(date => {
+      const el = document.createElement("div");
+      el.className = "cal-item";
+      el.textContent = date;
+      calendarListEl.appendChild(el);
+    });
+  }
+
+  // Store: only the XP purchases map to a system this game actually has, so only those are
+  // functional. Everything else (Speed Up, Treasure Radar, Rich Cat, Cat CPU, Cat Jobs, Sniper
+  // the Cat, Catamin A/B/C) is shown but disabled - see the open-questions list.
+  const STORE_ITEMS = [
+    { name: "Speed Up x9",      cost: 50,   kind: "unsupported" },
+    { name: "Treasure Radar x2",cost: 90,   kind: "unsupported" },
+    { name: "Rich Cat x7",      cost: 150,  kind: "unsupported" },
+    { name: "Cat CPU x20",      cost: 180,  kind: "unsupported" },
+    { name: "Cat Jobs x5",      cost: 300,  kind: "unsupported" },
+    { name: "Sniper the Cat x3",cost: 90,   kind: "unsupported" },
+    { name: "50,000 XP",        cost: 75,   kind: "xp", xp: 50000 },
+    { name: "120,000 XP",       cost: 150,  kind: "xp", xp: 120000 },
+    { name: "400,000 XP",       cost: 450,  kind: "xp", xp: 400000 },
+    { name: "1,000,000 XP",     cost: 900,  kind: "xp", xp: 1000000 },
+    { name: "2,000,000 XP",     cost: 1500, kind: "xp", xp: 2000000 },
+    { name: "CataminA x3",      cost: 30,   kind: "unsupported" },
+    { name: "CataminB x3",      cost: 80,   kind: "unsupported" },
+    { name: "CataminC x3",      cost: 150,  kind: "unsupported" },
+  ];
+  const storeCatFoodAmtEl = document.getElementById("storeCatFoodAmt");
+  const storeListEl = document.getElementById("storeList");
+  function renderStoreScreen() {
+    storeCatFoodAmtEl.textContent = profile.catFood || 0;
+    storeListEl.innerHTML = "";
+    STORE_ITEMS.forEach(item => {
+      const el = document.createElement("div");
+      el.className = "store-item";
+      const canBuy = item.kind === "xp" && profile.catFood >= item.cost;
+      el.innerHTML =
+        `<div class="si-name">${item.name}${item.kind === "unsupported" ? " (not implemented yet)" : ""}</div>` +
+        `<button ${item.kind === "unsupported" || !canBuy ? "disabled" : ""}>¢${item.cost} Cat Food</button>`;
+      if (item.kind === "xp") {
+        el.querySelector("button").addEventListener("click", () => {
+          if (profile.catFood < item.cost) return;
+          profile.catFood -= item.cost;
+          profile.xp += item.xp;
+          saveProfile();
+          renderStoreScreen();
+        });
+      }
+      storeListEl.appendChild(el);
+    });
   }
 
   const settingsLangListEl = document.getElementById("settingsLangList");
@@ -1267,14 +1452,6 @@
     renderUpgradeScreen();
   });
 
-  const testDailyBtn = document.getElementById("testDailyBtn");
-  testDailyBtn.addEventListener("click", () => {
-    if (!profile.testMode) return;
-    profile.nextDailyRewardTs = Date.now() + 2 * 60 * 1000;
-    saveProfile();
-    renderUpgradeScreen();
-  });
-
   document.getElementById("restartGameBtn").addEventListener("click", () => {
     if (!confirm("Restart game? This erases all saved progress.")) return;
     localStorage.removeItem(SAVE_KEY);
@@ -1323,6 +1500,7 @@
     if (need === undefined || profile.xp < need) return;
     profile.xp -= need;
     profile.catLevels[c.id] = lvl + 1;
+    profile.userRank = (profile.userRank || 0) + 1;
     saveProfile();
     renderUpgradeScreen();
   });
@@ -1378,25 +1556,173 @@
   }
 
   // ---------------------------------------------------------------------------
-  // Cat Capsule: spend tickets for a random cat (duplicate -> "+1" bonus level past
-  // the lv20 cap) or an Orb (bonus level to every meta-upgrade). Bank via OK, or
-  // resolve immediately with Use Now / Change to XP.
+  // User Rank: +1 every time a cat gains a level (paid) or a "+1" bonus level
+  // (Cat Capsule Use Now). This table is display data straight from the provided
+  // reward list. Almost none of these items exist in this game yet (multiple cat
+  // rarities, Catseyes, Catfruit, Catamin, crafting materials, Treasure Radar, Cat
+  // Jobs, etc.) so reaching a threshold just marks it "claimed" for display - it
+  // does not grant any actual effect. See the open-questions list.
   // ---------------------------------------------------------------------------
-  const CAPSULE_POOL = [...CATS.map(c => ({ type: "cat", id: c.id })), { type: "orb" }];
+  const RANK_REWARDS = [
+    [10,"1 Rare Cat Ticket"],[100,"1 Rare Cat Ticket"],[200,"5 Speed Ups"],[300,"50,000 XP"],
+    [400,"1 Treasure Radar"],[500,"2 Cat Tickets"],[600,"2 Cat Jobs"],[700,"100,000 XP"],
+    [800,"1 Rare Cat Ticket"],[900,"Rare Cats: Level 25 (25+9)"],
+    [1000,"Super Rare Cats: Level 25 (25+9) except Crazed units"],[1050,"3 Rich Cats"],
+    [1100,"Uber Rare Cats: Level 25 (25+9)"],[1110,"Legend Rare Cats: Level 25 (25+9)"],
+    [1150,"2 Sniper Cats"],[1200,"Rare Cats: Level 30 (30+9)"],[1250,"2 Cat Tickets"],
+    [1300,"Super Rare Cats: Level 30 (30+9) except Crazed units"],[1350,"1 Rare Cat Ticket"],
+    [1400,"Uber Rare Cats: Level 30 (30+9)"],[1410,"Legend Rare Cats: Level 30 (30+9)"],
+    [1450,"3 new Cat Combos"],[1500,"Normal Cats: Level MAX+25 (20+25)"],[1550,"1 Epic Catfruit"],
+    [1600,"Special Cats: Level 30"],[1650,"3 [Special] Catseyes"],
+    [1700,"Normal Cats: Level MAX+30 (20+30)"],[1750,"3 [Rare] Catseyes"],
+    [1800,"Rare Cats: Level MAX+20 (30+20)"],[1850,"3 [Super Rare] Catseyes"],
+    [1900,"Rare Cats: Level MAX+30 (30+30)"],[1950,"3 [Uber Rare] Catseyes"],
+    [2000,"Super Rare Cats: Level MAX+20 (30+20)"],[2050,"3 Catamin [C]"],
+    [2100,"Uber Rare Cats: Level MAX+20 (30+20)"],[2150,"3 new Cat Combos"],
+    [2200,"1 Rare Cat Ticket"],[2250,"1 Epic Catfruit"],[2300,"Rare Cats: Level MAX+40 (30+40)"],
+    [2350,"3 [Special] Catseyes"],[2400,"Super Rare Cats: Level MAX+30 (30+30)"],
+    [2450,"3 [Rare] Catseyes"],[2500,"Uber Rare Cats: Level MAX+30 (30+30)"],
+    [2550,"3 [Super Rare] Catseyes"],[2600,"1 Rare Cat Ticket"],[2650,"3 [Uber Rare] Catseyes"],
+    [2700,"3 new Cat Combos"],[2750,"5 Sniper Cats"],[2800,"1 Rare Cat Ticket"],
+    [2850,"3 Catamin [C]"],[2900,"Normal Cats: Level MAX+35 (20+35)"],[2950,"3 Cat Tickets"],
+    [3000,"Normal Cats: Level MAX+40 (20+40)"],[3050,"1 Epic Catfruit"],
+    [3100,"Rare Cats: Level MAX+50 (30+50)"],[3150,"3 [Special] Catseyes"],
+    [3200,"Super Rare Cats: Level MAX+40 (30+40)"],[3250,"3 [Rare] Catseyes"],
+    [3300,"Uber Rare Cats: Level MAX+40 (30+40)"],[3350,"3 [Super Rare] Catseyes"],
+    [3400,"1 Rare Cat Ticket"],[3450,"3 [Uber Rare] Catseyes"],
+    [3500,"Normal Cats: Level MAX+45 (20+45)"],[3550,"Normal Cats: Level MAX+50 (20+50)"],
+    [3600,"Crazed Units: Level 25"],[3650,"Crazed Units: Level 30"],[3700,"3 Treasure Radars"],
+    [3750,"3 Epic Catfruit"],[3800,"3 [Special] Catseyes"],[3850,"3 [Rare] Catseyes"],
+    [3900,"3 [Super Rare] Catseyes"],[3950,"3 [Uber Rare] Catseyes"],[4000,"1 Rare Cat Ticket"],
+    [4050,"Rare Cats: Level MAX+60 (30+10+60)"],[4100,"Super Rare Cats: Level MAX+50"],
+    [4150,"Uber Rare Cats: Level MAX+50"],[4200,"Normal Cats: Level MAX+55"],
+    [4250,"Normal Cats: Level MAX+60"],[4300,"3 Epic Catfruit"],[4350,"3 [Special] Catseyes"],
+    [4400,"3 [Rare] Catseyes"],[4450,"3 [Super Rare] Catseyes"],[4500,"3 [Uber Rare] Catseyes"],
+    [4550,"1 Rare Cat Ticket"],[4600,"Rare Cats: Level MAX+70 (30+10+70)"],
+    [4650,"Super Rare Cats: Level MAX+60 (30+10+60)"],[4700,"Uber Rare Cats: Level MAX+60 (30+10+60)"],
+    [4750,"5 Green Catfruit"],[4800,"5 Purple Catfruit"],[4850,"5 Red Catfruit"],
+    [4900,"5 Blue Catfruit"],[4950,"5 Yellow Catfruit"],[5000,"5 Epic Catfruit"],
+    [5050,"Normal Cats: Level MAX+65"],[5100,"Normal Cats: Level MAX+70"],[5150,"1 Rare Cat Ticket"],
+    [5200,"5 [Special] Catseyes"],[5250,"5 [Rare] Catseyes"],[5300,"5 [Super Rare] Catseyes"],
+    [5350,"5 [Uber Rare] Catseyes"],[5400,"3 Treasure Radars"],[5450,"5 Green Catfruit"],
+    [5500,"5 Purple Catfruit"],[5550,"5 Red Catfruit"],[5600,"5 Blue Catfruit"],
+    [5650,"5 Yellow Catfruit"],[5700,"5 Epic Catfruit"],[5750,"Normal Cats: Level MAX+75"],
+    [5800,"Normal Cats: Level MAX+80"],[5850,"Rare Cats: Level MAX+80"],
+    [5900,"Super Rare Cats: Level MAX+70"],[5950,"Uber Rare Cats: Level MAX+70"],
+    [6000,"1 Rare Cat Ticket"],[6100,"5 [Special] Catseyes"],[6200,"5 [Rare] Catseyes"],
+    [6300,"5 [Super Rare] Catseyes"],[6400,"5 [Uber Rare] Catseyes"],[6500,"5 Epic Catfruit"],
+    [6600,"5 Catamin [A]"],[6700,"5 Catamin [B]"],[6800,"5 Catamin [C]"],[6900,"5 Green Catfruit"],
+    [7000,"1 Rare Cat Ticket"],[7100,"5 Purple Catfruit"],[7200,"5 Red Catfruit"],
+    [7300,"5 Blue Catfruit"],[7400,"5 Yellow Catfruit"],[7500,"5 Epic Catfruit"],
+    [7600,"5 [Special] Catseyes"],[7700,"5 [Rare] Catseyes"],[7777,"7 Rare Cat Tickets"],
+    [7800,"5 [Super Rare] Catseyes"],[7900,"5 [Uber Rare] Catseyes"],[8000,"1 Rare Cat Ticket"],
+    [8100,"5 Catamin [A]"],[8200,"5 Catamin [B]"],[8300,"5 Catamin [C]"],[8400,"5 Green Catfruit"],
+    [8500,"5 Epic Catfruit"],[8600,"5 Purple Catfruit"],[8700,"5 Red Catfruit"],
+    [8800,"5 Blue Catfruit"],[8900,"5 Yellow Catfruit"],[9000,"1 Rare Cat Ticket"],
+    [9100,"5 [Special] Catseyes"],[9200,"5 [Rare] Catseyes"],[9300,"5 [Super Rare] Catseyes"],
+    [9400,"5 [Uber Rare] Catseyes"],[9500,"5 Epic Catfruit"],[9600,"5 [Special] Catseyes"],
+    [9700,"5 [Rare] Catseyes"],[9800,"5 [Super Rare] Catseyes"],[9900,"5 [Uber Rare] Catseyes"],
+    [9999,"Normal Cats: Level MAX+90"],[10000,"1 Platinum Ticket"],
+    [10001,"Superfeline: Level MAX+30 (20+30)"],[10100,"5 Catamin [A]"],[10200,"5 Catamin [B]"],
+    [10300,"5 Catamin [C]"],[10400,"5 Green Catfruit"],[10500,"1 Elder Catfruit"],
+    [10600,"5 Purple Catfruit"],[10700,"5 Red Catfruit"],[10800,"5 Blue Catfruit"],
+    [10900,"5 Yellow Catfruit"],[11000,"1 Rare Cat Ticket"],
+    [11001,"Superfeline: Level MAX+40 (20+40)"],[11100,"5 [Special] Catseyes"],
+    [11200,"5 [Rare] Catseyes"],[11300,"5 [Super Rare] Catseyes"],[11400,"5 [Uber Rare] Catseyes"],
+    [11500,"1 Elder Catfruit"],[11600,"5 Catamin [A]"],[11700,"5 Catamin [B]"],
+    [11800,"5 Catamin [C]"],[11900,"5 Green Catfruit"],[12000,"1 Rare Cat Ticket"],
+    [12001,"Superfeline: Level MAX+50 (20+50)"],[12100,"5 Purple Catfruit"],[12200,"5 Red Catfruit"],
+    [12300,"5 Blue Catfruit"],[12400,"5 Yellow Catfruit"],[12500,"1 Elder Catfruit"],
+    [12600,"10 Bricks"],[12700,"10 Feathers"],[12800,"10 Coal"],[12900,"10 Sprockets"],
+    [13000,"1 Rare Cat Ticket"],[13001,"Superfeline: Level MAX+60 (20+60)"],[13100,"10 Gold"],
+    [13200,"10 Meteorites"],[13300,"10 Bones"],[13400,"10 Ammonite"],[13500,"2 Elder Catfruit"],
+    [13600,"5 [Special] Catseyes"],[13700,"5 [Rare] Catseyes"],[13800,"5 [Super Rare] Catseyes"],
+    [13900,"5 [Uber Rare] Catseyes"],[14000,"1 Rare Cat Ticket"],
+    [14001,"Superfeline: Level MAX+70 (20+70)"],[14100,"20 Bricks"],[14200,"20 Feathers"],
+    [14300,"20 Coal"],[14400,"20 Sprockets"],[14500,"2 Elder Catfruit"],[14600,"20 Gold"],
+    [14700,"20 Meteorites"],[14800,"20 Beast Bones"],[14900,"20 Ammonites"],
+    [15000,"1 Platinum Ticket"],[15001,"Superfeline: Level MAX+80 (20+80)"],
+    [15100,"1 Platinum Shard"],[15200,"50 Cat Food"],[15300,"1 Leadership"],
+    [15400,"3 [Legend] Catseyes"],[15500,"2 Elder Catfruit"],[15600,"5 Catamin [A]"],
+    [15700,"5 Catamin [B]"],[15800,"5 Catamin [C]"],[15900,"50 Cat Food"],
+    [16000,"1 Rare Cat Ticket"],[16001,"Superfeline: Level MAX+90 (20+90)"],
+    [16100,"1 Platinum Shard"],[16200,"5 Catamin [A]"],[16300,"5 Catamin [B]"],
+    [16400,"5 Catamin [C]"],[16500,"3 [Legend] Catseyes"],[16600,"3 [Special] Catseyes"],
+    [16700,"5 [Rare] Catseyes"],[16800,"5 [Super Rare] Catseyes"],[16900,"5 [Uber Rare] Catseyes"],
+    [17000,"1 Rare Cat Ticket"],[17100,"1 Platinum Shard"],[17200,"5 Catamin [A]"],
+    [17300,"5 Catamin [B]"],[17400,"5 Catamin [C]"],[17500,"5 [Legend] Catseyes"],
+    [17600,"5 [Special] Catseyes"],[17700,"5 [Rare] Catseyes"],[17800,"5 [Super Rare] Catseyes"],
+    [17900,"5 [Uber Rare] Catseyes"],[18000,"1 Rare Cat Ticket"],[18100,"1 Platinum Shard"],
+    [18200,"5 Catamin [A]"],[18300,"5 Catamin [B]"],[18400,"5 Catamin [C]"],
+    [18500,"5 [Legend] Catseyes"],[18600,"5 [Special] Catseyes"],[18700,"5 [Rare] Catseyes"],
+    [18800,"5 [Super Rare] Catseyes"],[18900,"5 [Uber Rare] Catseyes"],[19000,"1 Rare Cat Ticket"],
+    [19100,"1 Platinum Shard"],[19200,"5 Catamin [A]"],[19300,"5 Catamin [B]"],
+    [19400,"5 Catamin [C]"],[19500,"5 [Legend] Catseyes"],[19600,"5 [Special] Catseyes"],
+    [19700,"5 [Rare] Catseyes"],[19800,"5 [Super Rare] Catseyes"],[19900,"5 [Uber Rare] Catseyes"],
+    [20000,"1 Platinum Ticket"],[20001,"3 [Dark] Catseyes"],[20100,"1 Platinum Shard"],
+    [20200,"3 Brick Z"],[20300,"3 Feather Z"],[20400,"3 Coal Z"],[20500,"3 Sprockets Z"],
+    [20600,"3 Gold Z"],[20700,"3 Meteorite Z"],[20800,"3 Beast Bones Z"],[20900,"3 Ammonite Z"],
+    [21000,"1 Rare Cat Ticket"],[21100,"1 Platinum Shard"],[21200,"5 Catamin [A]"],
+    [21300,"5 Catamin [B]"],[21400,"5 Catamin [C]"],[21500,"10 Cat CPUs"],[21600,"3 Brick Z"],
+    [21700,"3 Feathers Z"],[21800,"3 Coal Z"],[21900,"3 Sprockets Z"],[22000,"1 Rare Cat Ticket"],
+    [22100,"1 Platinum Shard"],[22200,"3 Gold Z"],[22300,"3 Meteorite Z"],[22400,"3 Beast Bones Z"],
+    [22500,"3 Ammonite Z"],[22600,"5 Catamin [A]"],[22700,"5 Catamin [B]"],[22800,"5 Catamin [C]"],
+    [22900,"10 Cat CPUs"],[23000,"1 Rare Ticket"],[23100,"1 Platinum Shard"],
+    [23200,"5 [Legend] Catseyes"],[23300,"5 [Special] Catseyes"],[23400,"5 [Rare] Catseyes"],
+    [23500,"5 [Super Rare] Catseyes"],[23600,"5 [Uber Rare] Catseyes"],[23700,"3 Brick Z"],
+    [23800,"3 Feathers Z"],[23900,"3 Coal Z"],[24000,"1 Rare Cat Ticket"],
+    [24100,"1 Platinum Shard"],[24200,"3 Sprockets Z"],[24300,"3 Gold Z"],[24400,"3 Meteorite Z"],
+    [24500,"3 Beast Bones Z"],[24600,"3 Ammonite Z"],[24700,"5 Catamin [A]"],
+    [24800,"5 Catamin [B]"],[24900,"5 Catamin [C]"],[25000,"1 Legend Ticket"],
+    [25100,"5 [Special] Catseyes"],[25200,"5 [Rare] Catseyes"],[25300,"5 [Super Rare] Catseyes"],
+    [25400,"5 [Uber Rare] Catseyes"],[25500,"5 [Legend] Catseyes"],[25600,"5 [Special] Catseyes"],
+    [25700,"5 [Rare] Catseyes"],[25800,"5 [Super Rare] Catseyes"],[25900,"5 [Uber Rare] Catseyes"],
+    [26000,"1 Rare Cat Ticket"],[26100,"5 [Legend Rare] Catseyes"],[26200,"5 [Special] Catseyes"],
+    [26300,"5 [Rare] Catseyes"],[26400,"5 [Super Rare] Catseyes"],[26500,"5 [Uber Rare] Catseyes"],
+    [26600,"5 [Legend Rare] Catseyes"],[26700,"5 [Special] Catseyes"],[26800,"5 [Rare] Catseyes"],
+    [26900,"5 [Super Rare] Catseyes"],[27000,"1 Rare Ticket"],[27100,"5 [Uber Rare] Catseyes"],
+    [27200,"5 [Legend Rare] Catseyes"],[27300,"5 [Special] Catseyes"],[27400,"5 [Rare] Catseyes"],
+    [27500,"5 [Super Rare] Catseyes"],[27600,"5 [Uber Rare] Catseyes"],[30000,"1 Legend Ticket"],
+  ];
+
+  // ---------------------------------------------------------------------------
+  // Cat Capsule: spend tickets for a random cat (duplicate -> "+1" bonus level past
+  // the lv20 cap, also counts toward User Rank) or a Base Upgrade Orb - one unique
+  // orb per meta-upgrade, EXCEPT Cat Cannon Range, which has no orb at all. Bank via
+  // OK, or resolve immediately with Use Now / Change to XP.
+  // ---------------------------------------------------------------------------
+  const ORB_INFO = {
+    cannonPower:  { name: "Cannon Power Orb",  emoji: "🔴" },
+    cannonCharge: { name: "Cannon Charge Orb", emoji: "⚡" },
+    workerRate:   { name: "Worker Rate Orb",   emoji: "💰" },
+    workerWallet: { name: "Worker Wallet Orb", emoji: "👛" },
+    baseDefense:  { name: "Base Defense Orb",  emoji: "🏯" },
+    research:     { name: "Research Orb",      emoji: "🔬" },
+    accountant:   { name: "Accountant Orb",    emoji: "📊" },
+    study:        { name: "Study Orb",         emoji: "📚" },
+    catEnergy:    { name: "Energy Orb",        emoji: "🔋" },
+  };
+  const CAPSULE_POOL = [
+    ...CATS.map(c => ({ type: "cat", id: c.id })),
+    ...Object.keys(ORB_INFO).map(key => ({ type: "orb", key })),
+  ];
 
   function rollCapsule() {
     return CAPSULE_POOL[Math.floor(Math.random() * CAPSULE_POOL.length)];
   }
   function rewardName(reward) {
-    if (reward.type === "orb") return "Base Upgrade Orb";
+    if (reward.type === "orb") return ORB_INFO[reward.key].name;
     return CATS.find(c => c.id === reward.id).name;
   }
   function rewardEmoji(reward) {
-    if (reward.type === "orb") return "🔮";
+    if (reward.type === "orb") return ORB_INFO[reward.key].emoji;
     return CATS.find(c => c.id === reward.id).emoji;
   }
   function rewardDesc(reward) {
-    if (reward.type === "orb") return "Use Now: +1 bonus level to all 10 Base Upgrades (stacks past their level cap).";
+    if (reward.type === "orb") {
+      const label = META_LIST.find(m => m.key === reward.key).label;
+      return `Use Now: +1 bonus level to ${label} (stacks past its level cap).`;
+    }
     return "Use Now: +1 bonus level past this cat's Lv20 cap.";
   }
   function xpTradeValue(reward) {
@@ -1408,11 +1734,10 @@
   }
   function applyRewardUseNow(reward) {
     if (reward.type === "orb") {
-      META_LIST.forEach(m => {
-        profile.metaPlus[m.key] = (profile.metaPlus[m.key] || 0) + 1;
-      });
+      profile.metaPlus[reward.key] = (profile.metaPlus[reward.key] || 0) + 1;
     } else {
       profile.catPlus[reward.id] = (profile.catPlus[reward.id] || 0) + 1;
+      profile.userRank = (profile.userRank || 0) + 1;
     }
     saveProfile();
   }
@@ -1436,15 +1761,12 @@
 
   function renderCapsuleScreen() {
     enforceTestMode();
-    capsuleXpAmt.textContent = profile.testMode ? "∞" : Math.floor(profile.xp);
-    capsuleTicketAmt.textContent = profile.testMode ? "∞" : profile.tickets;
+    capsuleXpAmt.textContent = Math.floor(profile.xp);
+    capsuleTicketAmt.textContent = profile.tickets;
     capsuleReveal.classList.add("hidden");
     capsuleIcon.classList.remove("spinning");
     capsuleIcon.textContent = "🎁";
-    if (profile.testMode) {
-      capsuleRollBtn.textContent = "TEST PULL (∞ tickets)";
-      capsuleRollBtn.disabled = false;
-    } else if (profile.tickets <= 0) {
+    if (profile.tickets <= 0) {
       capsuleRollBtn.textContent = "NO TICKETS";
       capsuleRollBtn.disabled = true;
     } else if (profile.tickets === 1) {
@@ -1474,9 +1796,9 @@
   }
 
   capsuleRollBtn.addEventListener("click", () => {
-    if (!profile.testMode && profile.tickets <= 0) return;
-    const count = profile.testMode ? 1 : profile.tickets;
-    if (!profile.testMode) profile.tickets = 0;
+    if (profile.tickets <= 0) return;
+    const count = profile.tickets;
+    profile.tickets = 0;
     pullQueue = Array.from({ length: count }, rollCapsule);
     saveProfile();
     capsuleRollBtn.disabled = true;
@@ -1545,15 +1867,20 @@
     overlay.classList.add("hidden");
   }
 
+  const CAT_FOOD_PER_WIN = 10;
+
   function endGame(won) {
     G.over = true;
     G.running = false;
     G.won = won;
-    if (won) profile.xp += Math.round(XP_PER_WIN * winXpMult());
+    if (won) {
+      profile.xp += Math.round(XP_PER_WIN * winXpMult());
+      profile.catFood += CAT_FOOD_PER_WIN;
+    }
     saveProfile();
     ovTitle.textContent = won ? "🎉 Victory!" : "💀 Defeat";
     ovText.textContent = won
-      ? `You crushed the enemy base in ${G.time.toFixed(0)}s. Well fought, general! +${XP_PER_WIN} XP`
+      ? `You crushed the enemy base in ${G.time.toFixed(0)}s. Well fought, general! +${XP_PER_WIN} XP, +${CAT_FOOD_PER_WIN} Cat Food`
       : "Your base was destroyed. Regroup and try again — deploy meatshields, then push with damage cats.";
     ovBtn.textContent = "Play Again";
     ovMenuBtn.classList.remove("hidden");
