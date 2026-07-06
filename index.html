@@ -168,6 +168,66 @@
   .menu-btn.battle  { background: linear-gradient(180deg,#4fa3ff,#1f74dd); }
   .menu-btn.upgrade { background: linear-gradient(180deg,#6fd08a,#2f9d55); }
   .menu-btn.equip   { background: linear-gradient(180deg,#e0a95f,#b9773a); }
+  .menu-btn.play     { background: linear-gradient(180deg,#ff8a4c,#d85a1f); }
+  .menu-btn.settings { background: linear-gradient(180deg,#9a9aa8,#5c5c6e); }
+
+  /* ---- Title / mode-select / settings screens ---- */
+  .title-bg {
+    height: 100%;
+    position: relative;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 26px;
+    background: linear-gradient(180deg, #ff4d1a 0%, #ff9a1f 45%, #ffcf4d 100%);
+    overflow: hidden;
+  }
+  .title-testmode-btn {
+    position: absolute; top: 16px; right: 16px;
+    background: #7a3fbf; color: #fff; border: none; border-radius: 8px;
+    padding: 8px 16px; font-weight: 700; font-size: 12px; cursor: pointer;
+  }
+  .title-testmode-btn.active { background: #2f9d55; }
+  .title-logo { display: flex; align-items: center; gap: 10px; }
+  .title-logo-paw { font-size: 46px; filter: drop-shadow(0 3px 0 rgba(0,0,0,.3)); }
+  .title-logo-text {
+    font-size: 56px; font-weight: 900; letter-spacing: 1px;
+    color: #fff; -webkit-text-stroke: 3px #d8267a;
+    text-shadow: 0 4px 0 rgba(0,0,0,.25);
+  }
+  .title-cat-row { font-size: 30px; letter-spacing: -6px; opacity: .9; max-width: 90%; text-align: center; }
+  .title-menu-buttons { display: flex; flex-direction: column; gap: 18px; width: 320px; }
+  .title-menu-buttons .menu-btn { justify-content: center; }
+
+  .close-circle-btn {
+    position: absolute; top: 16px; left: 16px;
+    width: 48px; height: 48px; border-radius: 50%;
+    background: #ffffff; color: #c0392b; border: 3px solid #c0392b;
+    font-size: 22px; font-weight: 900; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 3px 0 rgba(0,0,0,.3);
+  }
+  .mode-select-buttons { display: flex; gap: 34px; }
+  .giant-square-btn {
+    width: 220px; height: 220px;
+    border: none; border-radius: 20px;
+    font-size: 30px; font-weight: 900; color: #fff; line-height: 1.3;
+    cursor: pointer;
+    box-shadow: 0 8px 0 rgba(0,0,0,.3);
+  }
+  .giant-square-btn:active { transform: translateY(4px); box-shadow: 0 4px 0 rgba(0,0,0,.3); }
+  .giant-square-btn.battlecats   { background: linear-gradient(160deg,#ff8a4c,#d8481f); }
+  .giant-square-btn.legendstages { background: linear-gradient(160deg,#5fb0ff,#1f4fbd); }
+
+  .settings-panel {
+    background: rgba(0,0,0,.35); border-radius: 16px; padding: 30px 40px;
+    display: flex; flex-direction: column; align-items: center; gap: 16px;
+  }
+  .settings-title { font-size: 22px; font-weight: 800; color: #fff; }
+  .settings-lang-list { display: flex; flex-direction: column; gap: 10px; width: 220px; }
+  .settings-lang-btn {
+    background: #f4e2b8; color: #6e4527; border: 3px solid transparent; border-radius: 10px;
+    padding: 10px 18px; font-weight: 800; font-size: 15px; cursor: pointer;
+  }
+  .settings-lang-btn.active { border-color: #2f9d55; }
 
   .cat-food {
     position: absolute;
@@ -265,7 +325,6 @@
     background: #7a3fbf; color: #fff; border: none; border-radius: 8px;
     padding: 6px 14px; font-weight: 700; font-size: 12px; cursor: pointer;
   }
-  .testmode-btn.active { background: #2f9d55; }
   .restart-btn { background: #b3322f; }
   .test-btn:disabled { filter: grayscale(.6) brightness(.7); cursor: not-allowed; }
 
@@ -377,12 +436,41 @@
   .si-xp { background: linear-gradient(180deg,#5fb0ff,#1f74dd); color: #fff; }
 </style>
 
-<div id="mainMenu" class="screen">
-  <div class="screen-title">Cat Base</div>
+<div id="titleScreen" class="title-bg">
+  <button class="title-testmode-btn" id="testModeBtn">TEST MODE: OFF</button>
+  <div class="title-logo">
+    <span class="title-logo-paw">🐾</span>
+    <span class="title-logo-text">Battle Cats</span>
+  </div>
+  <div class="title-cat-row">🐱🐱🐱🐱🐱🐱🐱🐱🐱🐱🐱🐱</div>
+  <div class="title-menu-buttons">
+    <button class="menu-btn play" id="titlePlayBtn"><span class="ico">▶️</span><span id="lbl-play">PLAY</span></button>
+    <button class="menu-btn settings" id="titleSettingsBtn"><span class="ico">⚙️</span><span id="lbl-settings">SETTINGS</span></button>
+  </div>
+</div>
+
+<div id="modeSelectScreen" class="title-bg hidden">
+  <button class="close-circle-btn" id="modeSelectCloseBtn">✕</button>
+  <div class="mode-select-buttons">
+    <button class="giant-square-btn battlecats" id="modeBattleCatsBtn">BATTLE<br>CATS</button>
+    <button class="giant-square-btn legendstages" id="modeLegendStagesBtn">LEGEND<br>STAGES</button>
+  </div>
+</div>
+
+<div id="settingsScreen" class="title-bg hidden">
+  <button class="close-circle-btn" id="settingsCloseBtn">✕</button>
+  <div class="settings-panel">
+    <div class="settings-title">Language</div>
+    <div class="settings-lang-list" id="settingsLangList"></div>
+  </div>
+</div>
+
+<div id="mainMenu" class="screen hidden">
+  <div class="screen-title" id="lbl-catbase">Cat Base</div>
   <div class="menu-buttons">
-    <button class="menu-btn battle" id="menuBattleBtn"><span class="ico">⚔️</span>BATTLE</button>
-    <button class="menu-btn upgrade" id="menuUpgradeBtn"><span class="ico">⬆️</span>UPGRADE</button>
-    <button class="menu-btn equip" id="menuEquipBtn"><span class="ico">🐱</span>EQUIP</button>
+    <button class="menu-btn battle" id="menuBattleBtn"><span class="ico">⚔️</span><span id="lbl-battle">BATTLE</span></button>
+    <button class="menu-btn upgrade" id="menuUpgradeBtn"><span class="ico">⬆️</span><span id="lbl-upgrade">UPGRADE</span></button>
+    <button class="menu-btn equip" id="menuEquipBtn"><span class="ico">🐱</span><span id="lbl-equip">EQUIP</span></button>
   </div>
   <div class="energy-display">⚡ Energy: <span id="energyAmt">100</span> / <span id="energyMax">100</span></div>
   <div class="cat-food">🍡 Cat Food: <span id="catFoodAmt">0</span></div>
@@ -403,11 +491,10 @@
 <div id="upgradeScreen" class="screen hidden">
   <div class="screen-title">Upgrade</div>
   <div class="xp-display">XP <span id="upgradeXpAmt">0</span></div>
-  <div class="test-row">
+  <div class="test-row hidden" id="testRow">
     <button class="test-btn" id="testXpBtn">TEST: +100,000 XP</button>
     <button class="test-btn" id="testPlusBtn">TEST: +1 PLUS LEVEL</button>
     <button class="test-btn" id="testDailyBtn">DAILY REWARD IN 2 MINUTES</button>
-    <button class="test-btn testmode-btn" id="testModeBtn">TEST MODE: OFF</button>
     <button class="test-btn restart-btn" id="restartGameBtn">RESTART GAME</button>
   </div>
   <div class="cat-strip" id="catStrip"></div>
@@ -515,6 +602,28 @@
   const E_BASE_X = 40;                 // enemy base position (left side)
   const PLAYER_BASE_HP = 4000;
   const ENEMY_BASE_HP  = 12000;
+
+  // Language selection is fully wired (persisted, selectable), but only these headline labels are
+  // actually translated as a demonstration - translating every screen in the game is a much bigger,
+  // separate task that would need to be scoped on its own.
+  const LANGUAGES = ["English", "French", "Chinese", "Korean", "Spanish", "Japanese"];
+  const I18N = {
+    English:  { catBase: "Cat Base", battle: "BATTLE", upgrade: "UPGRADE", equip: "EQUIP", play: "PLAY", settings: "SETTINGS" },
+    French:   { catBase: "Base des Chats", battle: "BATAILLE", upgrade: "AMÉLIORER", equip: "ÉQUIPER", play: "JOUER", settings: "PARAMÈTRES" },
+    Chinese:  { catBase: "猫咪基地", battle: "战斗", upgrade: "升级", equip: "装备", play: "开始", settings: "设置" },
+    Korean:   { catBase: "고양이 기지", battle: "전투", upgrade: "업그레이드", equip: "장착", play: "플레이", settings: "설정" },
+    Spanish:  { catBase: "Base de Gatos", battle: "BATALLA", upgrade: "MEJORAR", equip: "EQUIPAR", play: "JUGAR", settings: "AJUSTES" },
+    Japanese: { catBase: "ネコ基地", battle: "バトル", upgrade: "アップグレード", equip: "装備", play: "プレイ", settings: "設定" },
+  };
+  function applyLanguage() {
+    const t = I18N[profile.language] || I18N.English;
+    document.getElementById("lbl-catbase").textContent = t.catBase;
+    document.getElementById("lbl-battle").textContent = t.battle;
+    document.getElementById("lbl-upgrade").textContent = t.upgrade;
+    document.getElementById("lbl-equip").textContent = t.equip;
+    document.getElementById("lbl-play").textContent = t.play;
+    document.getElementById("lbl-settings").textContent = t.settings;
+  }
 
   // Cat roster. range = attack range. cycle = seconds between attacks (foreswing+backswing).
   // fore = foreswing seconds (attack animation time before damage lands). tgt = "single" or "area".
@@ -707,6 +816,7 @@
     storage: [],      // capsule rewards banked via "OK", each {type:"cat", id} or {type:"orb"}
     testMode: false,  // when on, XP/tickets are kept topped up so testers never run dry
     nextDailyRewardTs: 0, // 0 = already available; based on real Date.now(), survives tab/computer closing
+    language: "English",
   };
 
   const TEST_RESOURCE_AMOUNT = 999999;
@@ -736,6 +846,7 @@
     if (Array.isArray(saved.storage)) profile.storage = saved.storage;
     if (typeof saved.testMode === "boolean") profile.testMode = saved.testMode;
     if (typeof saved.nextDailyRewardTs === "number") profile.nextDailyRewardTs = saved.nextDailyRewardTs;
+    if (typeof saved.language === "string") profile.language = saved.language;
   }
 
   const META_MAX = 20;
@@ -971,6 +1082,9 @@
   // ---------------------------------------------------------------------------
   // Screen navigation
   // ---------------------------------------------------------------------------
+  const titleScreen = document.getElementById("titleScreen");
+  const modeSelectScreen = document.getElementById("modeSelectScreen");
+  const settingsScreen = document.getElementById("settingsScreen");
   const mainMenu = document.getElementById("mainMenu");
   const upgradeScreen = document.getElementById("upgradeScreen");
   const equipScreen = document.getElementById("equipScreen");
@@ -1020,9 +1134,50 @@
   }
 
   function showScreen(el) {
-    [mainMenu, upgradeScreen, equipScreen, capsuleScreen, storageScreen, appEl].forEach(s => s.classList.add("hidden"));
+    [titleScreen, modeSelectScreen, settingsScreen, mainMenu, upgradeScreen, equipScreen, capsuleScreen, storageScreen, appEl]
+      .forEach(s => s.classList.add("hidden"));
     el.classList.remove("hidden");
     if (el === mainMenu) renderMainMenu();
+    if (el === titleScreen) renderTitleScreen();
+    if (el === settingsScreen) renderSettingsScreen();
+  }
+
+  document.getElementById("titlePlayBtn").addEventListener("click", () => showScreen(modeSelectScreen));
+  document.getElementById("titleSettingsBtn").addEventListener("click", () => showScreen(settingsScreen));
+  document.getElementById("modeSelectCloseBtn").addEventListener("click", () => showScreen(titleScreen));
+  document.getElementById("settingsCloseBtn").addEventListener("click", () => showScreen(titleScreen));
+  document.getElementById("modeBattleCatsBtn").addEventListener("click", () => showScreen(mainMenu));
+  // Legend Stages: intentionally does nothing yet.
+
+  const titleTestModeBtn = document.getElementById("testModeBtn");
+  titleTestModeBtn.addEventListener("click", () => {
+    profile.testMode = !profile.testMode;
+    enforceTestMode();
+    saveProfile();
+    renderTitleScreen();
+  });
+
+  function renderTitleScreen() {
+    titleTestModeBtn.textContent = "TEST MODE: " + (profile.testMode ? "ON" : "OFF");
+    titleTestModeBtn.classList.toggle("active", profile.testMode);
+    applyLanguage();
+  }
+
+  const settingsLangListEl = document.getElementById("settingsLangList");
+  function renderSettingsScreen() {
+    settingsLangListEl.innerHTML = "";
+    LANGUAGES.forEach(lang => {
+      const btn = document.createElement("button");
+      btn.className = "settings-lang-btn" + (profile.language === lang ? " active" : "");
+      btn.textContent = lang;
+      btn.addEventListener("click", () => {
+        profile.language = lang;
+        saveProfile();
+        applyLanguage();
+        renderSettingsScreen();
+      });
+      settingsLangListEl.appendChild(btn);
+    });
   }
 
   document.getElementById("menuBattleBtn").addEventListener("click", () => {
@@ -1120,26 +1275,17 @@
     renderUpgradeScreen();
   });
 
-  const testModeBtn = document.getElementById("testModeBtn");
-  testModeBtn.addEventListener("click", () => {
-    profile.testMode = !profile.testMode;
-    enforceTestMode();
-    saveProfile();
-    renderUpgradeScreen();
-  });
-
   document.getElementById("restartGameBtn").addEventListener("click", () => {
     if (!confirm("Restart game? This erases all saved progress.")) return;
     localStorage.removeItem(SAVE_KEY);
     location.reload();
   });
 
+  const testRowEl = document.getElementById("testRow");
+
   function renderUpgradeScreen() {
     enforceTestMode();
-    testModeBtn.textContent = "TEST MODE: " + (profile.testMode ? "ON" : "OFF");
-    testModeBtn.classList.toggle("active", profile.testMode);
-    testPlusBtn.disabled = !profile.testMode;
-    testDailyBtn.disabled = !profile.testMode;
+    testRowEl.classList.toggle("hidden", !profile.testMode);
     catStrip.innerHTML = "";
     CATS.forEach(c => {
       const form = evolvedForm(c, profile.catLevels[c.id] || 1, profile.catPlus[c.id] || 0);
@@ -1718,7 +1864,7 @@
   buildDock();
   newGame();
   resize();
-  renderMainMenu();
+  renderTitleScreen();
   requestAnimationFrame(frame);
 })();
 </script>
