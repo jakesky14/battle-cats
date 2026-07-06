@@ -328,6 +328,12 @@
     display: flex; flex-direction: column; align-items: flex-end; gap: 12px;
   }
   .battle-menu-actions { display: flex; align-items: center; gap: 10px; }
+  .leadership-btn {
+    background: linear-gradient(180deg,#ff5a5a,#b32020); color: #fff;
+    border: none; border-radius: 10px; padding: 10px 18px; font-weight: 800; font-size: 14px; cursor: pointer;
+    box-shadow: 0 4px 0 rgba(0,0,0,.3);
+  }
+  .leadership-btn:disabled { filter: grayscale(.6) brightness(.7); cursor: not-allowed; }
   .equip-side-btn {
     background: linear-gradient(180deg,#e0a95f,#b9773a); color: #fff;
     border: none; border-radius: 10px; padding: 16px 20px; font-weight: 800; font-size: 15px; cursor: pointer;
@@ -630,6 +636,7 @@
   <div class="map-marker"></div>
   <button class="back-corner-btn" id="battleMenuBackBtn">◀ Back</button>
   <div class="battle-menu-panel">
+    <button class="leadership-btn" id="leadershipBtn">🚩 Leadership <span id="leadershipCount">0</span></button>
     <div class="battle-menu-actions">
       <button class="equip-side-btn" id="battleMenuEquipBtn">EQUIP</button>
       <button class="attack-btn" id="battleMenuAttackBtn">ATTACK</button>
@@ -981,7 +988,7 @@
     userRank: 0,   // +1 every time a cat gains a level (paid) or a "+1" bonus level (capsule Use Now)
     claimedRankRewards: 0, // how many rank-reward tiers have been claimed, in order
     catFood: 0,    // +10 per stage win; spendable in the Store
-    items: { speedUp: 0, treasureRadar: 0, richCat: 0, sniperCat: 0, catCPU: 0, catJobs: 0 },
+    items: { speedUp: 0, treasureRadar: 0, richCat: 0, sniperCat: 0, catCPU: 0, catJobs: 0, leadership: 0 },
     pendingDailyItem: null, // rolled once when a daily reward becomes available, granted on claim
   };
 
@@ -1389,14 +1396,30 @@
   const rankNextDescEl = document.getElementById("rankNextDesc");
   const rankClaimedListEl = document.getElementById("rankClaimedList");
 
+  // Auto-advances claimedRankRewards to every threshold reached. Plain "N XP" / "N Cat Food"
+  // entries actually grant that amount; every claimed reward (of any kind) also grants 1
+  // Leadership. Everything else on the list still has no other mechanical effect (see the
+  // open-questions list - most of those items/rarities don't exist in this game yet).
+  function processRankRewards() {
+    const rank = profile.userRank || 0;
+    let changed = false;
+    while (profile.claimedRankRewards < RANK_REWARDS.length && RANK_REWARDS[profile.claimedRankRewards][0] <= rank) {
+      const text = RANK_REWARDS[profile.claimedRankRewards][1];
+      const xpMatch = text.match(/^([\d,]+)\s*XP$/);
+      const foodMatch = text.match(/^([\d,]+)\s*Cat Food$/);
+      if (xpMatch) profile.xp += parseInt(xpMatch[1].replace(/,/g, ""), 10);
+      else if (foodMatch) profile.catFood += parseInt(foodMatch[1].replace(/,/g, ""), 10);
+      profile.items.leadership = (profile.items.leadership || 0) + 1;
+      profile.claimedRankRewards++;
+      changed = true;
+    }
+    if (changed) saveProfile();
+  }
+
   function renderUserRankScreen() {
     const rank = profile.userRank || 0;
     rankScreenAmtEl.textContent = rank;
-    // Auto-advance claimedRankRewards to every threshold reached, in order (display-only - see note above).
-    while (profile.claimedRankRewards < RANK_REWARDS.length && RANK_REWARDS[profile.claimedRankRewards][0] <= rank) {
-      profile.claimedRankRewards++;
-    }
-    saveProfile();
+    processRankRewards();
 
     const next = RANK_REWARDS[profile.claimedRankRewards];
     rankNextDescEl.textContent = next
@@ -1425,16 +1448,16 @@
     });
   }
 
-  // Store: only the XP purchases map to a system this game actually has, so only those are
-  // functional. Everything else (Speed Up, Treasure Radar, Rich Cat, Cat CPU, Cat Jobs, Sniper
-  // the Cat, Catamin A/B/C) is shown but disabled - see the open-questions list.
+  // Store: XP purchases, and now all 6 explained battle items, are functional. Only
+  // Catamin A/B/C remain unsupported (they're for Legend Stages / Gamatoto, neither of
+  // which exist in this game yet).
   const STORE_ITEMS = [
-    { name: "Speed Up x9",      cost: 50,   kind: "unsupported" },
-    { name: "Treasure Radar x2",cost: 90,   kind: "unsupported" },
-    { name: "Rich Cat x7",      cost: 150,  kind: "unsupported" },
-    { name: "Cat CPU x20",      cost: 180,  kind: "unsupported" },
-    { name: "Cat Jobs x5",      cost: 300,  kind: "unsupported" },
-    { name: "Sniper the Cat x3",cost: 90,   kind: "unsupported" },
+    { name: "Speed Up x9",      cost: 50,   kind: "item", itemKey: "speedUp",      qty: 9 },
+    { name: "Treasure Radar x2",cost: 90,   kind: "item", itemKey: "treasureRadar",qty: 2 },
+    { name: "Rich Cat x7",      cost: 150,  kind: "item", itemKey: "richCat",      qty: 7 },
+    { name: "Cat CPU x20",      cost: 180,  kind: "item", itemKey: "catCPU",       qty: 20 },
+    { name: "Cat Jobs x5",      cost: 300,  kind: "item", itemKey: "catJobs",      qty: 5 },
+    { name: "Sniper the Cat x3",cost: 90,   kind: "item", itemKey: "sniperCat",    qty: 3 },
     { name: "50,000 XP",        cost: 75,   kind: "xp", xp: 50000 },
     { name: "120,000 XP",       cost: 150,  kind: "xp", xp: 120000 },
     { name: "400,000 XP",       cost: 450,  kind: "xp", xp: 400000 },
@@ -1452,15 +1475,16 @@
     STORE_ITEMS.forEach(item => {
       const el = document.createElement("div");
       el.className = "store-item";
-      const canBuy = item.kind === "xp" && profile.catFood >= item.cost;
+      const canBuy = item.kind !== "unsupported" && profile.catFood >= item.cost;
       el.innerHTML =
         `<div class="si-name">${item.name}${item.kind === "unsupported" ? " (not implemented yet)" : ""}</div>` +
-        `<button ${item.kind === "unsupported" || !canBuy ? "disabled" : ""}>¢${item.cost} Cat Food</button>`;
-      if (item.kind === "xp") {
+        `<button ${!canBuy ? "disabled" : ""}>¢${item.cost} Cat Food</button>`;
+      if (item.kind !== "unsupported") {
         el.querySelector("button").addEventListener("click", () => {
           if (profile.catFood < item.cost) return;
           profile.catFood -= item.cost;
-          profile.xp += item.xp;
+          if (item.kind === "xp") profile.xp += item.xp;
+          else if (item.kind === "item") profile.items[item.itemKey] = (profile.items[item.itemKey] || 0) + item.qty;
           saveProfile();
           renderStoreScreen();
         });
@@ -1519,9 +1543,25 @@
   let selectedBattleItems = {};
   let pendingActiveItems = {};
   const battleMenuItemsEl = document.getElementById("battleMenuItems");
+  const leadershipBtn = document.getElementById("leadershipBtn");
+  const leadershipCountEl = document.getElementById("leadershipCount");
+
+  function renderLeadershipBtn() {
+    const count = profile.items.leadership || 0;
+    leadershipCountEl.textContent = count;
+    leadershipBtn.disabled = count <= 0;
+  }
+  leadershipBtn.addEventListener("click", () => {
+    if ((profile.items.leadership || 0) <= 0) return;
+    profile.items.leadership--;
+    profile.energy = energyMax();
+    saveProfile();
+    renderLeadershipBtn();
+  });
 
   function renderBattleMenu() {
     selectedBattleItems = {};
+    renderLeadershipBtn();
     battleMenuItemsEl.innerHTML = "";
     Object.keys(ITEM_INFO).forEach(key => {
       const info = ITEM_INFO[key];
@@ -1599,6 +1639,8 @@
           if (profile.xp < cost) return;
           profile.xp -= cost;
           profile.meta[m.key] = lv + 1;
+          profile.userRank = (profile.userRank || 0) + 1;
+          processRankRewards();
           saveProfile();
           renderUpgradeScreen();
         });
@@ -1664,6 +1706,7 @@
     profile.xp -= need;
     profile.catLevels[c.id] = lvl + 1;
     profile.userRank = (profile.userRank || 0) + 1;
+    processRankRewards();
     saveProfile();
     renderUpgradeScreen();
   });
@@ -1900,8 +1943,9 @@
       profile.metaPlus[reward.key] = (profile.metaPlus[reward.key] || 0) + 1;
     } else {
       profile.catPlus[reward.id] = (profile.catPlus[reward.id] || 0) + 1;
-      profile.userRank = (profile.userRank || 0) + 1;
     }
+    profile.userRank = (profile.userRank || 0) + 1;
+    processRankRewards();
     saveProfile();
   }
   function applyRewardToXp(reward) {
