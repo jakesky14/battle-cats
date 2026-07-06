@@ -267,6 +267,7 @@
   }
   .testmode-btn.active { background: #2f9d55; }
   .restart-btn { background: #b3322f; }
+  .test-btn:disabled { filter: grayscale(.6) brightness(.7); cursor: not-allowed; }
 
   .meta-grid {
     margin-top: 18px; display: grid; grid-template-columns: repeat(2, 1fr);
@@ -377,6 +378,7 @@
   <div class="xp-display">XP <span id="upgradeXpAmt">0</span></div>
   <div class="test-row">
     <button class="test-btn" id="testXpBtn">TEST: +100,000 XP</button>
+    <button class="test-btn" id="testPlusBtn">TEST: +1 PLUS LEVEL</button>
     <button class="test-btn testmode-btn" id="testModeBtn">TEST MODE: OFF</button>
     <button class="test-btn restart-btn" id="restartGameBtn">RESTART GAME</button>
   </div>
@@ -1044,6 +1046,14 @@
     renderUpgradeScreen();
   });
 
+  const testPlusBtn = document.getElementById("testPlusBtn");
+  testPlusBtn.addEventListener("click", () => {
+    if (!profile.testMode) return;
+    profile.catPlus[selectedUpgradeCat] = (profile.catPlus[selectedUpgradeCat] || 0) + 1;
+    saveProfile();
+    renderUpgradeScreen();
+  });
+
   const testModeBtn = document.getElementById("testModeBtn");
   testModeBtn.addEventListener("click", () => {
     profile.testMode = !profile.testMode;
@@ -1062,6 +1072,7 @@
     enforceTestMode();
     testModeBtn.textContent = "TEST MODE: " + (profile.testMode ? "ON" : "OFF");
     testModeBtn.classList.toggle("active", profile.testMode);
+    testPlusBtn.disabled = !profile.testMode;
     catStrip.innerHTML = "";
     CATS.forEach(c => {
       const form = evolvedForm(c, profile.catLevels[c.id] || 1, profile.catPlus[c.id] || 0);
