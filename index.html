@@ -76,6 +76,7 @@
   }
   #activeItemsBar .active-item-badge.toggleable { cursor: pointer; }
   #activeItemsBar .active-item-badge.toggleable:active { transform: translateY(1px); }
+  #activeItemsBar .active-item-badge.off { opacity: .35; filter: grayscale(1); border-color: var(--muted); }
 
   #overlay {
     position: absolute; inset: 0;
@@ -280,6 +281,12 @@
   .rank-next {
     background: rgba(0,0,0,.3); border-radius: 8px; padding: 10px 16px;
     color: #ffe45a; font-weight: 700; margin-top: 10px; max-width: 460px;
+  }
+  .rank-claim-btn {
+    align-self: flex-start; margin-top: 10px;
+    background: linear-gradient(180deg,#ffcf3f,#f0a800); color: #201800;
+    border: none; border-radius: 10px; padding: 10px 24px; font-weight: 900; font-size: 15px; cursor: pointer;
+    box-shadow: 0 4px 0 rgba(0,0,0,.3);
   }
   .rank-list { margin-top: 16px; display: flex; flex-direction: column; gap: 6px; max-width: 460px; }
   .rank-list .rank-item { color: #cbb27e; font-size: 13px; }
@@ -615,6 +622,7 @@
   <div class="screen-title">User Rank</div>
   <div class="rank-current">Current Rank: <span id="rankScreenAmt">0</span></div>
   <div class="rank-next" id="rankNextDesc"></div>
+  <button class="rank-claim-btn hidden" id="rankClaimBtn">CLAIM</button>
   <div class="rank-list" id="rankClaimedList"></div>
   <button class="back-btn" id="userRankBackBtn">Back</button>
 </div>
@@ -993,9 +1001,11 @@
   };
 
   const TEST_RESOURCE_AMOUNT = 999999;
+  const TEST_INFINITE_ITEMS = ["treasureRadar", "richCat", "sniperCat", "catCPU", "catJobs"];
   function enforceTestMode() {
     if (!profile.testMode) return;
     profile.xp = TEST_RESOURCE_AMOUNT;
+    TEST_INFINITE_ITEMS.forEach(key => { profile.items[key] = TEST_RESOURCE_AMOUNT; });
   }
 
   const SAVE_KEY = "battleCatsProfile";
@@ -1097,7 +1107,8 @@
       money: 160,
       workerLv: activeItems.richCat ? WORKER_MAX : 1,
       cannonGauge: 0,
-      activeItems,           // items brought into this stage (Battle Menu selection)
+      activeItems,             // current on/off state (toggleable mid-battle for some items)
+      equippedItems: { ...activeItems }, // fixed record of what was brought in, for the HUD bar
       sniperTimer: 0,
       units: [],            // player + enemy units
       pBase: { x:P_BASE_X, hp:pHp, max:pHp, team:"player", isBase:true },
@@ -1127,16 +1138,16 @@
 
   function renderActiveItemsBar() {
     activeItemsBarEl.innerHTML = "";
-    Object.keys(G.activeItems).forEach(key => {
-      if (!G.activeItems[key]) return;
+    Object.keys(G.equippedItems).forEach(key => {
       const el = document.createElement("div");
       const toggleable = TOGGLEABLE_ITEMS.includes(key);
-      el.className = "active-item-badge" + (toggleable ? " toggleable" : "");
+      const isOn = !!G.activeItems[key];
+      el.className = "active-item-badge" + (toggleable ? " toggleable" : "") + (isOn ? "" : " off");
       el.textContent = ITEM_INFO[key].emoji;
-      el.title = ITEM_INFO[key].name + (toggleable ? " (click to turn off)" : "");
+      el.title = ITEM_INFO[key].name + (toggleable ? (isOn ? " (click to turn off)" : " (click to turn back on)") : "");
       if (toggleable) {
         el.addEventListener("click", () => {
-          G.activeItems[key] = false;
+          G.activeItems[key] = !G.activeItems[key];
           renderActiveItemsBar();
         });
       }
@@ -1395,36 +1406,40 @@
   const rankScreenAmtEl = document.getElementById("rankScreenAmt");
   const rankNextDescEl = document.getElementById("rankNextDesc");
   const rankClaimedListEl = document.getElementById("rankClaimedList");
+  const rankClaimBtn = document.getElementById("rankClaimBtn");
+  rankClaimBtn.addEventListener("click", claimNextRankReward);
 
-  // Auto-advances claimedRankRewards to every threshold reached. Plain "N XP" / "N Cat Food"
-  // entries actually grant that amount; every claimed reward (of any kind) also grants 1
-  // Leadership. Everything else on the list still has no other mechanical effect (see the
-  // open-questions list - most of those items/rarities don't exist in this game yet).
-  function processRankRewards() {
+  // Rank rewards require a manual claim (one at a time, in order). Plain "N XP" / "N Cat
+  // Food" entries actually grant that amount; every claimed reward (of any kind) also
+  // grants 1 Leadership. Everything else on the list still has no other mechanical effect
+  // (see the open-questions list - most of those items/rarities don't exist in this game yet).
+  function claimNextRankReward() {
     const rank = profile.userRank || 0;
-    let changed = false;
-    while (profile.claimedRankRewards < RANK_REWARDS.length && RANK_REWARDS[profile.claimedRankRewards][0] <= rank) {
-      const text = RANK_REWARDS[profile.claimedRankRewards][1];
-      const xpMatch = text.match(/^([\d,]+)\s*XP$/);
-      const foodMatch = text.match(/^([\d,]+)\s*Cat Food$/);
-      if (xpMatch) profile.xp += parseInt(xpMatch[1].replace(/,/g, ""), 10);
-      else if (foodMatch) profile.catFood += parseInt(foodMatch[1].replace(/,/g, ""), 10);
-      profile.items.leadership = (profile.items.leadership || 0) + 1;
-      profile.claimedRankRewards++;
-      changed = true;
-    }
-    if (changed) saveProfile();
+    const next = RANK_REWARDS[profile.claimedRankRewards];
+    if (!next || rank < next[0]) return;
+    const text = next[1];
+    const xpMatch = text.match(/^([\d,]+)\s*XP$/);
+    const foodMatch = text.match(/^([\d,]+)\s*Cat Food$/);
+    if (xpMatch) profile.xp += parseInt(xpMatch[1].replace(/,/g, ""), 10);
+    else if (foodMatch) profile.catFood += parseInt(foodMatch[1].replace(/,/g, ""), 10);
+    profile.items.leadership = (profile.items.leadership || 0) + 1;
+    profile.claimedRankRewards++;
+    saveProfile();
+    renderUserRankScreen();
   }
 
   function renderUserRankScreen() {
     const rank = profile.userRank || 0;
     rankScreenAmtEl.textContent = rank;
-    processRankRewards();
 
     const next = RANK_REWARDS[profile.claimedRankRewards];
-    rankNextDescEl.textContent = next
-      ? `Next: Rank ${next[0]} - ${next[1]}`
-      : "All listed rewards claimed!";
+    const eligible = !!(next && rank >= next[0]);
+    if (next) {
+      rankNextDescEl.textContent = (eligible ? "Ready to claim: " : "Next: ") + `Rank ${next[0]} - ${next[1]}`;
+    } else {
+      rankNextDescEl.textContent = "All listed rewards claimed!";
+    }
+    rankClaimBtn.classList.toggle("hidden", !eligible);
 
     rankClaimedListEl.innerHTML = "";
     for (let i = profile.claimedRankRewards - 1; i >= 0; i--) {
@@ -1640,7 +1655,6 @@
           profile.xp -= cost;
           profile.meta[m.key] = lv + 1;
           profile.userRank = (profile.userRank || 0) + 1;
-          processRankRewards();
           saveProfile();
           renderUpgradeScreen();
         });
@@ -1706,7 +1720,6 @@
     profile.xp -= need;
     profile.catLevels[c.id] = lvl + 1;
     profile.userRank = (profile.userRank || 0) + 1;
-    processRankRewards();
     saveProfile();
     renderUpgradeScreen();
   });
@@ -1945,7 +1958,6 @@
       profile.catPlus[reward.id] = (profile.catPlus[reward.id] || 0) + 1;
     }
     profile.userRank = (profile.userRank || 0) + 1;
-    processRankRewards();
     saveProfile();
   }
   function applyRewardToXp(reward) {
@@ -2158,8 +2170,9 @@
       if (G.cooldowns[i] > 0) G.cooldowns[i] = Math.max(0, G.cooldowns[i] - dt);
 
     // Sniper the Cat item: passive assist, fires at the enemy closest to the player base.
-    // Damage = 5% of that enemy's own max HP; every hit knocks it back unconditionally
-    // (independent of its normal kb-threshold system).
+    // Damage = 5% of the PLAYER'S BASE's max HP (scales with Base Defense upgrades, not
+    // the target); every hit knocks the target back unconditionally (independent of its
+    // normal kb-threshold system).
     if (G.activeItems.sniperCat) {
       G.sniperTimer += dt;
       if (G.sniperTimer >= SNIPER_INTERVAL) {
@@ -2168,7 +2181,7 @@
         if (enemies.length > 0) {
           const closest = enemies.reduce((a, b) =>
             Math.abs(a.x - P_BASE_X) <= Math.abs(b.x - P_BASE_X) ? a : b);
-          closest.hp -= closest.max * 0.05;
+          closest.hp -= G.pBase.max * 0.05;
           closest.flash = 0.15;
           knockbackPush(closest);
           G.fx.push({ x: closest.x, y: 0, life: 0.2, t: "player" });
