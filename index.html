@@ -332,6 +332,7 @@
     background: rgba(0,0,0,.4); color: #fff; padding: 8px 20px; border-radius: 8px;
     font-weight: 800; font-size: 16px;
   }
+  .reveal-desc { color: #ddd; font-size: 13px; max-width: 320px; text-align: center; opacity: .85; }
   .reveal-buttons { display: flex; gap: 12px; }
   .reveal-buttons button {
     border: none; border-radius: 10px; padding: 12px 18px; font-weight: 800; cursor: pointer; font-size: 13px;
@@ -347,6 +348,7 @@
     background: rgba(0,0,0,.3); border-radius: 8px; padding: 10px 14px;
   }
   .storage-item .si-name { font-weight: 800; color: #f4e2b8; }
+  .storage-item .si-desc { font-size: 11px; color: #cbb27e; margin-top: 2px; max-width: 260px; }
   .storage-item .si-buttons { display: flex; gap: 8px; }
   .storage-item .si-buttons button {
     border: none; border-radius: 8px; padding: 6px 12px; font-weight: 700; font-size: 12px; cursor: pointer;
@@ -407,7 +409,7 @@
 </div>
 
 <div id="capsuleScreen" class="screen hidden">
-  <div class="screen-title">Rare Capsule Machine</div>
+  <div class="screen-title">Cat Capsule</div>
   <div class="xp-display">XP <span id="capsuleXpAmt">0</span></div>
   <div class="capsule-main">
     <div class="capsule-icon" id="capsuleIcon">🎁</div>
@@ -419,6 +421,7 @@
   <div id="capsuleReveal" class="capsule-reveal hidden">
     <div class="reveal-icon" id="revealIcon"></div>
     <div class="reveal-name" id="revealName"></div>
+    <div class="reveal-desc" id="revealDesc"></div>
     <div class="reveal-buttons">
       <button id="revealUseBtn">Use Now</button>
       <button id="revealXpBtn">Change to XP</button>
@@ -497,8 +500,8 @@
     { id:"tank",   name:"Tank Cat",  emoji:"🛡️", cost:150,  hp:1000, dmg:5,   range:110*RANGE_SCALE, cycle:2.23, fore:0.27, tgt:"area",   speed:8*SPEED_SCALE,  cd:2,    kb:1, trait:"Traitless", strongAgainst:[],      color:"#c9a26a" },
     { id:"axe",    name:"Axe Cat",   emoji:"🪓", cost:300,  hp:500,  dmg:62,  range:150*RANGE_SCALE, cycle:0.90, fore:0.27, tgt:"single", speed:12*SPEED_SCALE, cd:2,    kb:3, trait:"Traitless", strongAgainst:["Red"], color:"#e06b4a" },
     { id:"gross",  name:"Gross Cat", emoji:"🤢", cost:600,  hp:1000, dmg:250, range:350*RANGE_SCALE, cycle:4.23, fore:0.27, tgt:"single", speed:10*SPEED_SCALE, cd:2.2,  kb:3, trait:"Traitless", strongAgainst:[],      color:"#7cc36a" },
-    { id:"bird",   name:"Bird Cat",  emoji:"🐦", cost:975,  hp:750,  dmg:350, range:170*RANGE_SCALE, cycle:1.63, fore:0.33, tgt:"area",   speed:10*SPEED_SCALE, cd:2,    kb:4, trait:"Traitless", strongAgainst:[],      color:"#5fb0ff" },
     { id:"cow",    name:"Cow Cat",   emoji:"🐮", cost:750,  hp:1250, dmg:32,  range:140*RANGE_SCALE, cycle:0.33, fore:0.20, tgt:"single", speed:30*SPEED_SCALE, cd:2,    kb:5, trait:"Traitless", strongAgainst:[],      color:"#ffe0e0" },
+    { id:"bird",   name:"Bird Cat",  emoji:"🐦", cost:975,  hp:750,  dmg:350, range:170*RANGE_SCALE, cycle:1.63, fore:0.33, tgt:"area",   speed:10*SPEED_SCALE, cd:2,    kb:4, trait:"Traitless", strongAgainst:[],      color:"#5fb0ff" },
     { id:"fish",   name:"Fish Cat",  emoji:"🐟", cost:1200, hp:1750, dmg:450, range:150*RANGE_SCALE, cycle:1.77, fore:0.33, tgt:"single", speed:10*SPEED_SCALE, cd:4.2,  kb:3, trait:"Traitless", strongAgainst:["Red"], color:"#4fd0d8" },
     { id:"lizard", name:"Lizard Cat",emoji:"🦎", cost:1500, hp:2000, dmg:875, range:400*RANGE_SCALE, cycle:4.30, fore:0.33, tgt:"single", speed:10*SPEED_SCALE, cd:10.2, kb:3, trait:"Traitless", strongAgainst:[],      color:"#8be06a" },
     { id:"titan",  name:"Titan Cat", emoji:"👹", cost:1950, hp:2500, dmg:700, range:150*RANGE_SCALE, cycle:2.23, fore:0.6,  tgt:"area",   speed:8*SPEED_SCALE,  cd:18.2, kb:1, trait:"Traitless", strongAgainst:[],      color:"#ff8c3b" },
@@ -517,10 +520,10 @@
 
   const WORKER_MAX = 8;
   // Worker Cat Rate (meta upgrade) raises the base ¢/sec rate; in-battle level still adds +5%/level on top.
-  const workerIncome = lv => (170 + 3 * (profile.meta.workerRate - 1)) * Math.pow(1.05, lv - 1);
+  const workerIncome = lv => (170 + 3 * (effMeta("workerRate") - 1)) * Math.pow(1.05, lv - 1);
   // Worker Cat Wallet (meta upgrade) raises both the base cap and the per-in-battle-level increment.
   const workerWallet = lv => {
-    const m = profile.meta.workerWallet;
+    const m = effMeta("workerWallet");
     return (200 + 100 * (m - 1)) + 50 * m * (lv - 1);
   };
   const workerCost = lv => 100 * lv;                    // cost to reach lv+1 (in-battle ¢, unaffected by meta)
@@ -529,6 +532,7 @@
   const catLevelMult = lv => 1 + 0.2 * (lv - 1);        // +20% of base HP/DMG per level
   const CAT_LEVEL_MAX = 20;
   const EVOLVE_LEVEL = 10;
+  const EVOLVE3_LEVEL = 30;  // effective level (catLevel + catPlus) needed for the True Form
 
   // Evolved (2nd) forms, unlocked at level 10. Only name/emoji change for most cats;
   // Gross/Bird/Lizard also get real stat tweaks to their evolved cycle/foreswing/damage.
@@ -544,17 +548,54 @@
     titan:  { name: "Mythical Titan", emoji: "🔱" },
   };
 
-  function evolvedForm(c, lvl) {
+  // True (3rd) forms, unlocked at effective level 30 (lv20 cap + 10 catPlus). hp/dmg here are new
+  // BASE values (still scaled by catLevelMult like any other cat), taken from the provided lv2 stat
+  // rows divided by catLevelMult(2)=1.2. cycle/fore are left unset so they inherit whatever the 2nd
+  // form already resolved to (confirmed against the data: e.g. Macho Leg Cat's cycle/fore match Sexy
+  // Legs Cat's, not base Gross Cat's). cd and traits are fully replaced per the given data.
+  const THIRD_EVOLUTIONS = {
+    cat:    { name: "Mohawk Cat",     emoji: "🤘", hp: 500,  dmg: 40 },
+    tank:   { name: "Eraser Cat",     emoji: "🪨", hp: 1500, dmg: 10 },
+    axe:    { name: "Dark Cat",       emoji: "🌑", hp: 1000, dmg: 125, cd: 2.00, strongAgainst: ["Red"] },
+    gross:  { name: "Macho Leg Cat",  emoji: "🦿", hp: 2000, dmg: 500, cd: 7.53, strongAgainst: ["Alien"] },
+    cow:    { name: "Lion Cat",       emoji: "🦁", hp: 2500, dmg: 65,  cd: 4.20 },
+    bird:   { name: "The Flying Cat", emoji: "🦅", hp: 1500, dmg: 825, cd: 3.53 },
+    fish:   { name: "Island Cat",     emoji: "🏝️", hp: 3500, dmg: 900, cd: 8.20, strongAgainst: ["Red"] },
+    lizard: { name: "King Dragon Cat",emoji: "🦖", hp: 2250, dmg: 1000, cd: 16.87 },
+    titan:  { name: "Jamiera Cat",    emoji: "😈", hp: 5000, dmg: 1400, cd: 22.20,
+              strongAgainst: ["Red","Floating","Black","Angel","Alien","Zombie","Relic","Aku","White"] },
+  };
+  // Not implemented (need mechanics this game doesn't have yet, or never trigger against our
+  // current enemy roster anyway): The Flying Cat's Angel-Weaken proc, Island Cat's 2% Critical
+  // chance, Jamiera Cat's 30% enemy-knockback-on-hit proc.
+
+  function evolvedForm(c, lvl, plus) {
+    plus = plus || 0;
+    let form = c;
     const evo = EVOLUTIONS[c.id];
-    if (lvl < EVOLVE_LEVEL || !evo) return c;
-    return {
-      ...c,
-      name: evo.name,
-      emoji: evo.emoji,
-      cycle: evo.cycle !== undefined ? evo.cycle : c.cycle,
-      fore: evo.fore !== undefined ? evo.fore : c.fore,
-      dmg: evo.dmgMult ? c.dmg * evo.dmgMult : c.dmg,
-    };
+    if (lvl >= EVOLVE_LEVEL && evo) {
+      form = {
+        ...form,
+        name: evo.name,
+        emoji: evo.emoji,
+        cycle: evo.cycle !== undefined ? evo.cycle : form.cycle,
+        fore: evo.fore !== undefined ? evo.fore : form.fore,
+        dmg: evo.dmgMult ? form.dmg * evo.dmgMult : form.dmg,
+      };
+    }
+    const evo3 = THIRD_EVOLUTIONS[c.id];
+    if (lvl + plus >= EVOLVE3_LEVEL && evo3) {
+      form = {
+        ...form,
+        name: evo3.name,
+        emoji: evo3.emoji,
+        hp: evo3.hp,
+        dmg: evo3.dmg,
+        cd: evo3.cd !== undefined ? evo3.cd : form.cd,
+        strongAgainst: evo3.strongAgainst !== undefined ? evo3.strongAgainst : form.strongAgainst,
+      };
+    }
+    return form;
   }
 
   // Real per-cat XP cost tables. Keyed by target level (cost paid while at level-1 to reach it).
@@ -622,6 +663,14 @@
       workerRate: 1, workerWallet: 1,
       baseDefense: 1, research: 1, accountant: 1, study: 1, catEnergy: 1,
     },
+    // "+N" bonus levels for base upgrades, earned from Cat Capsule Orb rewards. Unlike the paid
+    // meta levels above, these are NOT capped by metaMax - they stack indefinitely, same idea as
+    // catPlus for cats.
+    metaPlus: {
+      cannonPower: 0, cannonRange: 0, cannonCharge: 0,
+      workerRate: 0, workerWallet: 0,
+      baseDefense: 0, research: 0, accountant: 0, study: 0, catEnergy: 0,
+    },
     energy: 100,
     lastEnergyTs: Date.now(),
     tickets: 3,       // starting tickets; no earn mechanism exists yet, this is just to make testing possible
@@ -649,6 +698,7 @@
     if (saved.catPlus) Object.assign(profile.catPlus, saved.catPlus);
     if (Array.isArray(saved.equip) && saved.equip.length === profile.equip.length) profile.equip = saved.equip;
     if (saved.meta) Object.assign(profile.meta, saved.meta);
+    if (saved.metaPlus) Object.assign(profile.metaPlus, saved.metaPlus);
     if (typeof saved.energy === "number") profile.energy = saved.energy;
     if (typeof saved.lastEnergyTs === "number") profile.lastEnergyTs = saved.lastEnergyTs;
     if (typeof saved.tickets === "number") profile.tickets = saved.tickets;
@@ -672,7 +722,10 @@
     { key: "catEnergy",    label: "CAT ENERGY" },
   ];
 
-  function energyMax() { return 100 + 10 * (profile.meta.catEnergy - 1); }
+  // Effective meta level = paid level (capped by metaMax) + uncapped Orb-earned plus levels.
+  function effMeta(key) { return profile.meta[key] + (profile.metaPlus[key] || 0); }
+
+  function energyMax() { return 100 + 10 * (effMeta("catEnergy") - 1); }
   function regenEnergy() {
     const now = Date.now();
     const gained = Math.floor((now - profile.lastEnergyTs) / 60000);
@@ -683,10 +736,10 @@
     }
   }
 
-  function playerBaseMaxHp() { return PLAYER_BASE_HP + 1000 * (profile.meta.baseDefense - 1); }
-  function cdReduction() { return profile.meta.research >= 2 ? 0.2 * (profile.meta.research - 1) : 0; }
-  function moneyDropMult() { return profile.meta.accountant >= 2 ? 1 + 0.05 * (profile.meta.accountant - 1) : 1; }
-  function winXpMult() { return profile.meta.study >= 2 ? 1 + 0.05 * (profile.meta.study - 1) : 1; }
+  function playerBaseMaxHp() { return PLAYER_BASE_HP + 1000 * (effMeta("baseDefense") - 1); }
+  function cdReduction() { return effMeta("research") >= 2 ? 0.2 * (effMeta("research") - 1) : 0; }
+  function moneyDropMult() { return effMeta("accountant") >= 2 ? 1 + 0.05 * (effMeta("accountant") - 1) : 1; }
+  function winXpMult() { return effMeta("study") >= 2 ? 1 + 0.05 * (effMeta("study") - 1) : 1; }
 
   // Cat Cannon: enemy search range stays the literal real-game value (6000, +200/level) - on our
   // 1000-wide field that means it's effectively always in range. Beam width (600) is still scaled
@@ -699,10 +752,10 @@
   const CANNON_RANGE_PER_LV = 200;
   const CANNON_BEAM_WIDTH = 600 * RANGE_SCALE;     // 240
 
-  function cannonDamage() { return CANNON_BASE_DMG * profile.meta.cannonPower; }
-  function cannonRange() { return CANNON_BASE_RANGE + CANNON_RANGE_PER_LV * (profile.meta.cannonRange - 1); }
+  function cannonDamage() { return CANNON_BASE_DMG * effMeta("cannonPower"); }
+  function cannonRange() { return CANNON_BASE_RANGE + CANNON_RANGE_PER_LV * (effMeta("cannonRange") - 1); }
   function cannonGaugeTime() {
-    const frameAdj = 50 * (profile.meta.cannonPower - 1) - 50 * (profile.meta.cannonCharge - 1);
+    const frameAdj = 50 * (effMeta("cannonPower") - 1) - 50 * (effMeta("cannonCharge") - 1);
     return Math.max(5, CANNON_BASE_GAUGE + frameAdj / CANNON_FPS);
   }
 
@@ -759,7 +812,7 @@
     dock.innerHTML = "";
     dock.style.gridTemplateColumns = `repeat(${Math.max(roster.length, 1)}, 1fr)`;
     unitEls = roster.map((c, i) => {
-      const form = evolvedForm(c, profile.catLevels[c.id] || 1);
+      const form = evolvedForm(c, profile.catLevels[c.id] || 1, profile.catPlus[c.id] || 0);
       const el = document.createElement("div");
       el.className = "unit";
       const keyLabel = String(i + 1);
@@ -784,10 +837,10 @@
     if (!c) return;
     if (G.cooldowns[i] > 0 || G.money < c.cost) return;
     G.money -= c.cost;
-    G.cooldowns[i] = Math.max(0.2, c.cd - cdReduction());
     const lvl = profile.catLevels[c.id] || 1;
     const plus = profile.catPlus[c.id] || 0;
-    const form = evolvedForm(c, lvl);
+    const form = evolvedForm(c, lvl, plus);
+    G.cooldowns[i] = Math.max(2, form.cd - cdReduction());
     const mult = catLevelMult(lvl + plus);
     const hp = Math.round(form.hp * mult);
     G.units.push({
@@ -962,15 +1015,17 @@
     metaGridEl.innerHTML = "";
     META_LIST.forEach(m => {
       const lv = profile.meta[m.key];
+      const plus = profile.metaPlus[m.key] || 0;
+      const plusTag = plus > 0 ? " +" + plus : "";
       const max = metaMax(m.key);
       const el = document.createElement("div");
       if (lv >= max) {
         el.className = "meta-btn maxed";
-        el.innerHTML = `<div class="meta-name">${m.label}</div><div class="meta-lv">MAX (Lv ${max})</div>`;
+        el.innerHTML = `<div class="meta-name">${m.label}</div><div class="meta-lv">MAX (Lv ${max}${plusTag})</div>`;
       } else {
         const cost = metaCost(lv);
         el.className = "meta-btn" + (profile.xp < cost ? " disabled" : "");
-        el.innerHTML = `<div class="meta-name">${m.label}</div><div class="meta-lv">Lv ${lv} → ${lv + 1}</div><div class="meta-cost">${cost} XP</div>`;
+        el.innerHTML = `<div class="meta-name">${m.label}</div><div class="meta-lv">Lv ${lv} → ${lv + 1}${plusTag}</div><div class="meta-cost">${cost} XP</div>`;
         el.addEventListener("click", () => {
           if (profile.xp < cost) return;
           profile.xp -= cost;
@@ -1009,7 +1064,7 @@
     testModeBtn.classList.toggle("active", profile.testMode);
     catStrip.innerHTML = "";
     CATS.forEach(c => {
-      const form = evolvedForm(c, profile.catLevels[c.id] || 1);
+      const form = evolvedForm(c, profile.catLevels[c.id] || 1, profile.catPlus[c.id] || 0);
       const el = document.createElement("div");
       el.className = "strip-item" + (c.id === selectedUpgradeCat ? " selected" : "");
       el.textContent = form.emoji;
@@ -1020,7 +1075,7 @@
     const base = CATS.find(c => c.id === selectedUpgradeCat);
     const lvl = profile.catLevels[base.id];
     const plus = profile.catPlus[base.id] || 0;
-    const c = evolvedForm(base, lvl);
+    const c = evolvedForm(base, lvl, plus);
     const need = catXpCost(base.id, lvl);
     const mult = catLevelMult(lvl + plus);
     upgradeXpAmt.textContent = Math.floor(profile.xp);
@@ -1066,7 +1121,7 @@
     profile.equip.forEach((id, i) => {
       const el = document.createElement("div");
       const c = id ? CATS.find(c => c.id === id) : null;
-      const form = c ? evolvedForm(c, profile.catLevels[c.id] || 1) : null;
+      const form = c ? evolvedForm(c, profile.catLevels[c.id] || 1, profile.catPlus[c.id] || 0) : null;
       el.className = "equip-slot" + (i === selectedSlot ? " selected" : "") + (c ? "" : " empty");
       el.textContent = form ? form.emoji : (i + 1);
       el.addEventListener("click", () => { selectedSlot = i; renderEquipScreen(); });
@@ -1075,7 +1130,7 @@
 
     equipGridEl.innerHTML = "";
     CATS.forEach(c => {
-      const form = evolvedForm(c, profile.catLevels[c.id] || 1);
+      const form = evolvedForm(c, profile.catLevels[c.id] || 1, profile.catPlus[c.id] || 0);
       const el = document.createElement("div");
       const equippedSlot = profile.equip.indexOf(c.id);
       el.className = "grid-item" + (equippedSlot !== -1 ? " equipped" : "");
@@ -1109,12 +1164,16 @@
     return CAPSULE_POOL[Math.floor(Math.random() * CAPSULE_POOL.length)];
   }
   function rewardName(reward) {
-    if (reward.type === "orb") return "Orb";
+    if (reward.type === "orb") return "Base Upgrade Orb";
     return CATS.find(c => c.id === reward.id).name;
   }
   function rewardEmoji(reward) {
     if (reward.type === "orb") return "🔮";
     return CATS.find(c => c.id === reward.id).emoji;
+  }
+  function rewardDesc(reward) {
+    if (reward.type === "orb") return "Use Now: +1 bonus level to all 10 Base Upgrades (stacks past their level cap).";
+    return "Use Now: +1 bonus level past this cat's Lv20 cap.";
   }
   function xpTradeValue(reward) {
     if (reward.type === "orb") return 25000;
@@ -1126,7 +1185,7 @@
   function applyRewardUseNow(reward) {
     if (reward.type === "orb") {
       META_LIST.forEach(m => {
-        profile.meta[m.key] = Math.min(metaMax(m.key), profile.meta[m.key] + 1);
+        profile.metaPlus[m.key] = (profile.metaPlus[m.key] || 0) + 1;
       });
     } else {
       profile.catPlus[reward.id] = (profile.catPlus[reward.id] || 0) + 1;
@@ -1145,6 +1204,7 @@
   const capsuleReveal = document.getElementById("capsuleReveal");
   const revealIcon = document.getElementById("revealIcon");
   const revealName = document.getElementById("revealName");
+  const revealDesc = document.getElementById("revealDesc");
   const revealUseBtn = document.getElementById("revealUseBtn");
   const revealXpBtn = document.getElementById("revealXpBtn");
   const revealOkBtn = document.getElementById("revealOkBtn");
@@ -1177,6 +1237,7 @@
     const reward = pullQueue[0];
     revealName.textContent = rewardName(reward);
     revealIcon.textContent = rewardEmoji(reward);
+    revealDesc.textContent = rewardDesc(reward);
     capsuleReveal.classList.remove("hidden");
   }
 
@@ -1219,7 +1280,8 @@
       const el = document.createElement("div");
       el.className = "storage-item";
       el.innerHTML =
-        `<div class="si-name">${rewardEmoji(reward)} ${rewardName(reward)}</div>` +
+        `<div><div class="si-name">${rewardEmoji(reward)} ${rewardName(reward)}</div>` +
+        `<div class="si-desc">${rewardDesc(reward)}</div></div>` +
         `<div class="si-buttons">` +
         `<button class="si-use">Use Now</button>` +
         `<button class="si-xp">Change to XP (${xpTradeValue(reward)})</button>` +
