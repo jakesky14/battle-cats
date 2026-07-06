@@ -66,6 +66,17 @@
   #field { flex: 1 1 auto; position: relative; border-radius: 12px; overflow: hidden; border: 1px solid var(--edge); min-height: 200px; }
   canvas { display: block; width: 100%; height: 100%; }
 
+  #activeItemsBar {
+    position: absolute; top: 8px; right: 8px; z-index: 5;
+    display: flex; gap: 6px;
+  }
+  #activeItemsBar .active-item-badge {
+    background: rgba(0,0,0,.55); border: 2px solid var(--gold);
+    border-radius: 8px; padding: 4px 6px; font-size: 18px; line-height: 1;
+  }
+  #activeItemsBar .active-item-badge.toggleable { cursor: pointer; }
+  #activeItemsBar .active-item-badge.toggleable:active { transform: translateY(1px); }
+
   #overlay {
     position: absolute; inset: 0;
     background: rgba(8,10,18,.82);
@@ -477,7 +488,7 @@
   }
 
   .capsule-row {
-    position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%);
+    position: absolute; bottom: 90px; right: 16px;
     display: flex; gap: 12px;
   }
   .capsule-btn, .storage-btn {
@@ -714,6 +725,7 @@
 
   <div id="field">
     <canvas id="cv"></canvas>
+    <div id="activeItemsBar"></div>
     <div id="overlay">
       <h1 id="ovTitle">🐱 Battle Cats</h1>
       <p id="ovText">Deploy cats to smash the enemy base before they smash yours.
@@ -772,8 +784,7 @@
     catCPU:       { name: "Cat CPU",        emoji: "🤖" },
     catJobs:      { name: "Cat Jobs",       emoji: "💼" },
   };
-  const SNIPER_DMG = 30;       // placeholder, not specified
-  const SNIPER_INTERVAL = 2;   // seconds, placeholder, not specified
+  const SNIPER_INTERVAL = 2;   // seconds between shots, placeholder, not specified
 
   // Cat roster. range = attack range. cycle = seconds between attacks (foreswing+backswing).
   // fore = foreswing seconds (attack animation time before damage lands). tgt = "single" or "area".
@@ -1104,6 +1115,27 @@
   const workerSub = document.getElementById("workerSub");
   const cannonBtn = document.getElementById("cannonBtn");
   const cannonFill = document.getElementById("cannonFill");
+  const activeItemsBarEl = document.getElementById("activeItemsBar");
+  const TOGGLEABLE_ITEMS = ["speedUp", "catCPU", "sniperCat"];
+
+  function renderActiveItemsBar() {
+    activeItemsBarEl.innerHTML = "";
+    Object.keys(G.activeItems).forEach(key => {
+      if (!G.activeItems[key]) return;
+      const el = document.createElement("div");
+      const toggleable = TOGGLEABLE_ITEMS.includes(key);
+      el.className = "active-item-badge" + (toggleable ? " toggleable" : "");
+      el.textContent = ITEM_INFO[key].emoji;
+      el.title = ITEM_INFO[key].name + (toggleable ? " (click to turn off)" : "");
+      if (toggleable) {
+        el.addEventListener("click", () => {
+          G.activeItems[key] = false;
+          renderActiveItemsBar();
+        });
+      }
+      activeItemsBarEl.appendChild(el);
+    });
+  }
   const pBaseHpEl = document.getElementById("pBaseHp");
   const eBaseHpEl = document.getElementById("eBaseHp");
   const overlay = document.getElementById("overlay");
@@ -1996,6 +2028,7 @@
     newGame();
     G.running = true;
     overlay.classList.add("hidden");
+    renderActiveItemsBar();
   }
 
   const CAT_FOOD_PER_WIN = 10;
@@ -2047,17 +2080,20 @@
   // Knockback: a unit with kb=N gets pushed back once per 1/N chunk of max HP lost
   // (the Nth and final knockback lands exactly at death). Bases have no kb stat.
   const KNOCKBACK_DISTANCE = 24;
+  function knockbackPush(u) {
+    const pushDir = u.team === "player" ? 1 : -1;
+    u.x = Math.max(E_BASE_X + 6, Math.min(P_BASE_X - 6, u.x + pushDir * KNOCKBACK_DISTANCE));
+    u.swing = -1;
+    u.swung = false;
+    u.flash = 0.2;
+  }
   function applyKnockback(u) {
     if (!u.def) return;
     const kb = u.def.kb || 1;
     while (u.kbCount < kb) {
       const thresholdHp = u.max * (kb - (u.kbCount + 1)) / kb;
       if (u.hp > thresholdHp + 1e-6) break;
-      const pushDir = u.team === "player" ? 1 : -1;
-      u.x = Math.max(E_BASE_X + 6, Math.min(P_BASE_X - 6, u.x + pushDir * KNOCKBACK_DISTANCE));
-      u.swing = -1;
-      u.swung = false;
-      u.flash = 0.2;
+      knockbackPush(u);
       u.kbCount++;
     }
   }
@@ -2077,7 +2113,9 @@
     for (let i = 0; i < G.cooldowns.length; i++)
       if (G.cooldowns[i] > 0) G.cooldowns[i] = Math.max(0, G.cooldowns[i] - dt);
 
-    // Sniper the Cat item: passive assist, fires at the enemy closest to the player base
+    // Sniper the Cat item: passive assist, fires at the enemy closest to the player base.
+    // Damage = 5% of that enemy's own max HP; every hit knocks it back unconditionally
+    // (independent of its normal kb-threshold system).
     if (G.activeItems.sniperCat) {
       G.sniperTimer += dt;
       if (G.sniperTimer >= SNIPER_INTERVAL) {
@@ -2086,9 +2124,9 @@
         if (enemies.length > 0) {
           const closest = enemies.reduce((a, b) =>
             Math.abs(a.x - P_BASE_X) <= Math.abs(b.x - P_BASE_X) ? a : b);
-          closest.hp -= SNIPER_DMG;
+          closest.hp -= closest.max * 0.05;
           closest.flash = 0.15;
-          applyKnockback(closest);
+          knockbackPush(closest);
           G.fx.push({ x: closest.x, y: 0, life: 0.2, t: "player" });
         }
       }
