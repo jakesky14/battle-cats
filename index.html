@@ -292,6 +292,53 @@
   }
   .store-list .store-item button:disabled { filter: grayscale(.6) brightness(.7); cursor: not-allowed; }
 
+  /* ---- Battle Menu (world map + item loadout before a stage) ---- */
+  .map-bg {
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(160deg, #8fd0f0 0%, #7ec850 35%, #4a934a 60%, #2f6b5f 100%);
+  }
+  .map-marker {
+    position: absolute; top: 42%; left: 46%;
+    width: 22px; height: 22px; border-radius: 50%;
+    background: #e21f1f; border: 3px solid #fff;
+    box-shadow: 0 0 0 6px rgba(226,31,31,.3);
+    animation: map-pulse 1.4s infinite;
+  }
+  @keyframes map-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.35); } }
+  .back-corner-btn {
+    position: absolute; bottom: 16px; left: 16px;
+    background: #f4e2b8; color: #6e4527; border: 3px solid #3f2a17; border-radius: 8px;
+    padding: 10px 20px; font-weight: 800; cursor: pointer;
+  }
+  .battle-menu-panel {
+    position: absolute; bottom: 16px; right: 16px;
+    display: flex; flex-direction: column; align-items: flex-end; gap: 12px;
+  }
+  .battle-menu-actions { display: flex; align-items: center; gap: 10px; }
+  .equip-side-btn {
+    background: linear-gradient(180deg,#e0a95f,#b9773a); color: #fff;
+    border: none; border-radius: 10px; padding: 16px 20px; font-weight: 800; font-size: 15px; cursor: pointer;
+    box-shadow: 0 4px 0 rgba(0,0,0,.3);
+  }
+  .attack-btn {
+    background: linear-gradient(180deg,#ff4d4d,#b3221f); color: #fff;
+    border: none; border-radius: 14px; padding: 18px 36px; font-weight: 900; font-size: 20px; cursor: pointer;
+    box-shadow: 0 6px 0 rgba(0,0,0,.3);
+  }
+  .battle-menu-items {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+    width: 340px;
+  }
+  .battle-menu-item {
+    background: rgba(0,0,0,.5); border: 3px solid transparent; border-radius: 10px;
+    padding: 10px 4px; color: #fff; text-align: center; cursor: pointer; font-size: 11px; font-weight: 700;
+  }
+  .battle-menu-item.selected { border-color: #ffd35a; background: rgba(255,211,90,.3); }
+  .battle-menu-item .bmi-emoji { font-size: 24px; }
+  .battle-menu-item .bmi-count { color: #ffd35a; font-weight: 800; }
+
   .placeholder-text { color: #f4e2b8; opacity: .85; margin-top: 30px; }
   .back-btn {
     margin-top: auto;
@@ -524,7 +571,7 @@
     <button class="calendar-btn" id="calendarBtn">📅</button>
   </div>
   <div class="menu-buttons">
-    <button class="menu-btn battle" id="menuBattleBtn"><span class="ico">⚔️</span><span id="lbl-battle">BATTLE</span></button>
+    <button class="menu-btn battle" id="menuBattleBtn"><span class="ico">⚔️</span><span id="lbl-battle">START!</span></button>
     <button class="menu-btn upgrade" id="menuUpgradeBtn"><span class="ico">⬆️</span><span id="lbl-upgrade">UPGRADE</span></button>
     <button class="menu-btn equip" id="menuEquipBtn"><span class="ico">🐱</span><span id="lbl-equip">EQUIP</span></button>
   </div>
@@ -568,11 +615,22 @@
   <button class="back-btn" id="storeBackBtn">Back</button>
 </div>
 
+<div id="battleMenuScreen" class="map-bg hidden">
+  <div class="map-marker"></div>
+  <button class="back-corner-btn" id="battleMenuBackBtn">◀ Back</button>
+  <div class="battle-menu-panel">
+    <div class="battle-menu-actions">
+      <button class="equip-side-btn" id="battleMenuEquipBtn">EQUIP</button>
+      <button class="attack-btn" id="battleMenuAttackBtn">ATTACK</button>
+    </div>
+    <div class="battle-menu-items" id="battleMenuItems"></div>
+  </div>
+</div>
+
 <div id="upgradeScreen" class="screen hidden">
   <div class="screen-title">Upgrade</div>
   <div class="xp-display">XP <span id="upgradeXpAmt">0</span></div>
   <div class="test-row hidden" id="testRow">
-    <button class="test-btn" id="testXpBtn">TEST: +100,000 XP</button>
     <button class="test-btn" id="testPlusBtn">TEST: +1 PLUS LEVEL</button>
     <button class="test-btn restart-btn" id="restartGameBtn">RESTART GAME</button>
   </div>
@@ -687,12 +745,12 @@
   // separate task that would need to be scoped on its own.
   const LANGUAGES = ["English", "French", "Chinese", "Korean", "Spanish", "Japanese"];
   const I18N = {
-    English:  { catBase: "Cat Base", battle: "BATTLE", upgrade: "UPGRADE", equip: "EQUIP", play: "PLAY", settings: "SETTINGS" },
-    French:   { catBase: "Base des Chats", battle: "BATAILLE", upgrade: "AMÉLIORER", equip: "ÉQUIPER", play: "JOUER", settings: "PARAMÈTRES" },
-    Chinese:  { catBase: "猫咪基地", battle: "战斗", upgrade: "升级", equip: "装备", play: "开始", settings: "设置" },
-    Korean:   { catBase: "고양이 기지", battle: "전투", upgrade: "업그레이드", equip: "장착", play: "플레이", settings: "설정" },
-    Spanish:  { catBase: "Base de Gatos", battle: "BATALLA", upgrade: "MEJORAR", equip: "EQUIPAR", play: "JUGAR", settings: "AJUSTES" },
-    Japanese: { catBase: "ネコ基地", battle: "バトル", upgrade: "アップグレード", equip: "装備", play: "プレイ", settings: "設定" },
+    English:  { catBase: "Cat Base", battle: "START!", upgrade: "UPGRADE", equip: "EQUIP", play: "PLAY", settings: "SETTINGS" },
+    French:   { catBase: "Base des Chats", battle: "COMMENCER!", upgrade: "AMÉLIORER", equip: "ÉQUIPER", play: "JOUER", settings: "PARAMÈTRES" },
+    Chinese:  { catBase: "猫咪基地", battle: "开始!", upgrade: "升级", equip: "装备", play: "开始", settings: "设置" },
+    Korean:   { catBase: "고양이 기지", battle: "시작!", upgrade: "업그레이드", equip: "장착", play: "플레이", settings: "설정" },
+    Spanish:  { catBase: "Base de Gatos", battle: "¡EMPEZAR!", upgrade: "MEJORAR", equip: "EQUIPAR", play: "JUGAR", settings: "AJUSTES" },
+    Japanese: { catBase: "ネコ基地", battle: "スタート!", upgrade: "アップグレード", equip: "装備", play: "プレイ", settings: "設定" },
   };
   function applyLanguage() {
     const t = I18N[profile.language] || I18N.English;
@@ -703,6 +761,19 @@
     document.getElementById("lbl-play").textContent = t.play;
     document.getElementById("lbl-settings").textContent = t.settings;
   }
+
+  // Battle items: picked on the Battle Menu screen before a stage, consumed on Attack.
+  // Sniper Cat's damage/interval aren't specified anywhere - reasonable placeholder values, flagged.
+  const ITEM_INFO = {
+    speedUp:      { name: "Speed Up",       emoji: "⏩" },
+    treasureRadar:{ name: "Treasure Radar", emoji: "📡" },
+    richCat:      { name: "Rich Cat",       emoji: "🤑" },
+    sniperCat:    { name: "Sniper the Cat", emoji: "🔭" },
+    catCPU:       { name: "Cat CPU",        emoji: "🤖" },
+    catJobs:      { name: "Cat Jobs",       emoji: "💼" },
+  };
+  const SNIPER_DMG = 30;       // placeholder, not specified
+  const SNIPER_INTERVAL = 2;   // seconds, placeholder, not specified
 
   // Cat roster. range = attack range. cycle = seconds between attacks (foreswing+backswing).
   // fore = foreswing seconds (attack animation time before damage lands). tgt = "single" or "area".
@@ -899,6 +970,8 @@
     userRank: 0,   // +1 every time a cat gains a level (paid) or a "+1" bonus level (capsule Use Now)
     claimedRankRewards: 0, // how many rank-reward tiers have been claimed, in order
     catFood: 0,    // +10 per stage win; spendable in the Store
+    items: { speedUp: 0, treasureRadar: 0, richCat: 0, sniperCat: 0, catCPU: 0, catJobs: 0 },
+    pendingDailyItem: null, // rolled once when a daily reward becomes available, granted on claim
   };
 
   const TEST_RESOURCE_AMOUNT = 999999;
@@ -931,6 +1004,10 @@
     if (typeof saved.userRank === "number") profile.userRank = saved.userRank;
     if (typeof saved.claimedRankRewards === "number") profile.claimedRankRewards = saved.claimedRankRewards;
     if (typeof saved.catFood === "number") profile.catFood = saved.catFood;
+    if (saved.items) Object.assign(profile.items, saved.items);
+    if (saved.pendingDailyItem === null || typeof saved.pendingDailyItem === "string") {
+      profile.pendingDailyItem = saved.pendingDailyItem;
+    }
   }
 
   const META_MAX = 20;
@@ -992,14 +1069,18 @@
   let G;
   function newGame() {
     const pHp = playerBaseMaxHp();
+    const activeItems = pendingActiveItems;
+    pendingActiveItems = {};
     G = {
       running: false,
       over: false,
       won: false,
       time: 0,
       money: 160,
-      workerLv: 1,
+      workerLv: activeItems.richCat ? WORKER_MAX : 1,
       cannonGauge: 0,
+      activeItems,           // items brought into this stage (Battle Menu selection)
+      sniperTimer: 0,
       units: [],            // player + enemy units
       pBase: { x:P_BASE_X, hp:pHp, max:pHp, team:"player", isBase:true },
       eBase: { x:E_BASE_X, hp:ENEMY_BASE_HP, max:ENEMY_BASE_HP, team:"enemy", isBase:true },
@@ -1177,6 +1258,7 @@
   const userRankScreen = document.getElementById("userRankScreen");
   const calendarScreen = document.getElementById("calendarScreen");
   const storeScreen = document.getElementById("storeScreen");
+  const battleMenuScreen = document.getElementById("battleMenuScreen");
   const appEl = document.getElementById("app");
   const energyAmtEl = document.getElementById("energyAmt");
   const energyMaxEl = document.getElementById("energyMax");
@@ -1190,14 +1272,19 @@
   // having stayed open.
   const DAILY_REWARD_MS = 24 * 60 * 60 * 1000;
   const DAILY_REWARD_TICKETS = 1;
-  const DAILY_REWARD_XP = 500;
   const dailyRewardModal = document.getElementById("dailyRewardModal");
   const dailyRewardDesc = document.getElementById("dailyRewardDesc");
   const dailyClaimBtn = document.getElementById("dailyClaimBtn");
 
   function checkDailyReward() {
     if (Date.now() >= profile.nextDailyRewardTs) {
-      dailyRewardDesc.textContent = `+${DAILY_REWARD_TICKETS} Cat Capsule Ticket, +${DAILY_REWARD_XP} XP`;
+      if (!profile.pendingDailyItem) {
+        const keys = Object.keys(ITEM_INFO);
+        profile.pendingDailyItem = keys[Math.floor(Math.random() * keys.length)];
+        saveProfile();
+      }
+      const itemName = ITEM_INFO[profile.pendingDailyItem].name;
+      dailyRewardDesc.textContent = `+${DAILY_REWARD_TICKETS} Cat Capsule Ticket, +1 ${itemName}`;
       dailyRewardModal.classList.remove("hidden");
     } else {
       dailyRewardModal.classList.add("hidden");
@@ -1206,7 +1293,8 @@
 
   dailyClaimBtn.addEventListener("click", () => {
     profile.tickets += DAILY_REWARD_TICKETS;
-    profile.xp += DAILY_REWARD_XP;
+    profile.items[profile.pendingDailyItem] = (profile.items[profile.pendingDailyItem] || 0) + 1;
+    profile.pendingDailyItem = null;
     profile.nextDailyRewardTs = Date.now() + DAILY_REWARD_MS;
     saveProfile();
     renderMainMenu();
@@ -1226,7 +1314,7 @@
 
   function showScreen(el) {
     [titleScreen, modeSelectScreen, settingsScreen, mainMenu, upgradeScreen, equipScreen, capsuleScreen, storageScreen,
-     userRankScreen, calendarScreen, storeScreen, appEl].forEach(s => s.classList.add("hidden"));
+     userRankScreen, calendarScreen, storeScreen, battleMenuScreen, appEl].forEach(s => s.classList.add("hidden"));
     el.classList.remove("hidden");
     if (el === mainMenu) renderMainMenu();
     if (el === titleScreen) renderTitleScreen();
@@ -1234,6 +1322,7 @@
     if (el === userRankScreen) renderUserRankScreen();
     if (el === calendarScreen) renderCalendarScreen();
     if (el === storeScreen) renderStoreScreen();
+    if (el === battleMenuScreen) renderBattleMenu();
   }
 
   document.getElementById("titlePlayBtn").addEventListener("click", () => showScreen(modeSelectScreen));
@@ -1366,20 +1455,15 @@
   }
 
   document.getElementById("menuBattleBtn").addEventListener("click", () => {
-    regenEnergy();
-    if (profile.energy < ENERGY_PER_BATTLE) { renderMainMenu(); return; }
-    profile.energy -= ENERGY_PER_BATTLE;
-    saveProfile();
-    buildDock();
-    showScreen(appEl);
-    resize();
-    startGame();
+    showScreen(battleMenuScreen);
   });
   document.getElementById("menuUpgradeBtn").addEventListener("click", () => {
     renderUpgradeScreen();
     showScreen(upgradeScreen);
   });
+  let equipReturnScreen = null; // mainMenu, or battleMenuScreen if entered from there
   document.getElementById("menuEquipBtn").addEventListener("click", () => {
+    equipReturnScreen = mainMenu;
     renderEquipScreen();
     showScreen(equipScreen);
   });
@@ -1392,9 +1476,63 @@
     showScreen(storageScreen);
   });
   document.getElementById("upgradeBackBtn").addEventListener("click", () => showScreen(mainMenu));
-  document.getElementById("equipBackBtn").addEventListener("click", () => showScreen(mainMenu));
+  document.getElementById("equipBackBtn").addEventListener("click", () => showScreen(equipReturnScreen || mainMenu));
   document.getElementById("capsuleBackBtn").addEventListener("click", () => showScreen(mainMenu));
   document.getElementById("storageBackBtn").addEventListener("click", () => showScreen(mainMenu));
+
+  // ---------------------------------------------------------------------------
+  // Battle Menu: pick items to bring before a stage. Selected items are consumed and
+  // applied when Attack is pressed (see pendingActiveItems, read once in newGame()).
+  // ---------------------------------------------------------------------------
+  let selectedBattleItems = {};
+  let pendingActiveItems = {};
+  const battleMenuItemsEl = document.getElementById("battleMenuItems");
+
+  function renderBattleMenu() {
+    selectedBattleItems = {};
+    battleMenuItemsEl.innerHTML = "";
+    Object.keys(ITEM_INFO).forEach(key => {
+      const info = ITEM_INFO[key];
+      const count = profile.items[key] || 0;
+      const el = document.createElement("div");
+      el.className = "battle-menu-item";
+      el.innerHTML = `<div class="bmi-emoji">${info.emoji}</div><div>${info.name}</div><div class="bmi-count">x${count}</div>`;
+      if (count <= 0) {
+        el.style.opacity = ".4";
+        el.style.cursor = "not-allowed";
+      } else {
+        el.addEventListener("click", () => {
+          selectedBattleItems[key] = !selectedBattleItems[key];
+          el.classList.toggle("selected", selectedBattleItems[key]);
+        });
+      }
+      battleMenuItemsEl.appendChild(el);
+    });
+  }
+
+  document.getElementById("battleMenuBackBtn").addEventListener("click", () => showScreen(mainMenu));
+  document.getElementById("battleMenuEquipBtn").addEventListener("click", () => {
+    equipReturnScreen = battleMenuScreen;
+    renderEquipScreen();
+    showScreen(equipScreen);
+  });
+  document.getElementById("battleMenuAttackBtn").addEventListener("click", () => {
+    regenEnergy();
+    if (profile.energy < ENERGY_PER_BATTLE) return;
+    profile.energy -= ENERGY_PER_BATTLE;
+    pendingActiveItems = {};
+    Object.keys(selectedBattleItems).forEach(key => {
+      if (selectedBattleItems[key] && (profile.items[key] || 0) > 0) {
+        profile.items[key]--;
+        pendingActiveItems[key] = true;
+      }
+    });
+    saveProfile();
+    buildDock();
+    showScreen(appEl);
+    resize();
+    startGame();
+  });
   ovMenuBtn.addEventListener("click", () => showScreen(mainMenu));
 
   // ---------------------------------------------------------------------------
@@ -1408,7 +1546,6 @@
   const upgradeDesc = document.getElementById("upgradeDesc");
   const levelUpBtn = document.getElementById("levelUpBtn");
   const metaGridEl = document.getElementById("metaGrid");
-  const testXpBtn = document.getElementById("testXpBtn");
   let selectedUpgradeCat = CATS[0].id;
 
   function renderMetaGrid() {
@@ -1437,12 +1574,6 @@
       metaGridEl.appendChild(el);
     });
   }
-
-  testXpBtn.addEventListener("click", () => {
-    profile.xp += 100000;
-    saveProfile();
-    renderUpgradeScreen();
-  });
 
   const testPlusBtn = document.getElementById("testPlusBtn");
   testPlusBtn.addEventListener("click", () => {
@@ -1874,7 +2005,9 @@
     G.running = false;
     G.won = won;
     if (won) {
-      profile.xp += Math.round(XP_PER_WIN * winXpMult());
+      let mult = winXpMult();
+      if (G.activeItems.catJobs) mult *= 1.5; // Cat Jobs: +50% XP on the stage it's used on
+      profile.xp += Math.round(XP_PER_WIN * mult);
       profile.catFood += CAT_FOOD_PER_WIN;
     }
     saveProfile();
@@ -1943,6 +2076,32 @@
     // Cooldowns
     for (let i = 0; i < G.cooldowns.length; i++)
       if (G.cooldowns[i] > 0) G.cooldowns[i] = Math.max(0, G.cooldowns[i] - dt);
+
+    // Sniper the Cat item: passive assist, fires at the enemy closest to the player base
+    if (G.activeItems.sniperCat) {
+      G.sniperTimer += dt;
+      if (G.sniperTimer >= SNIPER_INTERVAL) {
+        G.sniperTimer -= SNIPER_INTERVAL;
+        const enemies = G.units.filter(u => u.team === "enemy" && u.hp > 0);
+        if (enemies.length > 0) {
+          const closest = enemies.reduce((a, b) =>
+            Math.abs(a.x - P_BASE_X) <= Math.abs(b.x - P_BASE_X) ? a : b);
+          closest.hp -= SNIPER_DMG;
+          closest.flash = 0.15;
+          applyKnockback(closest);
+          G.fx.push({ x: closest.x, y: 0, life: 0.2, t: "player" });
+        }
+      }
+    }
+
+    // Cat CPU item: auto-plays - deploys the first affordable/ready unit each frame,
+    // and fires the cannon the instant it's charged.
+    if (G.activeItems.catCPU) {
+      if (G.cannonGauge >= cannonGaugeTime()) fireCannon();
+      for (let i = 0; i < roster.length; i++) {
+        if (G.cooldowns[i] <= 0 && G.money >= roster[i].cost) { deploy(i); break; }
+      }
+    }
 
     // Enemy spawning
     G.spawnTimer -= dt;
@@ -2181,7 +2340,9 @@
     if (dt > 0.05) dt = 0.05; // clamp
     regenEnergy();
     if (!mainMenu.classList.contains("hidden")) renderMainMenu();
-    if (G.running && !G.over) update(dt);
+    // Speed Up item: everything in battle (enemies, cats, attacks, cooldowns, income, etc.)
+    // runs at 2x by simply advancing the simulation twice as fast.
+    if (G.running && !G.over) update(G.activeItems.speedUp ? dt * 2 : dt);
     render();
     syncHud();
     requestAnimationFrame(frame);
