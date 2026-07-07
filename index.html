@@ -494,6 +494,8 @@
     background: rgba(0,0,0,.35); border-radius: 8px;
     padding: 8px 16px; font-size: 15px; font-weight: 700;
   }
+  .battle-menu-status-row { display: flex; align-items: center; gap: 10px; }
+  .battle-menu-status-row .energy-display { position: static; background: rgba(0,0,0,.5); color: #fff; }
 
   .test-row { align-self: flex-start; margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; }
   .test-btn {
@@ -653,7 +655,6 @@
     <button class="menu-btn gamatoto" id="menuGamatotoBtn"><span class="ico">🦛</span><span>GAMATOTO</span></button>
   </div>
   <button class="back-corner-btn" id="mainMenuBackBtn">◀ Back</button>
-  <div class="energy-display">⚡ Energy: <span id="energyAmt">100</span> / <span id="energyMax">100</span></div>
   <div class="cat-food-row">
     <button class="store-btn" id="storeBtn">🏪 Store</button>
     <div class="cat-food">🍡 Cat Food: <span id="catFoodAmt">0</span></div>
@@ -698,7 +699,10 @@
   <div class="map-marker"></div>
   <button class="back-corner-btn" id="battleMenuBackBtn">◀ Back</button>
   <div class="battle-menu-panel">
-    <button class="leadership-btn" id="leadershipBtn">🚩 Leadership <span id="leadershipCount">0</span></button>
+    <div class="battle-menu-status-row">
+      <div class="energy-display">⚡ Energy: <span id="energyAmt">100</span> / <span id="energyMax">100</span></div>
+      <button class="leadership-btn" id="leadershipBtn">🚩 Leadership <span id="leadershipCount">0</span></button>
+    </div>
     <div class="battle-menu-actions">
       <button class="equip-side-btn" id="battleMenuEquipBtn">EQUIP</button>
       <button class="attack-btn" id="battleMenuAttackBtn">ATTACK</button>
@@ -1502,8 +1506,6 @@
 
   function renderMainMenu() {
     regenEnergy();
-    energyAmtEl.textContent = Math.floor(profile.energy);
-    energyMaxEl.textContent = energyMax();
     const enough = profile.energy >= ENERGY_PER_BATTLE;
     menuBattleBtnEl.disabled = !enough;
     menuBattleBtnEl.style.opacity = enough ? "1" : ".5";
@@ -1838,6 +1840,9 @@
 
   function renderBattleMenu() {
     selectedBattleItems = {};
+    regenEnergy();
+    energyAmtEl.textContent = Math.floor(profile.energy);
+    energyMaxEl.textContent = energyMax();
     renderLeadershipBtn();
     battleMenuItemsEl.innerHTML = "";
     Object.keys(ITEM_INFO).forEach(key => {
@@ -2700,6 +2705,10 @@
     regenEnergy();
     if (!mainMenu.classList.contains("hidden")) renderMainMenu();
     if (!gamatotoScreen.classList.contains("hidden")) renderGamatotoScreen();
+    if (!battleMenuScreen.classList.contains("hidden")) {
+      energyAmtEl.textContent = Math.floor(profile.energy);
+      energyMaxEl.textContent = energyMax();
+    }
     // Speed Up item: everything in battle (enemies, cats, attacks, cooldowns, income, etc.)
     // runs at 2x by simply advancing the simulation twice as fast.
     if (G.running && !G.over) update(G.activeItems.speedUp ? dt * 2 : dt);
