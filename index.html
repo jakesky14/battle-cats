@@ -994,7 +994,7 @@
   // Evolved (2nd) forms, unlocked at level 10. Only name/emoji change for most cats;
   // Gross/Bird/Lizard also get real stat tweaks to their evolved cycle/foreswing/damage.
   const EVOLUTIONS = {
-    cat:    { name: "Macho Cat",      emoji: "💪" },
+    cat:    { name: "Macho Cat",      emoji: "💪", sprite: "machoCat" },
     tank:   { name: "Wall Cat",       emoji: "🧱" },
     axe:    { name: "Brave Cat",      emoji: "🦸" },
     gross:  { name: "Sexy Legs Cat",  emoji: "🦵", cycle: 4.17, fore: 0.20 },
@@ -1011,7 +1011,7 @@
   // form already resolved to (confirmed against the data: e.g. Macho Leg Cat's cycle/fore match Sexy
   // Legs Cat's, not base Gross Cat's). cd and traits are fully replaced per the given data.
   const THIRD_EVOLUTIONS = {
-    cat:    { name: "Mohawk Cat",     emoji: "🤘", hp: 500,  dmg: 40 },
+    cat:    { name: "Mohawk Cat",     emoji: "🤘", hp: 500,  dmg: 40, sprite: "mohawkCat" },
     tank:   { name: "Eraser Cat",     emoji: "🪨", hp: 1500, dmg: 10 },
     axe:    { name: "Dark Cat",       emoji: "🌑", hp: 1000, dmg: 125, cd: 2.00, strongAgainst: ["Red"] },
     gross:  { name: "Macho Leg Cat",  emoji: "🦿", hp: 2000, dmg: 500, cd: 7.53, strongAgainst: ["Alien"] },
@@ -1038,6 +1038,7 @@
         cycle: evo.cycle !== undefined ? evo.cycle : form.cycle,
         fore: evo.fore !== undefined ? evo.fore : form.fore,
         dmg: evo.dmgMult ? form.dmg * evo.dmgMult : form.dmg,
+        sprite: evo.sprite !== undefined ? evo.sprite : form.sprite,
       };
     }
     const evo3 = THIRD_EVOLUTIONS[c.id];
@@ -1050,6 +1051,7 @@
         dmg: evo3.dmg,
         cd: evo3.cd !== undefined ? evo3.cd : form.cd,
         strongAgainst: evo3.strongAgainst !== undefined ? evo3.strongAgainst : form.strongAgainst,
+        sprite: evo3.sprite !== undefined ? evo3.sprite : form.sprite,
       };
     }
     return form;
@@ -2628,18 +2630,63 @@
 
   function buildCatGrid() {
     const grid = makePxGrid();
-    pxEllipse(grid, 9, 11, 6, 5.5, "W");
-    pxTriangle(grid, 5, 4, 7, 1.7, "W");
-    pxTriangle(grid, 13, 4, 7, 1.7, "W");
+    pxEllipse(grid, 9, 12, 5, 6.2, "W");
+    pxTriangle(grid, 7, 5, 8, 1.1, "W");
+    pxTriangle(grid, 11, 5, 8, 1.1, "W");
     pxOutline(grid, "K");
-    grid[10][6] = "K"; grid[10][12] = "K"; // eyes
-    grid[12][8] = "K"; grid[12][10] = "K"; grid[13][9] = "K"; // simple "w" mouth mark
-    pxEllipse(grid, 6.5, 17, 2, 1.6, "K"); // stubby feet
-    pxEllipse(grid, 11.5, 17, 2, 1.6, "K");
+    grid[11][6] = "K"; grid[11][11] = "K"; // eyes
+    grid[13][8] = "K"; grid[14][9] = "K"; grid[13][10] = "K"; // mouth: shallow "v" notch
+    pxEllipse(grid, 6.5, 18, 2, 1.6, "K"); // stubby feet
+    pxEllipse(grid, 12.5, 18, 2, 1.6, "K");
     return grid;
   }
 
-  const PIXEL_SPRITES = { cat: { grid: buildCatGrid() } };
+  function buildArmOnto(grid) {
+    // bicep + forearm + fist, raised on the right side - shared by Macho Cat and Mohawk Cat
+    pxEllipse(grid, 14.3, 12, 2.1, 2, "W");
+    for (let y = 8; y <= 11; y++) { grid[y][14] = "W"; grid[y][15] = "W"; }
+    pxEllipse(grid, 15, 7, 1.7, 1.6, "W");
+  }
+
+  function buildMachoGrid() {
+    const grid = makePxGrid();
+    pxEllipse(grid, 9, 12.5, 5.6, 6.2, "W");
+    pxTriangle(grid, 7, 5, 8, 1.1, "W");
+    pxTriangle(grid, 11, 5, 8, 1.1, "W");
+    buildArmOnto(grid);
+    pxOutline(grid, "K");
+    grid[11][6] = "K"; grid[11][11] = "K"; // eyes
+    grid[13][8] = "K"; grid[14][9] = "K"; grid[13][10] = "K"; // mouth
+    grid[10][14] = "K"; // elbow crease
+    grid[7][15] = "K"; grid[6][15] = "K"; // fist knuckle detail
+    pxEllipse(grid, 6.5, 18, 2, 1.6, "K");
+    pxEllipse(grid, 12.5, 18, 2, 1.6, "K");
+    return grid;
+  }
+
+  function buildMohawkGrid() {
+    const grid = makePxGrid();
+    pxEllipse(grid, 9, 12.5, 5.6, 6.2, "W");
+    buildArmOnto(grid);
+    pxOutline(grid, "K");
+    for (let x = 6; x <= 12; x++) grid[6][x] = "K"; // mohawk base strip
+    pxTriangle(grid, 6.5, 3, 6, 1.1, "K");
+    pxTriangle(grid, 9, 1, 6, 1.1, "K");
+    pxTriangle(grid, 11.5, 3, 6, 1.1, "K");
+    grid[11][6] = "K"; grid[11][11] = "K"; // eyes
+    grid[13][8] = "K"; grid[14][9] = "K"; grid[13][10] = "K"; // mouth
+    grid[10][14] = "K"; // elbow crease
+    grid[7][15] = "K"; grid[6][15] = "K"; // fist knuckle detail
+    pxEllipse(grid, 6.5, 18, 2, 1.6, "K");
+    pxEllipse(grid, 12.5, 18, 2, 1.6, "K");
+    return grid;
+  }
+
+  const PIXEL_SPRITES = {
+    cat: { grid: buildCatGrid() },
+    machoCat: { grid: buildMachoGrid() },
+    mohawkCat: { grid: buildMohawkGrid() },
+  };
 
   function drawPixelGrid(grid, cx, groundYPx, cell, flip) {
     ctx.save();
