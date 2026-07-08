@@ -2592,7 +2592,7 @@
   // shared in chat - not traced or copied from it. Cats without an entry here just
   // fall back to the existing rounded-rect + emoji rendering below.
   // ---------------------------------------------------------------------------
-  const PXW = 18, PXH = 20; // sprite grid size, in cells
+  const PXW = 36, PXH = 40; // sprite grid size, in cells (2x res for finer detail)
   const PX_PALETTE = { W: "#ffffff", K: "#20201c" };
 
   function makePxGrid() { return Array.from({ length: PXH }, () => Array(PXW).fill(null)); }
@@ -2614,6 +2614,13 @@
       }
     }
   }
+  function pxRect(grid, x0, y0, x1, y1, color) {
+    for (let y = y0; y <= y1; y++) {
+      for (let x = x0; x <= x1; x++) {
+        if (x >= 0 && x < PXW && y >= 0 && y < PXH) grid[y][x] = color;
+      }
+    }
+  }
   function pxOutline(grid, color) {
     const filled = grid.map(row => row.map(c => c !== null));
     const deltas = [[0, 1], [0, -1], [1, 0], [-1, 0]];
@@ -2628,57 +2635,70 @@
     }
   }
 
+  function pxFeet(grid, leftCx, rightCx, cy, color) {
+    // stubby feet with a toe-split notch down the middle of each
+    pxEllipse(grid, leftCx, cy, 4, 3.2, color);
+    pxEllipse(grid, rightCx, cy, 4, 3.2, color);
+    for (let y = cy - 2; y < PXH; y++) { grid[y][Math.round(leftCx)] = null; grid[y][Math.round(rightCx)] = null; }
+  }
+
   function buildCatGrid() {
     const grid = makePxGrid();
-    pxEllipse(grid, 9, 12, 5, 6.2, "W");
-    pxTriangle(grid, 7, 5, 8, 1.1, "W");
-    pxTriangle(grid, 11, 5, 8, 1.1, "W");
+    pxEllipse(grid, 18, 24, 10, 12.4, "W");
+    pxTriangle(grid, 14, 10, 16, 2.2, "W");
+    pxTriangle(grid, 22, 10, 16, 2.2, "W");
     pxOutline(grid, "K");
-    grid[11][6] = "K"; grid[11][11] = "K"; // eyes
-    grid[13][8] = "K"; grid[14][9] = "K"; grid[13][10] = "K"; // mouth: shallow "v" notch
-    pxEllipse(grid, 6.5, 18, 2, 1.6, "K"); // stubby feet
-    pxEllipse(grid, 12.5, 18, 2, 1.6, "K");
+    pxRect(grid, 11, 21, 13, 23, "K"); // left eye
+    pxRect(grid, 22, 21, 24, 23, "K"); // right eye
+    pxRect(grid, 15, 26, 17, 28, "K"); // mouth left tick
+    pxRect(grid, 19, 26, 21, 28, "K"); // mouth right tick
+    pxRect(grid, 17, 28, 19, 30, "K"); // mouth chin point
+    pxFeet(grid, 13, 25, 36, "K");
     return grid;
   }
 
   function buildArmOnto(grid) {
     // bicep + forearm + fist, raised on the right side - shared by Macho Cat and Mohawk Cat
-    pxEllipse(grid, 14.3, 12, 2.1, 2, "W");
-    for (let y = 8; y <= 11; y++) { grid[y][14] = "W"; grid[y][15] = "W"; }
-    pxEllipse(grid, 15, 7, 1.7, 1.6, "W");
+    pxEllipse(grid, 28.6, 24, 4.2, 4, "W");
+    pxRect(grid, 27, 16, 30, 22, "W"); // forearm bridge
+    pxEllipse(grid, 30, 14, 3.4, 3.2, "W");
   }
 
   function buildMachoGrid() {
     const grid = makePxGrid();
-    pxEllipse(grid, 9, 12.5, 5.6, 6.2, "W");
-    pxTriangle(grid, 7, 5, 8, 1.1, "W");
-    pxTriangle(grid, 11, 5, 8, 1.1, "W");
+    pxEllipse(grid, 18, 25, 11.2, 12.4, "W");
+    pxTriangle(grid, 14, 10, 16, 2.2, "W");
+    pxTriangle(grid, 22, 10, 16, 2.2, "W");
     buildArmOnto(grid);
     pxOutline(grid, "K");
-    grid[11][6] = "K"; grid[11][11] = "K"; // eyes
-    grid[13][8] = "K"; grid[14][9] = "K"; grid[13][10] = "K"; // mouth
-    grid[10][14] = "K"; // elbow crease
-    grid[7][15] = "K"; grid[6][15] = "K"; // fist knuckle detail
-    pxEllipse(grid, 6.5, 18, 2, 1.6, "K");
-    pxEllipse(grid, 12.5, 18, 2, 1.6, "K");
+    pxRect(grid, 11, 21, 13, 23, "K"); // left eye
+    pxRect(grid, 22, 21, 24, 23, "K"); // right eye
+    pxRect(grid, 15, 26, 17, 28, "K"); // mouth left tick
+    pxRect(grid, 19, 26, 21, 28, "K"); // mouth right tick
+    pxRect(grid, 17, 28, 19, 30, "K"); // mouth chin point
+    pxRect(grid, 27, 19, 30, 20, "K"); // elbow crease
+    pxRect(grid, 29, 12, 30, 13, "K"); // fist knuckle detail
+    pxFeet(grid, 13, 25, 36, "K");
     return grid;
   }
 
   function buildMohawkGrid() {
     const grid = makePxGrid();
-    pxEllipse(grid, 9, 12.5, 5.6, 6.2, "W");
+    pxEllipse(grid, 18, 25, 11.2, 12.4, "W");
     buildArmOnto(grid);
     pxOutline(grid, "K");
-    for (let x = 6; x <= 12; x++) grid[6][x] = "K"; // mohawk base strip
-    pxTriangle(grid, 6.5, 3, 6, 1.1, "K");
-    pxTriangle(grid, 9, 1, 6, 1.1, "K");
-    pxTriangle(grid, 11.5, 3, 6, 1.1, "K");
-    grid[11][6] = "K"; grid[11][11] = "K"; // eyes
-    grid[13][8] = "K"; grid[14][9] = "K"; grid[13][10] = "K"; // mouth
-    grid[10][14] = "K"; // elbow crease
-    grid[7][15] = "K"; grid[6][15] = "K"; // fist knuckle detail
-    pxEllipse(grid, 6.5, 18, 2, 1.6, "K");
-    pxEllipse(grid, 12.5, 18, 2, 1.6, "K");
+    for (let x = 12; x <= 24; x++) grid[12][x] = "K"; // mohawk base strip
+    pxTriangle(grid, 13, 6, 12, 2.2, "K");
+    pxTriangle(grid, 18, 2, 12, 2.2, "K");
+    pxTriangle(grid, 23, 6, 12, 2.2, "K");
+    pxRect(grid, 11, 21, 13, 23, "K"); // left eye
+    pxRect(grid, 22, 21, 24, 23, "K"); // right eye
+    pxRect(grid, 15, 26, 17, 28, "K"); // mouth left tick
+    pxRect(grid, 19, 26, 21, 28, "K"); // mouth right tick
+    pxRect(grid, 17, 28, 19, 30, "K"); // mouth chin point
+    pxRect(grid, 27, 19, 30, 20, "K"); // elbow crease
+    pxRect(grid, 29, 12, 30, 13, "K"); // fist knuckle detail
+    pxFeet(grid, 13, 25, 36, "K");
     return grid;
   }
 
@@ -2706,7 +2726,7 @@
   function drawPixelUnit(u, groundY, sprite) {
     const x = X(u.x);
     const isPlayer = u.team === "player";
-    const cell = 3.1;
+    const cell = 1.55;
     const bob = Math.sin(G.time * 6 + u.x * 0.05) * 1.5;
     let lean = 0;
     if (u.swing >= 0) {
