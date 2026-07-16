@@ -2593,7 +2593,7 @@
   // fall back to the existing rounded-rect + emoji rendering below.
   // ---------------------------------------------------------------------------
   const PXW = 36, PXH = 40; // sprite grid size, in cells (2x res for finer detail)
-  const PX_PALETTE = { W: "#ffffff", K: "#20201c" };
+  const PX_PALETTE = { W: "#ffffff", K: "#20201c", P: "#f4a6b0" };
 
   function makePxGrid() { return Array.from({ length: PXH }, () => Array(PXW).fill(null)); }
 
@@ -2653,11 +2653,8 @@
   function pxFace(grid) {
     pxRect(grid, 13, 12, 14, 13, "K"); // left eye
     pxRect(grid, 21, 12, 22, 13, "K"); // right eye
-    pxLine(grid, 13, 16.5, 15.5, 19, "K"); // thin "w" mouth, traced from reference
-    pxLine(grid, 15.5, 19, 18, 16.8, "K");
-    pxLine(grid, 18, 16.8, 20.5, 19, "K");
-    pxLine(grid, 20.5, 19, 23, 16.5, "K");
-    pxLine(grid, 18, 19, 18, 22, "K"); // small chin tick
+    pxRect(grid, 17, 16, 18, 17, "K"); // nose
+    pxEllipse(grid, 17.5, 19.5, 2.1, 2.3, "P"); // tongue
   }
   function pxLegs(grid) {
     // thin double-line legs, matching the reference's simple stick-leg look (not solid feet)
