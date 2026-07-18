@@ -2593,7 +2593,7 @@
   // fall back to the existing rounded-rect + emoji rendering below.
   // ---------------------------------------------------------------------------
   const PXW = 36, PXH = 40; // sprite grid size, in cells (2x res for finer detail)
-  const PX_PALETTE = { W: "#ffffff", K: "#20201c", P: "#f4a6b0" };
+  const PX_PALETTE = { W: "#ffffff", K: "#20201c" };
 
   function makePxGrid() { return Array.from({ length: PXH }, () => Array(PXW).fill(null)); }
 
@@ -2647,68 +2647,100 @@
       }
     }
   }
+  // Flat-top/flat-bottom body with chamfered corners (an octagon), matching the user's own
+  // sketch of the intended shape - a flat-top rounded rect, not a smooth ellipse - so the ears
+  // sit right at the top corners instead of flaring off the sides.
+  function pxOctagonBody(grid, xL, xR, yT, yB, chamferX, chamferY, color) {
+    const outerXL = xL - chamferX, outerXR = xR + chamferX;
+    const wallYT = yT + chamferY, wallYB = yB - chamferY;
+    for (let y = Math.round(yT); y <= Math.round(yB); y++) {
+      let left, right;
+      if (y <= wallYT) {
+        const t = (y - yT) / (wallYT - yT);
+        left = xL - t * chamferX; right = xR + t * chamferX;
+      } else if (y >= wallYB) {
+        const t = (y - wallYB) / (yB - wallYB);
+        left = outerXL + t * chamferX; right = outerXR - t * chamferX;
+      } else {
+        left = outerXL; right = outerXR;
+      }
+      for (let x = Math.round(left); x <= Math.round(right); x++) {
+        if (x >= 0 && x < PXW && y >= 0 && y < PXH) grid[y][x] = color;
+      }
+    }
+  }
 
   // Face/legs shared by all 3 forms - coordinates derived by overlaying this grid directly on
-  // top of the reference art (aligned to its actual pixel measurements), not eyeballed.
-  function pxFace(grid) {
-    pxRect(grid, 13, 12, 14, 13, "K"); // left eye
-    pxRect(grid, 21, 12, 22, 13, "K"); // right eye
-    pxRect(grid, 17, 16, 18, 17, "K"); // nose
-    pxEllipse(grid, 17.5, 19.5, 2.1, 2.3, "P"); // tongue
+  // top of a reference sketch the user drew (dx shifts the whole face for Macho/Mohawk, whose
+  // body is shifted left to leave room for the raised arm). Mouth is a "w" over a "u", per the
+  // sketch, not the nose+tongue tried in an earlier pass.
+  function pxFace(grid, dx) {
+    dx = dx || 0;
+    pxRect(grid, 13 + dx, 13, 15 + dx, 15, "K"); // left eye
+    pxRect(grid, 21 + dx, 13, 23 + dx, 15, "K"); // right eye
+    pxLine(grid, 14 + dx, 16.5, 16 + dx, 18.5, "K"); // "w" mouth
+    pxLine(grid, 16 + dx, 18.5, 18 + dx, 16.8, "K");
+    pxLine(grid, 18 + dx, 16.8, 20 + dx, 18.5, "K");
+    pxLine(grid, 20 + dx, 18.5, 22 + dx, 16.5, "K");
+    pxLine(grid, 16 + dx, 19.5, 18 + dx, 22.5, "K"); // "u" below, with a small gap from the "w"
+    pxLine(grid, 18 + dx, 22.5, 20 + dx, 19.5, "K");
   }
-  function pxLegs(grid) {
+  function pxLegs(grid, dx) {
+    dx = dx || 0;
     // thin double-line legs, matching the reference's simple stick-leg look (not solid feet)
-    pxLine(grid, 10.5, 31.5, 10.5, 35.5, "K");
-    pxLine(grid, 13, 31.5, 13, 35.5, "K");
-    pxLine(grid, 23, 31.5, 23, 35.5, "K");
-    pxLine(grid, 25.5, 31.5, 25.5, 35.5, "K");
+    pxLine(grid, 10.5 + dx, 31.5, 10.5 + dx, 35.5, "K");
+    pxLine(grid, 13 + dx, 31.5, 13 + dx, 35.5, "K");
+    pxLine(grid, 23 + dx, 31.5, 23 + dx, 35.5, "K");
+    pxLine(grid, 25.5 + dx, 31.5, 25.5 + dx, 35.5, "K");
   }
 
   function buildCatGrid() {
     const grid = makePxGrid();
-    pxEllipse(grid, 18, 21, 16, 13, "W");
-    pxTriangle(grid, 9.5, 2, 8, 2.3, "W");
-    pxTriangle(grid, 26.5, 2, 8, 2.3, "W");
+    pxOctagonBody(grid, 8.5, 28.5, 5.2, 27.3, 6.3, 6.3, "W");
+    pxTriangle(grid, 5.4, 2, 9.4, 1.1, "W");
+    pxTriangle(grid, 30.6, 2, 9.4, 1.1, "W");
     pxOutline(grid, "K");
-    pxFace(grid);
-    pxLegs(grid);
+    pxFace(grid, 0);
+    pxLegs(grid, 0);
     return grid;
   }
 
   function buildArmOnto(grid) {
     // bicep + forearm + fist, raised on the right side - shared by Macho Cat and Mohawk Cat
-    pxEllipse(grid, 32, 21, 3.2, 3.5, "W");
-    pxRect(grid, 31, 13, 33, 19, "W"); // forearm bridge
-    pxEllipse(grid, 32, 11, 2.6, 2.5, "W");
+    pxEllipse(grid, 32, 20, 3.4, 3, "W");
+    pxRect(grid, 33, 11, 35, 19, "W"); // forearm bridge
+    pxEllipse(grid, 34.5, 9.5, 2, 2, "W");
   }
 
   function buildMachoGrid() {
     const grid = makePxGrid();
-    pxEllipse(grid, 18, 21, 16, 13, "W");
-    pxTriangle(grid, 9.5, 2, 8, 2.3, "W");
-    pxTriangle(grid, 26.5, 2, 8, 2.3, "W");
+    const dx = -2.5; // body shifted left to leave room for the raised arm on the right
+    pxOctagonBody(grid, 8.5 + dx, 28.5 + dx, 5.2, 27.3, 4, 6.3, "W");
+    pxTriangle(grid, 5.4 + dx, 2, 9.4, 1.1, "W");
+    pxTriangle(grid, 30.6 + dx, 2, 9.4, 1.1, "W");
     buildArmOnto(grid);
     pxOutline(grid, "K");
-    pxFace(grid);
-    pxRect(grid, 31, 15, 33, 16, "K"); // elbow crease
-    pxRect(grid, 31, 10, 32, 11, "K"); // fist knuckle detail
-    pxLegs(grid);
+    pxFace(grid, dx);
+    pxRect(grid, 33, 15, 35, 16, "K"); // elbow crease
+    pxRect(grid, 34, 8, 35, 9, "K"); // fist knuckle detail
+    pxLegs(grid, dx);
     return grid;
   }
 
   function buildMohawkGrid() {
     const grid = makePxGrid();
-    pxEllipse(grid, 18, 21, 16, 13, "W");
+    const dx = -2.5;
+    pxOctagonBody(grid, 8.5 + dx, 28.5 + dx, 5.2, 27.3, 4, 6.3, "W");
     buildArmOnto(grid);
     pxOutline(grid, "K");
-    for (let x = 12; x <= 24; x++) grid[8][x] = "K"; // mohawk base strip
-    pxTriangle(grid, 13, 2, 8, 2.2, "K");
-    pxTriangle(grid, 18, 0, 8, 2.2, "K");
-    pxTriangle(grid, 23, 2, 8, 2.2, "K");
-    pxFace(grid);
-    pxRect(grid, 31, 15, 33, 16, "K"); // elbow crease
-    pxRect(grid, 31, 10, 32, 11, "K"); // fist knuckle detail
-    pxLegs(grid);
+    for (let x = 12 + dx; x <= 24 + dx; x++) grid[5][Math.round(x)] = "K"; // mohawk base strip
+    pxTriangle(grid, 13 + dx, 3, 5, 1.6, "K");
+    pxTriangle(grid, 18 + dx, 1, 5, 1.6, "K");
+    pxTriangle(grid, 23 + dx, 3, 5, 1.6, "K");
+    pxFace(grid, dx);
+    pxRect(grid, 33, 15, 35, 16, "K"); // elbow crease
+    pxRect(grid, 34, 8, 35, 9, "K"); // fist knuckle detail
+    pxLegs(grid, dx);
     return grid;
   }
 
