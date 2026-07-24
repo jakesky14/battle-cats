@@ -2741,10 +2741,11 @@
     buildDualArmsOnto(grid);
     pxOutline(grid, "K");
     // draped hood instead of a spiky mohawk, per reference: a black wedge over the head,
-    // tilting right and drooping past the shoulder
-    pxTriangle(grid, 14, 0, 5, 3, "K");
-    pxRect(grid, 14, 0, 24, 3, "K");
-    pxTriangle(grid, 24, 0, 12, 6, "K");
+    // tilting right and drooping past the shoulder. Extends well past the body's own top edge
+    // (y=5.2) so it reads as worn on the head, not floating above it.
+    pxTriangle(grid, 14, 0, 8, 3, "K");
+    pxRect(grid, 14, 0, 24, 6, "K");
+    pxTriangle(grid, 24, 0, 14, 6, "K");
     pxFace(grid, 0);
     armDetailOnto(grid);
     pxLegs(grid, 0);
@@ -2805,19 +2806,22 @@
     return grid;
   }
 
+  // heightScale: per-sprite vertical stretch, anchored at the ground, so different units can
+  // be taller/shorter than the base Cat without redesigning their whole coordinate grid - the
+  // "scaling tool" for keeping cats' relative sizes right when reference art has no scale bar.
   const PIXEL_SPRITES = {
     cat: { grid: buildCatGrid() },
     machoCat: { grid: buildMachoGrid() },
     mohawkCat: { grid: buildMohawkGrid() },
-    tank: { grid: buildTankGrid() },
-    wallCat: { grid: buildWallGrid() },
-    eraserCat: { grid: buildEraserGrid() },
+    tank: { grid: buildTankGrid(), heightScale: 1.3 },
+    wallCat: { grid: buildWallGrid(), heightScale: 1.3 },
+    eraserCat: { grid: buildEraserGrid(), heightScale: 1.3 },
   };
 
-  function drawPixelGrid(grid, cx, groundYPx, cell, flip) {
+  function drawPixelGrid(grid, cx, groundYPx, cell, flip, heightScale) {
     ctx.save();
     ctx.translate(cx, groundYPx);
-    if (flip) ctx.scale(-1, 1);
+    ctx.scale(flip ? -1 : 1, heightScale || 1);
     for (let y = 0; y < PXH; y++) {
       for (let x = 0; x < PXW; x++) {
         const c = grid[y][x];
@@ -2845,7 +2849,10 @@
     if (u.flash > 0) {
       ctx.filter = "brightness(2)";
     }
-    drawPixelGrid(sprite.grid, x + lean * dir, groundY - 2 + (u.swing >= 0 ? 0 : bob), cell, isPlayer);
+    // Sprites are authored facing left (their "front" - face leading, any side panel/detail
+    // trailing). Player units move left, so they draw unflipped; enemy units move right, so
+    // they get mirrored to face their own direction of travel.
+    drawPixelGrid(sprite.grid, x + lean * dir, groundY - 2 + (u.swing >= 0 ? 0 : bob), cell, !isPlayer, sprite.heightScale);
     ctx.restore();
   }
 
