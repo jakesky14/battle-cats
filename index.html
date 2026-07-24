@@ -954,7 +954,7 @@
   // kb = knockback count: gets knocked back after losing each 1/kb chunk of max HP (last one on death).
   const CATS = [
     { id:"cat",    name:"Cat",       emoji:"🐱", cost:75,   hp:250,  dmg:20,  range:140*RANGE_SCALE, cycle:1.23, fore:0.27, tgt:"single", speed:8*SPEED_SCALE,  cd:2,    kb:3, trait:"Traitless", strongAgainst:[],      color:"#f4f4f4", sprite:"cat" },
-    { id:"tank",   name:"Tank Cat",  emoji:"🛡️", cost:150,  hp:1000, dmg:5,   range:110*RANGE_SCALE, cycle:2.23, fore:0.27, tgt:"area",   speed:8*SPEED_SCALE,  cd:2,    kb:1, trait:"Traitless", strongAgainst:[],      color:"#c9a26a" },
+    { id:"tank",   name:"Tank Cat",  emoji:"🛡️", cost:150,  hp:1000, dmg:5,   range:110*RANGE_SCALE, cycle:2.23, fore:0.27, tgt:"area",   speed:8*SPEED_SCALE,  cd:2,    kb:1, trait:"Traitless", strongAgainst:[],      color:"#c9a26a", sprite:"tank" },
     { id:"axe",    name:"Axe Cat",   emoji:"🪓", cost:300,  hp:500,  dmg:62,  range:150*RANGE_SCALE, cycle:0.90, fore:0.27, tgt:"single", speed:12*SPEED_SCALE, cd:2,    kb:3, trait:"Traitless", strongAgainst:["Red"], color:"#e06b4a" },
     { id:"gross",  name:"Gross Cat", emoji:"🤢", cost:600,  hp:1000, dmg:250, range:350*RANGE_SCALE, cycle:4.23, fore:0.27, tgt:"single", speed:10*SPEED_SCALE, cd:2.2,  kb:3, trait:"Traitless", strongAgainst:[],      color:"#7cc36a" },
     { id:"cow",    name:"Cow Cat",   emoji:"🐮", cost:750,  hp:1250, dmg:32,  range:140*RANGE_SCALE, cycle:0.33, fore:0.20, tgt:"single", speed:30*SPEED_SCALE, cd:2,    kb:5, trait:"Traitless", strongAgainst:[],      color:"#ffe0e0" },
@@ -995,7 +995,7 @@
   // Gross/Bird/Lizard also get real stat tweaks to their evolved cycle/foreswing/damage.
   const EVOLUTIONS = {
     cat:    { name: "Macho Cat",      emoji: "💪", sprite: "machoCat" },
-    tank:   { name: "Wall Cat",       emoji: "🧱" },
+    tank:   { name: "Wall Cat",       emoji: "🧱", sprite: "wallCat" },
     axe:    { name: "Brave Cat",      emoji: "🦸" },
     gross:  { name: "Sexy Legs Cat",  emoji: "🦵", cycle: 4.17, fore: 0.20 },
     cow:    { name: "Giraffe Cat",    emoji: "🦒" },
@@ -1012,7 +1012,7 @@
   // Legs Cat's, not base Gross Cat's). cd and traits are fully replaced per the given data.
   const THIRD_EVOLUTIONS = {
     cat:    { name: "Mohawk Cat",     emoji: "🤘", hp: 500,  dmg: 40, sprite: "mohawkCat" },
-    tank:   { name: "Eraser Cat",     emoji: "🪨", hp: 1500, dmg: 10 },
+    tank:   { name: "Eraser Cat",     emoji: "🪨", hp: 1500, dmg: 10, sprite: "eraserCat" },
     axe:    { name: "Dark Cat",       emoji: "🌑", hp: 1000, dmg: 125, cd: 2.00, strongAgainst: ["Red"] },
     gross:  { name: "Macho Leg Cat",  emoji: "🦿", hp: 2000, dmg: 500, cd: 7.53, strongAgainst: ["Alien"] },
     cow:    { name: "Lion Cat",       emoji: "🦁", hp: 2500, dmg: 65,  cd: 4.20 },
@@ -2593,7 +2593,7 @@
   // fall back to the existing rounded-rect + emoji rendering below.
   // ---------------------------------------------------------------------------
   const PXW = 36, PXH = 40; // sprite grid size, in cells (2x res for finer detail)
-  const PX_PALETTE = { W: "#ffffff", K: "#20201c" };
+  const PX_PALETTE = { W: "#ffffff", K: "#20201c", G: "#b0b0b0" };
 
   function makePxGrid() { return Array.from({ length: PXH }, () => Array(PXW).fill(null)); }
 
@@ -2615,6 +2615,7 @@
     }
   }
   function pxRect(grid, x0, y0, x1, y1, color) {
+    x0 = Math.round(x0); y0 = Math.round(y0); x1 = Math.round(x1); y1 = Math.round(y1);
     for (let y = y0; y <= y1; y++) {
       for (let x = x0; x <= x1; x++) {
         if (x >= 0 && x < PXW && y >= 0 && y < PXH) grid[y][x] = color;
@@ -2705,42 +2706,102 @@
     return grid;
   }
 
-  function buildArmOnto(grid) {
-    // bicep + forearm + fist, raised on the right side - shared by Macho Cat and Mohawk Cat
-    pxEllipse(grid, 32, 20, 3.4, 3, "W");
-    pxRect(grid, 33, 11, 35, 19, "W"); // forearm bridge
-    pxEllipse(grid, 34.5, 9.5, 2, 2, "W");
+  function buildDualArmsOnto(grid) {
+    // double-bicep pose, per reference: left arm curled up near the head, right arm
+    // extended out - shared by Macho Cat and Mohawk Cat
+    pxRect(grid, 3, 12, 5, 20, "W");
+    pxEllipse(grid, 4, 11, 2.3, 2.2, "W");
+    pxEllipse(grid, 2.5, 21.5, 2.4, 2.2, "W");
+    pxEllipse(grid, 31, 20, 3.2, 3, "W");
+    pxRect(grid, 32, 12, 34, 19, "W");
+    pxEllipse(grid, 33.5, 10.5, 2, 2, "W");
+  }
+  function armDetailOnto(grid) {
+    pxRect(grid, 3, 15, 5, 16, "K"); // left elbow crease
+    pxRect(grid, 32, 15, 34, 16, "K"); // right elbow crease
+    pxRect(grid, 33, 9, 34, 10, "K"); // right knuckle detail
   }
 
   function buildMachoGrid() {
     const grid = makePxGrid();
-    const dx = -2.5; // body shifted left to leave room for the raised arm on the right
-    pxOctagonBody(grid, 8.5 + dx, 28.5 + dx, 5.2, 27.3, 4, 6.3, "W");
-    pxTriangle(grid, 5.4 + dx, 2, 9.4, 1.1, "W");
-    pxTriangle(grid, 30.6 + dx, 2, 9.4, 1.1, "W");
-    buildArmOnto(grid);
+    pxOctagonBody(grid, 11, 25, 5.2, 27.3, 3.5, 6.3, "W");
+    pxTriangle(grid, 8, 2, 9.4, 1.1, "W");
+    pxTriangle(grid, 28, 2, 9.4, 1.1, "W");
+    buildDualArmsOnto(grid);
     pxOutline(grid, "K");
-    pxFace(grid, dx);
-    pxRect(grid, 33, 15, 35, 16, "K"); // elbow crease
-    pxRect(grid, 34, 8, 35, 9, "K"); // fist knuckle detail
-    pxLegs(grid, dx);
+    pxFace(grid, 0);
+    armDetailOnto(grid);
+    pxLegs(grid, 0);
     return grid;
   }
 
   function buildMohawkGrid() {
     const grid = makePxGrid();
-    const dx = -2.5;
-    pxOctagonBody(grid, 8.5 + dx, 28.5 + dx, 5.2, 27.3, 4, 6.3, "W");
-    buildArmOnto(grid);
+    pxOctagonBody(grid, 11, 25, 5.2, 27.3, 3.5, 6.3, "W");
+    buildDualArmsOnto(grid);
     pxOutline(grid, "K");
-    for (let x = 12 + dx; x <= 24 + dx; x++) grid[5][Math.round(x)] = "K"; // mohawk base strip
-    pxTriangle(grid, 13 + dx, 3, 5, 1.6, "K");
-    pxTriangle(grid, 18 + dx, 1, 5, 1.6, "K");
-    pxTriangle(grid, 23 + dx, 3, 5, 1.6, "K");
-    pxFace(grid, dx);
-    pxRect(grid, 33, 15, 35, 16, "K"); // elbow crease
-    pxRect(grid, 34, 8, 35, 9, "K"); // fist knuckle detail
-    pxLegs(grid, dx);
+    // draped hood instead of a spiky mohawk, per reference: a black wedge over the head,
+    // tilting right and drooping past the shoulder
+    pxTriangle(grid, 14, 0, 5, 3, "K");
+    pxRect(grid, 14, 0, 24, 3, "K");
+    pxTriangle(grid, 24, 0, 12, 6, "K");
+    pxFace(grid, 0);
+    armDetailOnto(grid);
+    pxLegs(grid, 0);
+    return grid;
+  }
+
+  // Tank Cat family: a narrow rectangular body instead of the round/octagon Cat body, sharing
+  // the same face/leg design. Wall Cat adds a side panel; Eraser Cat splits the body into a
+  // head half and an eraser-box-styled lower half (gray strips flanking a labeled center strip).
+  function buildTankGrid() {
+    const grid = makePxGrid();
+    pxRect(grid, 11.5, 8, 24.5, 32, "W");
+    pxTriangle(grid, 11.5, 2, 9.4, 1.1, "W");
+    pxTriangle(grid, 24.5, 2, 9.4, 1.1, "W");
+    pxOutline(grid, "K");
+    pxFace(grid, 0);
+    pxLegs(grid, 0);
+    return grid;
+  }
+
+  function buildWallGrid() {
+    const grid = makePxGrid();
+    pxRect(grid, 11.5, 8, 24.5, 32, "W");
+    pxTriangle(grid, 11.5, 2, 9.4, 1.1, "W");
+    pxTriangle(grid, 24.5, 2, 9.4, 1.1, "W");
+    pxRect(grid, 25, 8, 29, 32, "W"); // side panel
+    pxOutline(grid, "K");
+    pxLine(grid, 25, 8, 25, 32, "K"); // panel divider
+    pxFace(grid, -1.5); // shift left since the panel widens the silhouette
+    pxLegs(grid, -1.5);
+    pxLine(grid, 27, 31.5, 27, 35.5, "K"); // extra foot under the panel
+    return grid;
+  }
+
+  function buildEraserGrid() {
+    const grid = makePxGrid();
+    pxRect(grid, 11.5, 8, 24.5, 32, "W");
+    pxTriangle(grid, 11.5, 2, 9.4, 1.1, "W");
+    pxTriangle(grid, 24.5, 2, 9.4, 1.1, "W");
+    pxRect(grid, 25, 8, 29, 32, "W");
+    pxOutline(grid, "K");
+    pxLine(grid, 25, 8, 25, 32, "K");
+    pxFace(grid, -1.5);
+    pxLegs(grid, -1.5);
+    pxLine(grid, 27, 31.5, 27, 35.5, "K");
+    pxLine(grid, 11.5, 20, 29, 20, "K");
+    pxRect(grid, 12, 21, 14, 31, "G");
+    pxRect(grid, 22, 21, 24, 31, "G");
+    pxRect(grid, 26, 21, 28, 31, "G");
+    pxLine(grid, 15, 21, 15, 31, "K");
+    pxLine(grid, 21, 21, 21, 31, "K");
+    // small blocky text mark down the white center strip, evoking the "NEKO" eraser branding
+    pxRect(grid, 16, 22, 16, 24, "K"); pxRect(grid, 20, 22, 20, 24, "K"); pxLine(grid, 16, 22, 20, 24, "K");
+    pxRect(grid, 16, 25, 20, 25, "K"); pxRect(grid, 16, 26, 20, 26, "K");
+    pxLine(grid, 16, 27, 16, 29, "K"); pxLine(grid, 20, 27, 20, 29, "K");
+    pxLine(grid, 16, 28, 20, 27, "K"); pxLine(grid, 16, 28, 20, 29, "K");
+    pxRect(grid, 16, 30, 20, 30, "K"); pxRect(grid, 16, 31, 16, 31, "K"); pxRect(grid, 20, 31, 20, 31, "K");
     return grid;
   }
 
@@ -2748,6 +2809,9 @@
     cat: { grid: buildCatGrid() },
     machoCat: { grid: buildMachoGrid() },
     mohawkCat: { grid: buildMohawkGrid() },
+    tank: { grid: buildTankGrid() },
+    wallCat: { grid: buildWallGrid() },
+    eraserCat: { grid: buildEraserGrid() },
   };
 
   function drawPixelGrid(grid, cx, groundYPx, cell, flip) {
