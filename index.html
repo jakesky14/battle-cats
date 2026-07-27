@@ -2740,12 +2740,11 @@
     pxOctagonBody(grid, 11, 25, 5.2, 27.3, 3.5, 6.3, "W");
     buildDualArmsOnto(grid);
     pxOutline(grid, "K");
-    // draped hood instead of a spiky mohawk, per reference: a black wedge over the head,
-    // tilting right and drooping past the shoulder. Extends well past the body's own top edge
-    // (y=5.2) so it reads as worn on the head, not floating above it.
-    pxTriangle(grid, 14, 0, 8, 3, "K");
+    // draped hood instead of a spiky mohawk, per reference: a black wedge over the head.
+    // Kept short (bottom well above y=13, the eye row) so it doesn't cover the face, and
+    // the drooping right-side tail was dropped - it looked better without it.
+    pxTriangle(grid, 14, 0, 6, 3, "K");
     pxRect(grid, 14, 0, 24, 6, "K");
-    pxTriangle(grid, 24, 0, 14, 6, "K");
     pxFace(grid, 0);
     armDetailOnto(grid);
     pxLegs(grid, 0);
@@ -2758,8 +2757,8 @@
   function buildTankGrid() {
     const grid = makePxGrid();
     pxRect(grid, 11.5, 8, 24.5, 32, "W");
-    pxTriangle(grid, 11.5, 2, 9.4, 1.1, "W");
-    pxTriangle(grid, 24.5, 2, 9.4, 1.1, "W");
+    pxTriangle(grid, 11.5, 5, 9.4, 1.1, "W");
+    pxTriangle(grid, 24.5, 5, 9.4, 1.1, "W");
     pxOutline(grid, "K");
     pxFace(grid, 0);
     pxLegs(grid, 0);
@@ -2769,8 +2768,8 @@
   function buildWallGrid() {
     const grid = makePxGrid();
     pxRect(grid, 11.5, 8, 24.5, 32, "W");
-    pxTriangle(grid, 11.5, 2, 9.4, 1.1, "W");
-    pxTriangle(grid, 24.5, 2, 9.4, 1.1, "W");
+    pxTriangle(grid, 11.5, 5, 9.4, 1.1, "W");
+    pxTriangle(grid, 24.5, 5, 9.4, 1.1, "W");
     pxRect(grid, 25, 8, 29, 32, "W"); // side panel
     pxOutline(grid, "K");
     pxLine(grid, 25, 8, 25, 32, "K"); // panel divider
@@ -2783,8 +2782,8 @@
   function buildEraserGrid() {
     const grid = makePxGrid();
     pxRect(grid, 11.5, 8, 24.5, 32, "W");
-    pxTriangle(grid, 11.5, 2, 9.4, 1.1, "W");
-    pxTriangle(grid, 24.5, 2, 9.4, 1.1, "W");
+    pxTriangle(grid, 11.5, 5, 9.4, 1.1, "W");
+    pxTriangle(grid, 24.5, 5, 9.4, 1.1, "W");
     pxRect(grid, 25, 8, 29, 32, "W");
     pxOutline(grid, "K");
     pxLine(grid, 25, 8, 25, 32, "K");
