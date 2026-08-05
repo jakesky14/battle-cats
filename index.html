@@ -3203,24 +3203,23 @@
   // ---------------------------------------------------------------------------
   function buildLizardGrid() {
     const grid = makePxGrid();
-    pxEllipse(grid, 17, 24, 11, 7, "W");
-    pxEllipse(grid, 8, 16, 6.5, 6, "W");
-    pxTriangle(grid, 5, 8, 5, 1.6, "W");
-    pxTriangle(grid, 11, 8, 5, 1.6, "W");
+    // ONE unified body (no separate head bump per feedback) - ears poke directly from its
+    // top, face is painted straight onto the front of this same body, only 2 legs
+    pxEllipse(grid, 15, 20, 13, 9, "W");
+    pxTriangle(grid, 8, 5, 8, 1.6, "W");
+    pxTriangle(grid, 13, 5, 8, 1.6, "W");
     // big triangular sail-tail: same white as the body, so it needs its own explicit black
     // outline first (drawn larger, then filled white inset) or it's invisible where it
     // overlaps the body silhouette
-    pxTaper(grid, 26, 26, 12, 35, 14, 2, "K");
-    pxTaper(grid, 26, 26, 10, 34, 14, 0.8, "W");
-    pxThickLine(grid, 10, 29, 9, 36, 2.4, "W");
-    pxThickLine(grid, 14, 30, 14, 36, 2.4, "W");
-    pxThickLine(grid, 20, 30, 20, 36, 2.4, "W");
-    pxThickLine(grid, 24, 29, 25, 36, 2.4, "W");
+    pxTaper(grid, 25, 22, 13, 35, 12, 2, "K");
+    pxTaper(grid, 25, 22, 11, 34, 12, 0.8, "W");
+    pxThickLine(grid, 13, 26, 12, 36, 2.6, "W");
+    pxThickLine(grid, 19, 26, 20, 36, 2.6, "W");
     pxOutline(grid, "K");
-    pxRect(grid, 6, 14, 7, 15, "K");
-    pxRect(grid, 9, 14, 10, 15, "K");
-    pxLine(grid, 6.5, 17.5, 7.5, 19, "K");
-    pxLine(grid, 7.5, 19, 8.5, 17.5, "K");
+    pxRect(grid, 8, 15, 9, 16, "K");
+    pxRect(grid, 12, 15, 13, 16, "K");
+    pxLine(grid, 8.5, 18.5, 9.5, 20, "K");
+    pxLine(grid, 9.5, 20, 10.5, 18.5, "K");
     return grid;
   }
 
