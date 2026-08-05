@@ -3174,72 +3174,96 @@
   }
 
   // ---------------------------------------------------------------------------
-  // Lizard Cat family: round Cat body in a crouched quadruped stance with a pointed tail.
-  // Dragon Cat adds a small clawed arm and belly stripes; King Dragon Cat adds a jagged
-  // spike ridge along the head/back.
+  // Lizard Cat family: an actual reptile/dragon-shaped body, not a round Cat body with
+  // lizard bits stuck on (an earlier pass did that and looked "like a normal cat" per
+  // feedback - rebuilt from scratch). Lizard Cat is a low elongated quadruped with a big
+  // sail-tail; Dragon Cat and King Dragon Cat stand upright like a dinosaur, with a long
+  // neck, small clawed arm, thick legs, and a big curved tail for balance.
   // ---------------------------------------------------------------------------
-  function buildLizardBody(grid) {
-    pxOctagonBody(grid, 8.5, 28.5, 5.2, 27.3, 6.3, 6.3, "W");
-    pxTriangle(grid, 5.4, 2, 9.4, 1.1, "W");
-    pxTriangle(grid, 30.6, 2, 9.4, 1.1, "W");
-  }
-  function buildLizardLegs(grid) {
-    // crouched quadruped stance: front legs closer together, back legs wider
-    pxThickLine(grid, 12, 26, 11, 35, 2, "W");
-    pxThickLine(grid, 16, 27, 16, 35, 2, "W");
-    pxThickLine(grid, 20, 27, 20, 35, 2, "W");
-    pxThickLine(grid, 24, 26, 25, 35, 2, "W");
-  }
-  function buildLizardTail(grid) {
-    // same white as the body, so give it its own explicit black outline first (drawn
-    // larger), then fill white inset - otherwise it's invisible where it overlaps the body
-    pxTaper(grid, 25, 27, 13, 37, 8, 3.5, "K");
-    pxTaper(grid, 25, 27, 11, 36, 8, 2, "W");
-  }
-  function buildLizardArm(grid) {
-    pxEllipse(grid, 3, 19, 6, 4.6, "K");
-    pxEllipse(grid, 3, 19, 4.8, 3.5, "W");
-  }
-
   function buildLizardGrid() {
     const grid = makePxGrid();
-    buildLizardBody(grid);
-    buildLizardLegs(grid);
-    buildLizardTail(grid);
+    pxEllipse(grid, 17, 24, 11, 7, "W");
+    pxEllipse(grid, 8, 16, 6.5, 6, "W");
+    pxTriangle(grid, 5, 8, 5, 1.6, "W");
+    pxTriangle(grid, 11, 8, 5, 1.6, "W");
+    // big triangular sail-tail: same white as the body, so it needs its own explicit black
+    // outline first (drawn larger, then filled white inset) or it's invisible where it
+    // overlaps the body silhouette
+    pxTaper(grid, 26, 26, 12, 35, 14, 2, "K");
+    pxTaper(grid, 26, 26, 10, 34, 14, 0.8, "W");
+    pxThickLine(grid, 10, 29, 9, 36, 2.4, "W");
+    pxThickLine(grid, 14, 30, 14, 36, 2.4, "W");
+    pxThickLine(grid, 20, 30, 20, 36, 2.4, "W");
+    pxThickLine(grid, 24, 29, 25, 36, 2.4, "W");
     pxOutline(grid, "K");
-    pxFace(grid, 0);
+    pxRect(grid, 6, 14, 7, 15, "K");
+    pxRect(grid, 9, 14, 10, 15, "K");
+    pxLine(grid, 6.5, 17.5, 7.5, 19, "K");
+    pxLine(grid, 7.5, 19, 8.5, 17.5, "K");
     return grid;
+  }
+
+  function buildDragonBody(grid) {
+    pxTaper(grid, 18, 30, 13, 17, 10, 8, "W");
+    pxEllipse(grid, 16, 6, 7, 6.5, "W");
+    pxTriangle(grid, 12, -1, 5, 1.6, "W");
+    pxTriangle(grid, 19, -1, 5, 1.6, "W");
+  }
+  function buildDragonLegs(grid) {
+    pxTaper(grid, 14, 29, 7, 13, 37, 4, "W");
+    pxTaper(grid, 21, 29, 7, 22, 37, 4, "W");
+    pxEllipse(grid, 12, 37.5, 3, 1.6, "W");
+    pxEllipse(grid, 23, 37.5, 3, 1.6, "W");
+  }
+  function buildDragonTail(grid) {
+    pxTaper(grid, 23, 27, 12, 36, 32, 4.5, "K");
+    pxTaper(grid, 23, 27, 10, 35, 32, 2.6, "W");
+  }
+  function buildDragonArm(grid) {
+    pxEllipse(grid, 9, 22, 4.6, 3.6, "K");
+    pxEllipse(grid, 9, 22, 3.6, 2.7, "W");
+  }
+  function buildDragonFace(grid) {
+    pxRect(grid, 13, 4, 14, 5, "K");
+    pxRect(grid, 18, 4, 19, 5, "K");
+    pxLine(grid, 14, 7.5, 15, 9, "K");
+    pxLine(grid, 15, 9, 16, 7.7, "K");
+    pxLine(grid, 16, 7.7, 17, 9, "K");
+    pxLine(grid, 17, 9, 18, 7.5, "K");
+    pxLine(grid, 15, 9.5, 16, 11.5, "K");
+    pxLine(grid, 16, 11.5, 17, 9.5, "K");
   }
 
   function buildDragonGrid() {
     const grid = makePxGrid();
-    buildLizardBody(grid);
-    buildLizardLegs(grid);
-    buildLizardTail(grid);
-    buildLizardArm(grid);
+    buildDragonTail(grid);
+    buildDragonBody(grid);
+    buildDragonLegs(grid);
+    buildDragonArm(grid);
     pxOutline(grid, "K");
-    pxFace(grid, 0);
-    // horizontal stripe bands across the belly, evoking a dino/lizard pattern
-    pxLine(grid, 6, 20, 30, 20, "K");
-    pxLine(grid, 5, 24, 31, 24, "K");
+    buildDragonFace(grid);
+    pxLine(grid, 12, 17, 22, 17, "K");
+    pxLine(grid, 11, 21, 23, 21, "K");
+    pxLine(grid, 11, 25, 23, 25, "K");
     return grid;
   }
 
   function buildKingDragonGrid() {
     const grid = makePxGrid();
-    buildLizardBody(grid);
-    buildLizardLegs(grid);
-    buildLizardTail(grid);
-    buildLizardArm(grid);
-    // jagged spike ridge along the back/head, taller and more dramatic than Dragon Cat
+    buildDragonTail(grid);
+    buildDragonBody(grid);
+    buildDragonLegs(grid);
+    buildDragonArm(grid);
+    // jagged spike ridge along the neck/back, taller and more dramatic than Dragon Cat
     for (let i = 0; i < 5; i++) {
-      const x = 10 + i * 3.5;
-      pxTriangle(grid, x, 1 - i * 0.3, 6, 1.3, "W");
+      const y = 26 - i * 4.5;
+      pxTriangle(grid, 20 + i * 0.3, y - 3, y, 1.4, "W");
     }
     pxOutline(grid, "K");
-    pxFace(grid, 0);
-    pxLine(grid, 6, 20, 30, 20, "K");
-    pxLine(grid, 5, 24, 31, 24, "K");
+    buildDragonFace(grid);
+    pxLine(grid, 12, 17, 22, 17, "K");
+    pxLine(grid, 11, 21, 23, 21, "K");
+    pxLine(grid, 11, 25, 23, 25, "K");
     return grid;
   }
 
