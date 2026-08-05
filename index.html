@@ -2655,6 +2655,20 @@
       }
     }
   }
+  // Horizontal taper: interpolates y-center and height as X goes from x0 to x1 - for bodies
+  // that run sideways (fish), unlike pxTaper which runs top-to-bottom (limbs/necks).
+  function pxTaperH(grid, x0, y0, h0, x1, y1, h1, color) {
+    const steps = Math.abs(x1 - x0) + 1;
+    for (let i = 0; i < steps; i++) {
+      const t = i / (steps - 1);
+      const x = Math.round(x0 + (x1 - x0) * t);
+      const cy = y0 + (y1 - y0) * t;
+      const h = h0 + (h1 - h0) * t;
+      for (let y = Math.round(cy - h / 2); y <= Math.round(cy + h / 2); y++) {
+        if (x >= 0 && x < PXW && y >= 0 && y < PXH) grid[y][x] = color;
+      }
+    }
+  }
   function pxOutline(grid, color) {
     const filled = grid.map(row => row.map(c => c !== null));
     const deltas = [[0, 1], [0, -1], [1, 0], [-1, 0]];
@@ -3102,53 +3116,60 @@
   }
 
   // ---------------------------------------------------------------------------
-  // Fish Cat family: Fish Cat keeps the normal round Cat body with a fish riding on its
-  // shoulder; Whale Cat and Island Cat replace it with an increasingly larger shark theme.
+  // Fish Cat family: genuinely fish-shaped bodies (a torpedo body tapering to a tail fin),
+  // not a round Cat body with a fish/shark head stuck on top (an earlier pass did that and
+  // read as "a cat with a fish on it" per feedback - rebuilt from scratch). Cat ears and a
+  // simple face sit at the front ("head") end of the fish body.
   // ---------------------------------------------------------------------------
-  function buildFishBaseBody(grid) {
-    pxOctagonBody(grid, 8.5, 28.5, 5.2, 27.3, 6.3, 6.3, "W");
-    pxTriangle(grid, 5.4, 2, 9.4, 1.1, "W");
-    pxTriangle(grid, 30.6, 2, 9.4, 1.1, "W");
+  function pxFishFace(grid, cx, cy) {
+    pxRect(grid, cx - 3, cy - 1, cx - 2, cy, "K");
+    pxRect(grid, cx + 1, cy - 1, cx + 2, cy, "K");
+    pxLine(grid, cx - 2, cy + 2, cx - 1, cy + 3.5, "K");
+    pxLine(grid, cx - 1, cy + 3.5, cx, cy + 2.7, "K");
+    pxLine(grid, cx, cy + 2.7, cx + 1, cy + 3.5, "K");
+    pxLine(grid, cx + 1, cy + 3.5, cx + 2, cy + 2, "K");
   }
 
   function buildFishGrid() {
     const grid = makePxGrid();
-    buildFishBaseBody(grid);
-    pxLegs(grid, 0);
+    // torpedo body: wide "head" end tapering horizontally toward a slim tail base
+    pxTaperH(grid, 4, 20, 17, 30, 20, 6, "W");
+    // tail fin: two triangular lobes fanning out from the tail base into a "V" shape
+    pxTaperH(grid, 30, 20, 6, 36, 13, 1, "W");
+    pxTaperH(grid, 30, 20, 6, 36, 27, 1, "W");
+    // dorsal fin, set back from the ears so they don't collide
+    pxTriangle(grid, 22, 9, 15, 3.5, "W");
+    pxTriangle(grid, 3, 8, 14, 1.8, "W");
+    pxTriangle(grid, 8, 8, 14, 1.8, "W");
     pxOutline(grid, "K");
-    pxFace(grid, 0);
-    // a fish draped over the shoulder: since it's white-on-white against the cat's own body,
-    // draw its silhouette in black first (1px larger) so it gets its own visible outline even
-    // where it overlaps the body, then fill white on top, inset by 1px.
-    pxEllipse(grid, 27, 9, 5.8, 4.4, "K");
-    pxTriangle(grid, 32, 9, 5.3, 3, "K");
-    pxTriangle(grid, 27, 3.8, 7.8, 2.8, "K");
-    pxEllipse(grid, 27, 9, 4.8, 3.4, "W");
-    pxTriangle(grid, 31, 9, 4.7, 2.2, "W");
-    pxTriangle(grid, 27, 4.5, 6.8, 2, "W");
-    pxLine(grid, 24.5, 8, 26, 6.5, "K"); // scale lines
-    pxLine(grid, 26, 9.5, 27.5, 8, "K");
-    pxLine(grid, 24.5, 11, 26, 9.5, "K");
+    pxFishFace(grid, 7, 18);
+    pxLine(grid, 16, 14, 18, 17, "K"); // scale arcs
+    pxLine(grid, 20, 14, 22, 17, "K");
+    pxLine(grid, 16, 24, 18, 21, "K");
+    pxLine(grid, 20, 24, 22, 21, "K");
+    pxThickLine(grid, 10, 27, 9, 33, 1.8, "K"); // small stubby legs underneath
+    pxThickLine(grid, 16, 28, 16, 33, 1.8, "K");
     return grid;
   }
 
   function buildWhaleGrid() {
     const grid = makePxGrid();
-    buildFishBaseBody(grid);
-    pxLegs(grid, 0);
+    // bigger, rounder shark-torpedo body
+    pxTaperH(grid, 4, 19, 21, 28, 19, 7, "G");
+    pxTaperH(grid, 28, 19, 7, 35, 12, 0, "G");
+    pxTaperH(grid, 28, 19, 7, 35, 26, 0, "G");
+    pxTaperH(grid, 6, 24, 12, 26, 24, 5, "W"); // white belly underside
+    pxTriangle(grid, 11, 3, 10, 2, "G"); // shark fin nubs
+    pxTriangle(grid, 17, 3, 10, 2, "G");
     pxOutline(grid, "K");
-    // shark head: gray dorsal cap overlapping the top/front of the body, with fin nubs
-    pxEllipse(grid, 14, 9, 9.5, 7, "G");
-    pxTriangle(grid, 10, 2, 8, 2, "G");
-    pxTriangle(grid, 18, 2, 8, 2, "G");
-    pxTriangle(grid, 34, 20, 9, 5, "W"); // tail fin trailing to the right
+    // big toothy mouth at the front
+    pxRect(grid, 3, 15, 16, 19, "K");
+    for (let x = 4; x < 16; x += 2) pxTriangle(grid, x, 15, 17.5, 1, "W");
     pxOutline(grid, "K");
-    // big open mouth: black cavity with a row of white teeth along the top edge
-    pxRect(grid, 6, 13, 21, 17, "K");
-    for (let x = 7; x < 21; x += 2) pxTriangle(grid, x, 13, 15.5, 1, "W");
-    pxOutline(grid, "K");
-    pxRect(grid, 9, 5, 10.5, 6.5, "K"); // eyes
-    pxRect(grid, 17, 5, 18.5, 6.5, "K");
+    pxRect(grid, 8, 8, 9.5, 9.5, "K"); // eyes
+    pxRect(grid, 13, 8, 14.5, 9.5, "K");
+    pxThickLine(grid, 12, 27, 11, 33, 1.8, "K");
+    pxThickLine(grid, 18, 28, 18, 33, 1.8, "K");
     return grid;
   }
 
