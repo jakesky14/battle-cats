@@ -190,26 +190,52 @@
     height: 100%;
     position: relative;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
-    gap: 26px;
-    background: linear-gradient(180deg, #ff4d1a 0%, #ff9a1f 45%, #ffcf4d 100%);
+    gap: 18px;
+    background:
+      repeating-conic-gradient(from 0deg, rgba(255,255,255,.14) 0deg 4deg, rgba(255,255,255,0) 4deg 12deg),
+      radial-gradient(ellipse at 50% 35%, #ffe066 0%, #ffa927 45%, #ff5a1a 85%, #ff3d0a 100%);
     overflow: hidden;
   }
   .title-testmode-btn {
-    position: absolute; top: 16px; right: 16px;
+    position: absolute; top: 16px; right: 16px; z-index: 5;
     background: #7a3fbf; color: #fff; border: none; border-radius: 8px;
     padding: 8px 16px; font-weight: 700; font-size: 12px; cursor: pointer;
   }
   .title-testmode-btn.active { background: #2f9d55; }
-  .title-logo { display: flex; align-items: center; gap: 10px; }
-  .title-logo-paw { font-size: 46px; filter: drop-shadow(0 3px 0 rgba(0,0,0,.3)); }
-  .title-logo-text {
-    font-size: 56px; font-weight: 900; letter-spacing: 1px;
-    color: #fff; -webkit-text-stroke: 3px #d8267a;
-    text-shadow: 0 4px 0 rgba(0,0,0,.25);
+  .title-logo { display: flex; align-items: center; justify-content: center; gap: 4px; position: relative; z-index: 2; }
+  .title-paw {
+    width: 52px; height: 52px; position: relative;
+    filter: drop-shadow(0 3px 0 rgba(0,0,0,.3));
   }
-  .title-cat-row { font-size: 30px; letter-spacing: -6px; opacity: .9; max-width: 90%; text-align: center; }
-  .title-menu-buttons { display: flex; flex-direction: column; gap: 18px; width: 320px; }
-  .title-menu-buttons .menu-btn { justify-content: center; }
+  .title-paw .pad { position: absolute; background: #000; border-radius: 50%; }
+  .title-paw .pad.palm { width: 34px; height: 30px; left: 9px; top: 20px; }
+  .title-paw .pad.toe1 { width: 14px; height: 16px; left: 2px; top: 2px; }
+  .title-paw .pad.toe2 { width: 14px; height: 16px; left: 19px; top: -4px; }
+  .title-paw .pad.toe3 { width: 14px; height: 16px; left: 36px; top: 2px; }
+  .title-words { display: flex; flex-direction: column; align-items: center; margin-left: -6px; }
+  .title-word {
+    font-size: 74px; font-weight: 900; letter-spacing: 1px; line-height: .95;
+    font-family: 'Arial Black', Arial, sans-serif;
+    -webkit-text-stroke: 5px #1a1008;
+    text-shadow: 0 6px 0 rgba(0,0,0,.3);
+    transform: rotate(-2deg);
+  }
+  .title-word.battle {
+    background: linear-gradient(180deg, #ffd9f0 0%, #ff7ec9 45%, #e8299b 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .title-word.cats {
+    background: linear-gradient(180deg, #ffe27a 0%, #ff9a3d 45%, #4fa8ff 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    margin-top: -14px;
+  }
+  .title-crowd-canvas {
+    position: absolute; left: 0; right: 0; bottom: 0; width: 100%; height: 130px;
+    image-rendering: pixelated; z-index: 1;
+  }
+  .title-menu-buttons { display: flex; flex-direction: column; gap: 18px; width: 320px; position: relative; z-index: 2; }
+  .title-menu-buttons .menu-btn { justify-content: center; background: linear-gradient(180deg,#ffe066,#f0a800); color: #5a3a00; }
+  .title-menu-buttons .menu-btn:active { transform: translateY(4px); }
 
   .close-circle-btn {
     position: absolute; top: 16px; left: 16px;
@@ -617,13 +643,21 @@
 <div id="titleScreen" class="title-bg">
   <button class="title-testmode-btn" id="testModeBtn">TEST MODE: OFF</button>
   <div class="title-logo">
-    <span class="title-logo-paw">🐾</span>
-    <span class="title-logo-text">Battle Cats</span>
+    <div class="title-paw">
+      <div class="pad palm"></div>
+      <div class="pad toe1"></div>
+      <div class="pad toe2"></div>
+      <div class="pad toe3"></div>
+    </div>
+    <div class="title-words">
+      <span class="title-word battle">Battle</span>
+      <span class="title-word cats">Cats</span>
+    </div>
   </div>
-  <div class="title-cat-row">🐱🐱🐱🐱🐱🐱🐱🐱🐱🐱🐱🐱</div>
+  <canvas id="titleCrowdCanvas" class="title-crowd-canvas"></canvas>
   <div class="title-menu-buttons">
-    <button class="menu-btn play" id="titlePlayBtn"><span class="ico">▶️</span><span id="lbl-play">PLAY</span></button>
-    <button class="menu-btn settings" id="titleSettingsBtn"><span class="ico">⚙️</span><span id="lbl-settings">SETTINGS</span></button>
+    <button class="menu-btn play" id="titlePlayBtn"><span id="lbl-play">PLAY</span></button>
+    <button class="menu-btn settings" id="titleSettingsBtn"><span id="lbl-settings">SETTINGS</span></button>
   </div>
 </div>
 
@@ -1664,6 +1698,34 @@
     titleTestModeBtn.textContent = "TEST MODE: " + (profile.testMode ? "ON" : "OFF");
     titleTestModeBtn.classList.toggle("active", profile.testMode);
     applyLanguage();
+    renderTitleCrowd();
+  }
+
+  // A dense crowd of small cat-face silhouettes filling the bottom of the title screen,
+  // built from the same pixel Cat sprite (tiled, two staggered rows) instead of emoji spam.
+  function renderTitleCrowd() {
+    const canvas = document.getElementById("titleCrowdCanvas");
+    if (!canvas) return;
+    const w = Math.max(300, Math.round(canvas.clientWidth || canvas.parentElement.clientWidth || 800));
+    const h = 130;
+    canvas.width = w;
+    canvas.height = h;
+    const cctx = canvas.getContext("2d");
+    const grid = PIXEL_SPRITES.cat.grid;
+    const rows = [
+      { y: h - 4, cell: 3.4, spacing: 0.88, alpha: 1 },
+      { y: h - 48, cell: 2.6, spacing: 0.92, alpha: 0.75 },
+    ];
+    rows.forEach(row => {
+      const spriteW = PXW * row.cell;
+      const step = spriteW * row.spacing;
+      const count = Math.ceil(w / step) + 2;
+      cctx.globalAlpha = row.alpha;
+      for (let i = -1; i < count; i++) {
+        drawPixelGrid(grid, i * step, row.y, row.cell, i % 2 === 0, 1, cctx);
+      }
+    });
+    cctx.globalAlpha = 1;
   }
 
   const rankScreenAmtEl = document.getElementById("rankScreenAmt");
@@ -3000,13 +3062,15 @@
     pxOutline(grid, "K");
     pxRect(grid, 5, 12, 6.5, 13.5, "K"); // eyes on the upper skull
     pxRect(grid, 10, 12, 11.5, 13.5, "K");
-    // distinct nose pad (outlined oval, not just floating dots) with nostril slits
-    pxEllipse(grid, 8, 19.5, 4.2, 2.6, "K");
-    pxEllipse(grid, 8, 19.5, 3.4, 2, "W");
-    pxEllipse(grid, 6, 19.3, 0.7, 0.6, "K");
-    pxEllipse(grid, 10, 19.3, 0.7, 0.6, "K");
-    pxLine(grid, 6, 22, 8, 23.2, "K"); // mouth below the nose pad
-    pxLine(grid, 8, 23.2, 10, 22, "K");
+    // solid nose pad (unmissable at any scale, not a thin outline) with punched-out nostrils
+    pxEllipse(grid, 8, 19.5, 4, 2.4, "K");
+    pxEllipse(grid, 6.1, 19.3, 0.6, 0.5, "W");
+    pxEllipse(grid, 9.9, 19.3, 0.6, 0.5, "W");
+    // clear "w" mouth + "u" chin below the nose pad, matching the standard cat face pattern
+    pxLine(grid, 5, 22.5, 6.5, 24, "K");
+    pxLine(grid, 6.5, 24, 8, 22.8, "K");
+    pxLine(grid, 8, 22.8, 9.5, 24, "K");
+    pxLine(grid, 9.5, 24, 11, 22.5, "K");
     return grid;
   }
 
@@ -3029,8 +3093,13 @@
     pxOutline(grid, "K");
     pxRect(grid, 12.2, 3, 13.4, 4.2, "K"); // narrow-set eyes
     pxRect(grid, 14.6, 3, 15.8, 4.2, "K");
-    pxLine(grid, 13, 9, 14, 10.6, "K"); // clear small mouth on the narrow muzzle
-    pxLine(grid, 14, 10.6, 15, 9, "K");
+    // full "w" mouth + "u" chin, matching the standard cat face pattern, scaled to the muzzle
+    pxLine(grid, 12.3, 8.3, 13.3, 9.7, "K");
+    pxLine(grid, 13.3, 9.7, 14, 8.5, "K");
+    pxLine(grid, 14, 8.5, 14.7, 9.7, "K");
+    pxLine(grid, 14.7, 9.7, 15.7, 8.3, "K");
+    pxLine(grid, 13.4, 10.3, 14, 11.3, "K");
+    pxLine(grid, 14, 11.3, 14.6, 10.3, "K");
     return grid;
   }
 
@@ -3391,19 +3460,20 @@
   }
   renderSpriteIcon(document.getElementById("gamatotoIcon"), buildGamatotoGrid());
 
-  function drawPixelGrid(grid, cx, groundYPx, cell, flip, heightScale) {
-    ctx.save();
-    ctx.translate(cx, groundYPx);
-    ctx.scale(flip ? -1 : 1, heightScale || 1);
+  function drawPixelGrid(grid, cx, groundYPx, cell, flip, heightScale, targetCtx) {
+    const c2d = targetCtx || ctx;
+    c2d.save();
+    c2d.translate(cx, groundYPx);
+    c2d.scale(flip ? -1 : 1, heightScale || 1);
     for (let y = 0; y < PXH; y++) {
       for (let x = 0; x < PXW; x++) {
         const c = grid[y][x];
         if (!c) continue;
-        ctx.fillStyle = PX_PALETTE[c];
-        ctx.fillRect((x - PXW / 2) * cell, (y - PXH + 1) * cell, cell + 0.5, cell + 0.5);
+        c2d.fillStyle = PX_PALETTE[c];
+        c2d.fillRect((x - PXW / 2) * cell, (y - PXH + 1) * cell, cell + 0.5, cell + 0.5);
       }
     }
-    ctx.restore();
+    c2d.restore();
   }
 
   function drawPixelUnit(u, groundY, sprite) {
