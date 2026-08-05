@@ -177,6 +177,7 @@
   }
   .menu-btn:active { transform: translateY(4px); box-shadow: 0 4px 0 rgba(0,0,0,.35); }
   .menu-btn .ico { font-size: 44px; }
+  .sprite-icon { width: 44px; height: 44px; image-rendering: pixelated; flex-shrink: 0; }
   .menu-btn.battle  { background: linear-gradient(180deg,#4fa3ff,#1f74dd); }
   .menu-btn.upgrade { background: linear-gradient(180deg,#6fd08a,#2f9d55); }
   .menu-btn.equip   { background: linear-gradient(180deg,#e0a95f,#b9773a); }
@@ -652,7 +653,7 @@
     <button class="menu-btn battle" id="menuBattleBtn"><span class="ico">⚔️</span><span id="lbl-battle">START!</span></button>
     <button class="menu-btn upgrade" id="menuUpgradeBtn"><span class="ico">⬆️</span><span id="lbl-upgrade">UPGRADE</span></button>
     <button class="menu-btn equip" id="menuEquipBtn"><span class="ico">🐱</span><span id="lbl-equip">EQUIP</span></button>
-    <button class="menu-btn gamatoto" id="menuGamatotoBtn"><span class="ico">🦛</span><span>GAMATOTO</span></button>
+    <button class="menu-btn gamatoto" id="menuGamatotoBtn"><canvas id="gamatotoIcon" width="44" height="44" class="sprite-icon"></canvas><span>GAMATOTO</span></button>
   </div>
   <button class="back-corner-btn" id="mainMenuBackBtn">◀ Back</button>
   <div class="cat-food-row">
@@ -3312,6 +3313,37 @@
     return grid;
   }
 
+  // ---------------------------------------------------------------------------
+  // Gamatoto: an original pixel sprite (not the official artwork) - a round cat-like body
+  // wearing a mining helmet with a headlamp, a pickaxe over the shoulder, and a backpack
+  // with a canteen. Used as a small icon on the Cat Base's Gamatoto button.
+  // ---------------------------------------------------------------------------
+  function buildGamatotoGrid() {
+    const grid = makePxGrid();
+    pxEllipse(grid, 14, 25, 10, 9, "W");
+    // ears poking out to the sides, beyond the helmet brim's edge
+    pxTriangle(grid, 4, 13, 7, 1.6, "W");
+    pxTriangle(grid, 9, 12, 7, 1.6, "W");
+    // small pickaxe resting behind the shoulder
+    pxThickLine(grid, 26, 8, 22, 24, 1.5, "K");
+    pxTriangle(grid, 26, 4, 6, 3, "G");
+    // backpack with a canteen strapped to the side, kept clear of the helmet
+    pxEllipse(grid, 24, 25, 5, 6.5, "G");
+    pxEllipse(grid, 29, 24, 1.8, 2.6, "S");
+    pxThickLine(grid, 18, 20, 20, 28, 1.3, "K");
+    // mining helmet: dome + flat brim + headlamp
+    pxEllipse(grid, 13, 11, 8.5, 6.5, "G");
+    pxEllipse(grid, 13, 16, 9.5, 2, "G");
+    pxEllipse(grid, 13, 7.5, 2.2, 2.2, "K");
+    pxEllipse(grid, 13, 7.5, 1.5, 1.5, "Y");
+    pxOutline(grid, "K");
+    pxRect(grid, 9, 21, 10.5, 22.5, "K");
+    pxRect(grid, 14, 21, 15.5, 22.5, "K");
+    pxLine(grid, 10.5, 25, 12, 26.6, "K");
+    pxLine(grid, 12, 26.6, 13.5, 25, "K");
+    return grid;
+  }
+
   // heightScale: per-sprite vertical stretch, anchored at the ground, so different units can
   // be taller/shorter than the base Cat without redesigning their whole coordinate grid - the
   // "scaling tool" for keeping cats' relative sizes right when reference art has no scale bar.
@@ -3341,6 +3373,23 @@
     braveCat: { grid: buildBraveGrid() },
     darkCat: { grid: buildDarkGrid() },
   };
+
+  // Renders a pixel-sprite grid onto a small standalone <canvas> icon (its own context, not
+  // the battlefield canvas) - used for button icons like Gamatoto.
+  function renderSpriteIcon(canvasEl, grid) {
+    if (!canvasEl) return;
+    const ictx = canvasEl.getContext("2d");
+    const cell = canvasEl.width / PXW;
+    for (let y = 0; y < PXH; y++) {
+      for (let x = 0; x < PXW; x++) {
+        const c = grid[y][x];
+        if (!c) continue;
+        ictx.fillStyle = PX_PALETTE[c];
+        ictx.fillRect(x * cell, y * cell, cell + 0.5, cell + 0.5);
+      }
+    }
+  }
+  renderSpriteIcon(document.getElementById("gamatotoIcon"), buildGamatotoGrid());
 
   function drawPixelGrid(grid, cx, groundYPx, cell, flip, heightScale) {
     ctx.save();
