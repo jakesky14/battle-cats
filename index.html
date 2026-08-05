@@ -960,7 +960,7 @@
     { id:"cow",    name:"Cow Cat",   emoji:"🐮", cost:750,  hp:1250, dmg:32,  range:140*RANGE_SCALE, cycle:0.33, fore:0.20, tgt:"single", speed:30*SPEED_SCALE, cd:2,    kb:5, trait:"Traitless", strongAgainst:[],      color:"#ffe0e0", sprite:"cowCat" },
     { id:"bird",   name:"Bird Cat",  emoji:"🐦", cost:975,  hp:750,  dmg:350, range:170*RANGE_SCALE, cycle:1.63, fore:0.33, tgt:"area",   speed:10*SPEED_SCALE, cd:2,    kb:4, trait:"Traitless", strongAgainst:[],      color:"#5fb0ff", sprite:"birdCat" },
     { id:"fish",   name:"Fish Cat",  emoji:"🐟", cost:1200, hp:1750, dmg:450, range:150*RANGE_SCALE, cycle:1.77, fore:0.33, tgt:"single", speed:10*SPEED_SCALE, cd:4.2,  kb:3, trait:"Traitless", strongAgainst:["Red"], color:"#4fd0d8", sprite:"fishCat" },
-    { id:"lizard", name:"Lizard Cat",emoji:"🦎", cost:1500, hp:2000, dmg:875, range:400*RANGE_SCALE, cycle:4.30, fore:0.33, tgt:"single", speed:10*SPEED_SCALE, cd:10.2, kb:3, trait:"Traitless", strongAgainst:[],      color:"#8be06a" },
+    { id:"lizard", name:"Lizard Cat",emoji:"🦎", cost:1500, hp:2000, dmg:875, range:400*RANGE_SCALE, cycle:4.30, fore:0.33, tgt:"single", speed:10*SPEED_SCALE, cd:10.2, kb:3, trait:"Traitless", strongAgainst:[],      color:"#8be06a", sprite:"lizardCat" },
     { id:"titan",  name:"Titan Cat", emoji:"👹", cost:1950, hp:2500, dmg:700, range:150*RANGE_SCALE, cycle:2.23, fore:0.6,  tgt:"area",   speed:8*SPEED_SCALE,  cd:18.2, kb:1, trait:"Traitless", strongAgainst:[],      color:"#ff8c3b" },
   ];
 
@@ -1001,7 +1001,7 @@
     cow:    { name: "Giraffe Cat",    emoji: "🦒", sprite: "giraffeCat" },
     bird:   { name: "UFO Cat",        emoji: "🛸", cycle: 1.90, fore: 0.60, dmgMult: 494 / 420, sprite: "ufoCat" },
     fish:   { name: "Whale Cat",      emoji: "🐋", sprite: "whaleCat" },
-    lizard: { name: "Dragon Cat",     emoji: "🐉", cycle: 4.23, fore: 0.27 },
+    lizard: { name: "Dragon Cat",     emoji: "🐉", cycle: 4.23, fore: 0.27, sprite: "dragonCat" },
     titan:  { name: "Mythical Titan", emoji: "🔱" },
   };
 
@@ -1018,7 +1018,7 @@
     cow:    { name: "Lion Cat",       emoji: "🦁", hp: 2500, dmg: 65,  cd: 4.20, sprite: "lionCat" },
     bird:   { name: "The Flying Cat", emoji: "🦅", hp: 1500, dmg: 825, cd: 3.53, sprite: "flyingCat" },
     fish:   { name: "Island Cat",     emoji: "🏝️", hp: 3500, dmg: 900, cd: 8.20, strongAgainst: ["Red"], sprite: "islandCat" },
-    lizard: { name: "King Dragon Cat",emoji: "🦖", hp: 2250, dmg: 1000, cd: 16.87 },
+    lizard: { name: "King Dragon Cat",emoji: "🦖", hp: 2250, dmg: 1000, cd: 16.87, sprite: "kingDragonCat" },
     titan:  { name: "Jamiera Cat",    emoji: "😈", hp: 5000, dmg: 1400, cd: 22.20,
               strongAgainst: ["Red","Floating","Black","Angel","Alien","Zombie","Relic","Aku","White"] },
   };
@@ -1267,6 +1267,7 @@
       pBase: { x:P_BASE_X, hp:pHp, max:pHp, team:"player", isBase:true },
       eBase: { x:E_BASE_X, hp:ENEMY_BASE_HP, max:ENEMY_BASE_HP, team:"enemy", isBase:true },
       cooldowns: roster.map(() => 0),
+      cooldownMax: roster.map(() => 1), // avoids divide-by-zero before any deploy; overwritten on first deploy
       spawnTimer: 3,
       bossSpawned: false,
       fx: [],               // floating hit sparks
@@ -1352,6 +1353,7 @@
     const plus = profile.catPlus[c.id] || 0;
     const form = evolvedForm(c, lvl, plus);
     G.cooldowns[i] = Math.max(2, form.cd - cdReduction());
+    G.cooldownMax[i] = G.cooldowns[i]; // actual full duration for this deploy (post-floor/reduction), for the dock bar
     const mult = catLevelMult(lvl + plus);
     const hp = Math.round(form.hp * mult);
     G.units.push({
@@ -1508,9 +1510,8 @@
 
   function renderMainMenu() {
     regenEnergy();
-    const enough = profile.energy >= ENERGY_PER_BATTLE;
-    menuBattleBtnEl.disabled = !enough;
-    menuBattleBtnEl.style.opacity = enough ? "1" : ".5";
+    // START always stays enabled even at 0 energy - the player can still reach the Battle Menu
+    // and use a Leadership there to refill before attacking (the real energy gate is on ATTACK).
     userRankAmtEl.textContent = profile.userRank || 0;
     catFoodAmtEl.textContent = profile.catFood || 0;
     const nextReward = RANK_REWARDS[profile.claimedRankRewards];
@@ -1936,6 +1937,7 @@
   testPlusBtn.addEventListener("click", () => {
     if (!profile.testMode) return;
     profile.catPlus[selectedUpgradeCat] = (profile.catPlus[selectedUpgradeCat] || 0) + 1;
+    profile.userRank = (profile.userRank || 0) + 1; // matches the real Cat Capsule +1 reward's effect
     saveProfile();
     renderUpgradeScreen();
   });
@@ -2375,7 +2377,7 @@
     ovText.textContent = won
       ? `You crushed the enemy base in ${G.time.toFixed(0)}s. Well fought, general! +${xpGained} XP, +${CAT_FOOD_PER_WIN} Cat Food`
       : "Your base was destroyed. Regroup and try again — deploy meatshields, then push with damage cats.";
-    ovBtn.textContent = "Play Again";
+    ovBtn.classList.add("hidden"); // "Play Again" removed - Main Menu is the only action here
     ovMenuBtn.classList.remove("hidden");
     overlay.classList.remove("hidden");
   }
@@ -2892,61 +2894,65 @@
   // ---------------------------------------------------------------------------
   // Gross Cat family: same round head atop increasingly leg-focused bodies (no torso between
   // head and legs) - Gross Cat has 4 thin criss-crossing stick legs, Sexy Legs Cat has one
-  // long sleek tapered leg, Macho Leg Cat has two thick muscular bowed legs.
-  // ---------------------------------------------------------------------------
-  function buildCatHeadFace(grid, dx) {
-    dx = dx || 0;
-    pxRect(grid, 15 + dx, 8, 16 + dx, 9, "K");
-    pxRect(grid, 20 + dx, 8, 21 + dx, 9, "K");
-    pxLine(grid, 16 + dx, 11, 17 + dx, 12.5, "K");
-    pxLine(grid, 17 + dx, 12.5, 18 + dx, 11.2, "K");
-    pxLine(grid, 18 + dx, 11.2, 19 + dx, 12.5, "K");
-    pxLine(grid, 19 + dx, 12.5, 20 + dx, 11, "K");
-    pxLine(grid, 17 + dx, 13, 18 + dx, 15, "K");
-    pxLine(grid, 18 + dx, 15, 19 + dx, 13, "K");
+  // long sleek tapered leg, Macho Leg Cat has two thick muscular bowed legs. Scaled up ~20%
+  // from an earlier pass per feedback, so this family reads at the same visual weight as the
+  // other full-body sprites.
+  function buildGrossHeadFace(grid, cx, cy) {
+    pxRect(grid, cx - 3, cy - 1, cx - 2, cy, "K");
+    pxRect(grid, cx + 2, cy - 1, cx + 3, cy, "K");
+    pxLine(grid, cx - 2, cy + 2, cx - 1, cy + 3.5, "K");
+    pxLine(grid, cx - 1, cy + 3.5, cx, cy + 2.7, "K");
+    pxLine(grid, cx, cy + 2.7, cx + 1, cy + 3.5, "K");
+    pxLine(grid, cx + 1, cy + 3.5, cx + 2, cy + 2, "K");
+    pxLine(grid, cx - 1, cy + 4, cx, cy + 6, "K");
+    pxLine(grid, cx, cy + 6, cx + 1, cy + 4, "K");
   }
 
   function buildGrossGrid() {
     const grid = makePxGrid();
-    pxEllipse(grid, 18, 10, 8, 7, "W");
-    pxTriangle(grid, 12, 1, 5, 1.6, "W");
-    pxTriangle(grid, 24, 1, 5, 1.6, "W");
-    pxThickLine(grid, 12, 17, 9, 35, 1.4, "W");
-    pxThickLine(grid, 15, 17, 15, 35, 1.4, "W");
-    pxThickLine(grid, 21, 17, 21, 35, 1.4, "W");
-    pxThickLine(grid, 24, 17, 27, 35, 1.4, "W");
+    pxEllipse(grid, 18, 11, 9.5, 8.4, "W");
+    pxTriangle(grid, 10.5, 0, 6, 1.9, "W");
+    pxTriangle(grid, 25.5, 0, 6, 1.9, "W");
+    pxThickLine(grid, 11, 19, 7, 36, 1.7, "W");
+    pxThickLine(grid, 15, 19, 15, 36, 1.7, "W");
+    pxThickLine(grid, 21, 19, 21, 36, 1.7, "W");
+    pxThickLine(grid, 25, 19, 29, 36, 1.7, "W");
     pxOutline(grid, "K");
-    buildCatHeadFace(grid);
+    buildGrossHeadFace(grid, 18, 11);
     return grid;
   }
 
   function buildSexyLegsGrid() {
     const grid = makePxGrid();
-    pxEllipse(grid, 18, 9, 8, 7, "W");
-    pxTriangle(grid, 12, 1, 5, 1.6, "W");
-    pxTriangle(grid, 24, 1, 5, 1.6, "W");
-    pxTaper(grid, 18, 15, 8, 19, 34, 3, "W");
-    pxEllipse(grid, 19, 34.5, 2, 1.3, "W");
+    pxEllipse(grid, 18, 10, 9.5, 8.4, "W");
+    pxTriangle(grid, 10.5, 0, 6, 1.9, "W");
+    pxTriangle(grid, 25.5, 0, 6, 1.9, "W");
+    pxTaper(grid, 18, 17, 9.5, 19, 37, 3.6, "W");
+    pxEllipse(grid, 19, 37.5, 2.3, 1.4, "W");
     pxOutline(grid, "K");
-    buildCatHeadFace(grid);
+    pxLine(grid, 19, 27, 19, 36, "K"); // center divider suggesting two legs pressed together
+    buildGrossHeadFace(grid, 18, 10);
     return grid;
   }
 
   function buildMachoLegGrid() {
     const grid = makePxGrid();
-    pxEllipse(grid, 18, 9, 8, 7, "W");
-    pxTriangle(grid, 12, 1, 5, 1.6, "W");
-    pxTriangle(grid, 24, 1, 5, 1.6, "W");
-    pxEllipse(grid, 12, 20, 5, 6, "W");
-    pxEllipse(grid, 24, 20, 5, 6, "W");
-    pxRect(grid, 9, 24, 15, 33, "W");
-    pxRect(grid, 21, 24, 27, 33, "W");
-    pxEllipse(grid, 10, 35, 3, 1.6, "W");
-    pxEllipse(grid, 26, 35, 3, 1.6, "W");
+    pxEllipse(grid, 18, 9, 9.5, 8.2, "W");
+    pxTriangle(grid, 10.5, -1, 5, 1.9, "W");
+    pxTriangle(grid, 25.5, -1, 5, 1.9, "W");
+    // neck/shoulders taper connecting the head's bottom directly into the thigh tops, so the
+    // whole silhouette reads as one continuous rounded-triangle shape (no waist gap)
+    pxTaper(grid, 18, 14, 15, 18, 20, 21, "W");
+    pxEllipse(grid, 11.5, 21, 5.6, 6.4, "W");
+    pxEllipse(grid, 24.5, 21, 5.6, 6.4, "W");
+    pxRect(grid, 8, 25, 15, 34, "W");
+    pxRect(grid, 21, 25, 28, 34, "W");
+    pxEllipse(grid, 9.5, 36, 3.4, 1.8, "W");
+    pxEllipse(grid, 26.5, 36, 3.4, 1.8, "W");
     pxOutline(grid, "K");
-    buildCatHeadFace(grid);
-    pxLine(grid, 10, 24, 14, 24, "K");
-    pxLine(grid, 22, 24, 26, 24, "K");
+    buildGrossHeadFace(grid, 18, 9);
+    pxLine(grid, 9, 25, 14, 25, "K");
+    pxLine(grid, 22, 25, 27, 25, "K");
     return grid;
   }
 
@@ -3167,6 +3173,76 @@
     return grid;
   }
 
+  // ---------------------------------------------------------------------------
+  // Lizard Cat family: round Cat body in a crouched quadruped stance with a pointed tail.
+  // Dragon Cat adds a small clawed arm and belly stripes; King Dragon Cat adds a jagged
+  // spike ridge along the head/back.
+  // ---------------------------------------------------------------------------
+  function buildLizardBody(grid) {
+    pxOctagonBody(grid, 8.5, 28.5, 5.2, 27.3, 6.3, 6.3, "W");
+    pxTriangle(grid, 5.4, 2, 9.4, 1.1, "W");
+    pxTriangle(grid, 30.6, 2, 9.4, 1.1, "W");
+  }
+  function buildLizardLegs(grid) {
+    // crouched quadruped stance: front legs closer together, back legs wider
+    pxThickLine(grid, 12, 26, 11, 35, 2, "W");
+    pxThickLine(grid, 16, 27, 16, 35, 2, "W");
+    pxThickLine(grid, 20, 27, 20, 35, 2, "W");
+    pxThickLine(grid, 24, 26, 25, 35, 2, "W");
+  }
+  function buildLizardTail(grid) {
+    // same white as the body, so give it its own explicit black outline first (drawn
+    // larger), then fill white inset - otherwise it's invisible where it overlaps the body
+    pxTaper(grid, 25, 27, 13, 37, 8, 3.5, "K");
+    pxTaper(grid, 25, 27, 11, 36, 8, 2, "W");
+  }
+  function buildLizardArm(grid) {
+    pxEllipse(grid, 3, 19, 6, 4.6, "K");
+    pxEllipse(grid, 3, 19, 4.8, 3.5, "W");
+  }
+
+  function buildLizardGrid() {
+    const grid = makePxGrid();
+    buildLizardBody(grid);
+    buildLizardLegs(grid);
+    buildLizardTail(grid);
+    pxOutline(grid, "K");
+    pxFace(grid, 0);
+    return grid;
+  }
+
+  function buildDragonGrid() {
+    const grid = makePxGrid();
+    buildLizardBody(grid);
+    buildLizardLegs(grid);
+    buildLizardTail(grid);
+    buildLizardArm(grid);
+    pxOutline(grid, "K");
+    pxFace(grid, 0);
+    // horizontal stripe bands across the belly, evoking a dino/lizard pattern
+    pxLine(grid, 6, 20, 30, 20, "K");
+    pxLine(grid, 5, 24, 31, 24, "K");
+    return grid;
+  }
+
+  function buildKingDragonGrid() {
+    const grid = makePxGrid();
+    buildLizardBody(grid);
+    buildLizardLegs(grid);
+    buildLizardTail(grid);
+    buildLizardArm(grid);
+    // jagged spike ridge along the back/head, taller and more dramatic than Dragon Cat
+    for (let i = 0; i < 5; i++) {
+      const x = 10 + i * 3.5;
+      pxTriangle(grid, x, 1 - i * 0.3, 6, 1.3, "W");
+    }
+    pxOutline(grid, "K");
+    pxFace(grid, 0);
+    pxLine(grid, 6, 20, 30, 20, "K");
+    pxLine(grid, 5, 24, 31, 24, "K");
+    return grid;
+  }
+
   // heightScale: per-sprite vertical stretch, anchored at the ground, so different units can
   // be taller/shorter than the base Cat without redesigning their whole coordinate grid - the
   // "scaling tool" for keeping cats' relative sizes right when reference art has no scale bar.
@@ -3189,6 +3265,9 @@
     fishCat: { grid: buildFishGrid() },
     whaleCat: { grid: buildWhaleGrid() },
     islandCat: { grid: buildIslandGrid(), heightScale: 1.15 },
+    lizardCat: { grid: buildLizardGrid() },
+    dragonCat: { grid: buildDragonGrid() },
+    kingDragonCat: { grid: buildKingDragonGrid() },
     axeCat: { grid: buildAxeGrid() },
     braveCat: { grid: buildBraveGrid() },
     darkCat: { grid: buildDarkGrid() },
@@ -3339,7 +3418,7 @@
       const affordable = G.money >= c.cost && cd <= 0 && G.running;
       el.classList.toggle("disabled", !affordable);
       const coolEl = el.lastElementChild;
-      coolEl.style.height = cd > 0 ? (100 * cd / c.cd) + "%" : "0%";
+      coolEl.style.height = cd > 0 ? (100 * cd / G.cooldownMax[i]) + "%" : "0%";
     }
   }
 
