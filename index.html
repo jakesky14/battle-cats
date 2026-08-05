@@ -956,7 +956,7 @@
     { id:"cat",    name:"Cat",       emoji:"🐱", cost:75,   hp:250,  dmg:20,  range:140*RANGE_SCALE, cycle:1.23, fore:0.27, tgt:"single", speed:8*SPEED_SCALE,  cd:2,    kb:3, trait:"Traitless", strongAgainst:[],      color:"#f4f4f4", sprite:"cat" },
     { id:"tank",   name:"Tank Cat",  emoji:"🛡️", cost:150,  hp:1000, dmg:5,   range:110*RANGE_SCALE, cycle:2.23, fore:0.27, tgt:"area",   speed:8*SPEED_SCALE,  cd:2,    kb:1, trait:"Traitless", strongAgainst:[],      color:"#c9a26a", sprite:"tank" },
     { id:"axe",    name:"Axe Cat",   emoji:"🪓", cost:300,  hp:500,  dmg:62,  range:150*RANGE_SCALE, cycle:0.90, fore:0.27, tgt:"single", speed:12*SPEED_SCALE, cd:2,    kb:3, trait:"Traitless", strongAgainst:["Red"], color:"#e06b4a", sprite:"axeCat" },
-    { id:"gross",  name:"Gross Cat", emoji:"🤢", cost:600,  hp:1000, dmg:250, range:350*RANGE_SCALE, cycle:4.23, fore:0.27, tgt:"single", speed:10*SPEED_SCALE, cd:2.2,  kb:3, trait:"Traitless", strongAgainst:[],      color:"#7cc36a" },
+    { id:"gross",  name:"Gross Cat", emoji:"🤢", cost:600,  hp:1000, dmg:250, range:350*RANGE_SCALE, cycle:4.23, fore:0.27, tgt:"single", speed:10*SPEED_SCALE, cd:2.2,  kb:3, trait:"Traitless", strongAgainst:[],      color:"#7cc36a", sprite:"grossCat" },
     { id:"cow",    name:"Cow Cat",   emoji:"🐮", cost:750,  hp:1250, dmg:32,  range:140*RANGE_SCALE, cycle:0.33, fore:0.20, tgt:"single", speed:30*SPEED_SCALE, cd:2,    kb:5, trait:"Traitless", strongAgainst:[],      color:"#ffe0e0" },
     { id:"bird",   name:"Bird Cat",  emoji:"🐦", cost:975,  hp:750,  dmg:350, range:170*RANGE_SCALE, cycle:1.63, fore:0.33, tgt:"area",   speed:10*SPEED_SCALE, cd:2,    kb:4, trait:"Traitless", strongAgainst:[],      color:"#5fb0ff" },
     { id:"fish",   name:"Fish Cat",  emoji:"🐟", cost:1200, hp:1750, dmg:450, range:150*RANGE_SCALE, cycle:1.77, fore:0.33, tgt:"single", speed:10*SPEED_SCALE, cd:4.2,  kb:3, trait:"Traitless", strongAgainst:["Red"], color:"#4fd0d8" },
@@ -997,7 +997,7 @@
     cat:    { name: "Macho Cat",      emoji: "💪", sprite: "machoCat" },
     tank:   { name: "Wall Cat",       emoji: "🧱", sprite: "wallCat" },
     axe:    { name: "Brave Cat",      emoji: "🦸", sprite: "braveCat" },
-    gross:  { name: "Sexy Legs Cat",  emoji: "🦵", cycle: 4.17, fore: 0.20 },
+    gross:  { name: "Sexy Legs Cat",  emoji: "🦵", cycle: 4.17, fore: 0.20, sprite: "sexyLegsCat" },
     cow:    { name: "Giraffe Cat",    emoji: "🦒" },
     bird:   { name: "UFO Cat",        emoji: "🛸", cycle: 1.90, fore: 0.60, dmgMult: 494 / 420 },
     fish:   { name: "Whale Cat",      emoji: "🐋" },
@@ -1014,7 +1014,7 @@
     cat:    { name: "Mohawk Cat",     emoji: "🤘", hp: 500,  dmg: 40, sprite: "mohawkCat" },
     tank:   { name: "Eraser Cat",     emoji: "🪨", hp: 1500, dmg: 10, sprite: "eraserCat" },
     axe:    { name: "Dark Cat",       emoji: "🌑", hp: 1000, dmg: 125, cd: 2.00, strongAgainst: ["Red"], sprite: "darkCat" },
-    gross:  { name: "Macho Leg Cat",  emoji: "🦿", hp: 2000, dmg: 500, cd: 7.53, strongAgainst: ["Alien"] },
+    gross:  { name: "Macho Leg Cat",  emoji: "🦿", hp: 2000, dmg: 500, cd: 7.53, strongAgainst: ["Alien"], sprite: "machoLegCat" },
     cow:    { name: "Lion Cat",       emoji: "🦁", hp: 2500, dmg: 65,  cd: 4.20 },
     bird:   { name: "The Flying Cat", emoji: "🦅", hp: 1500, dmg: 825, cd: 3.53 },
     fish:   { name: "Island Cat",     emoji: "🏝️", hp: 3500, dmg: 900, cd: 8.20, strongAgainst: ["Red"] },
@@ -2638,6 +2638,20 @@
   function pxThickLine(grid, x0, y0, x1, y1, w, color) {
     for (let o = -Math.floor(w / 2); o <= Math.floor(w / 2); o++) pxLine(grid, x0 + o, y0, x1 + o, y1, color);
   }
+  // Smoothly tapering shape from (x0,y0) width w0 to (x1,y1) width w1, interpolating both
+  // centerline position and width linearly - a single continuous limb, no seam.
+  function pxTaper(grid, x0, y0, w0, x1, y1, w1, color) {
+    const steps = Math.abs(y1 - y0) + 1;
+    for (let i = 0; i < steps; i++) {
+      const t = i / (steps - 1);
+      const y = Math.round(y0 + (y1 - y0) * t);
+      const cx = x0 + (x1 - x0) * t;
+      const w = w0 + (w1 - w0) * t;
+      for (let x = Math.round(cx - w / 2); x <= Math.round(cx + w / 2); x++) {
+        if (x >= 0 && x < PXW && y >= 0 && y < PXH) grid[y][x] = color;
+      }
+    }
+  }
   function pxOutline(grid, color) {
     const filled = grid.map(row => row.map(c => c !== null));
     const deltas = [[0, 1], [0, -1], [1, 0], [-1, 0]];
@@ -2874,6 +2888,67 @@
     return grid;
   }
 
+  // ---------------------------------------------------------------------------
+  // Gross Cat family: same round head atop increasingly leg-focused bodies (no torso between
+  // head and legs) - Gross Cat has 4 thin criss-crossing stick legs, Sexy Legs Cat has one
+  // long sleek tapered leg, Macho Leg Cat has two thick muscular bowed legs.
+  // ---------------------------------------------------------------------------
+  function buildCatHeadFace(grid, dx) {
+    dx = dx || 0;
+    pxRect(grid, 15 + dx, 8, 16 + dx, 9, "K");
+    pxRect(grid, 20 + dx, 8, 21 + dx, 9, "K");
+    pxLine(grid, 16 + dx, 11, 17 + dx, 12.5, "K");
+    pxLine(grid, 17 + dx, 12.5, 18 + dx, 11.2, "K");
+    pxLine(grid, 18 + dx, 11.2, 19 + dx, 12.5, "K");
+    pxLine(grid, 19 + dx, 12.5, 20 + dx, 11, "K");
+    pxLine(grid, 17 + dx, 13, 18 + dx, 15, "K");
+    pxLine(grid, 18 + dx, 15, 19 + dx, 13, "K");
+  }
+
+  function buildGrossGrid() {
+    const grid = makePxGrid();
+    pxEllipse(grid, 18, 10, 8, 7, "W");
+    pxTriangle(grid, 12, 1, 5, 1.6, "W");
+    pxTriangle(grid, 24, 1, 5, 1.6, "W");
+    pxThickLine(grid, 12, 17, 9, 35, 1.4, "W");
+    pxThickLine(grid, 15, 17, 15, 35, 1.4, "W");
+    pxThickLine(grid, 21, 17, 21, 35, 1.4, "W");
+    pxThickLine(grid, 24, 17, 27, 35, 1.4, "W");
+    pxOutline(grid, "K");
+    buildCatHeadFace(grid);
+    return grid;
+  }
+
+  function buildSexyLegsGrid() {
+    const grid = makePxGrid();
+    pxEllipse(grid, 18, 9, 8, 7, "W");
+    pxTriangle(grid, 12, 1, 5, 1.6, "W");
+    pxTriangle(grid, 24, 1, 5, 1.6, "W");
+    pxTaper(grid, 18, 15, 8, 19, 34, 3, "W");
+    pxEllipse(grid, 19, 34.5, 2, 1.3, "W");
+    pxOutline(grid, "K");
+    buildCatHeadFace(grid);
+    return grid;
+  }
+
+  function buildMachoLegGrid() {
+    const grid = makePxGrid();
+    pxEllipse(grid, 18, 9, 8, 7, "W");
+    pxTriangle(grid, 12, 1, 5, 1.6, "W");
+    pxTriangle(grid, 24, 1, 5, 1.6, "W");
+    pxEllipse(grid, 12, 20, 5, 6, "W");
+    pxEllipse(grid, 24, 20, 5, 6, "W");
+    pxRect(grid, 9, 24, 15, 33, "W");
+    pxRect(grid, 21, 24, 27, 33, "W");
+    pxEllipse(grid, 10, 35, 3, 1.6, "W");
+    pxEllipse(grid, 26, 35, 3, 1.6, "W");
+    pxOutline(grid, "K");
+    buildCatHeadFace(grid);
+    pxLine(grid, 10, 24, 14, 24, "K");
+    pxLine(grid, 22, 24, 26, 24, "K");
+    return grid;
+  }
+
   // heightScale: per-sprite vertical stretch, anchored at the ground, so different units can
   // be taller/shorter than the base Cat without redesigning their whole coordinate grid - the
   // "scaling tool" for keeping cats' relative sizes right when reference art has no scale bar.
@@ -2884,6 +2959,9 @@
     tank: { grid: buildTankGrid(), heightScale: 1.3 },
     wallCat: { grid: buildWallGrid(), heightScale: 1.3 },
     eraserCat: { grid: buildEraserGrid(), heightScale: 1.3 },
+    grossCat: { grid: buildGrossGrid() },
+    sexyLegsCat: { grid: buildSexyLegsGrid() },
+    machoLegCat: { grid: buildMachoLegGrid() },
     axeCat: { grid: buildAxeGrid() },
     braveCat: { grid: buildBraveGrid() },
     darkCat: { grid: buildDarkGrid() },
