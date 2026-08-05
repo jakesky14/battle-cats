@@ -3134,6 +3134,7 @@
     const grid = makePxGrid();
     // torpedo body: wide "head" end tapering horizontally toward a slim tail base
     pxTaperH(grid, 4, 20, 17, 30, 20, 6, "W");
+    pxEllipse(grid, 4, 20, 4, 8.5, "W"); // round off the front's flat taper edge
     // tail fin: two triangular lobes fanning out from the tail base into a "V" shape
     pxTaperH(grid, 30, 20, 6, 36, 13, 1, "W");
     pxTaperH(grid, 30, 20, 6, 36, 27, 1, "W");
@@ -3156,6 +3157,7 @@
     const grid = makePxGrid();
     // bigger, rounder shark-torpedo body
     pxTaperH(grid, 4, 19, 21, 28, 19, 7, "G");
+    pxEllipse(grid, 4, 19, 4, 10.5, "G"); // round off the front's flat taper edge
     pxTaperH(grid, 28, 19, 7, 35, 12, 0, "G");
     pxTaperH(grid, 28, 19, 7, 35, 26, 0, "G");
     pxTaperH(grid, 6, 24, 12, 26, 24, 5, "W"); // white belly underside
