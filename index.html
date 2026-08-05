@@ -2999,34 +2999,37 @@
     pxOutline(grid, "K");
     pxRect(grid, 5, 12, 6.5, 13.5, "K"); // eyes on the upper skull
     pxRect(grid, 10, 12, 11.5, 13.5, "K");
-    pxEllipse(grid, 5.5, 19, 1, 0.8, "K"); // nostrils on the wide snout
-    pxEllipse(grid, 10.5, 19, 1, 0.8, "K");
-    pxLine(grid, 4, 21.5, 8, 22.7, "K"); // wide flat mouth line
-    pxLine(grid, 8, 22.7, 12, 21.5, "K");
+    // distinct nose pad (outlined oval, not just floating dots) with nostril slits
+    pxEllipse(grid, 8, 19.5, 4.2, 2.6, "K");
+    pxEllipse(grid, 8, 19.5, 3.4, 2, "W");
+    pxEllipse(grid, 6, 19.3, 0.7, 0.6, "K");
+    pxEllipse(grid, 10, 19.3, 0.7, 0.6, "K");
+    pxLine(grid, 6, 22, 8, 23.2, "K"); // mouth below the nose pad
+    pxLine(grid, 8, 23.2, 10, 22, "K");
     return grid;
   }
 
   function buildGiraffeGrid() {
     const grid = makePxGrid();
     pxEllipse(grid, 23, 23, 11, 8, "W");
-    // long neck rising up-left from the body to a NARROW elongated head - deliberately
+    // neck rises STRAIGHT UP (not diagonal) to a NARROW elongated head - deliberately
     // distinct from Cow's wide blocky face
-    pxTaper(grid, 17, 17, 6.5, 8, 8, 4.5, "W");
-    pxEllipse(grid, 8, 5, 4.5, 6, "W");
-    pxEllipse(grid, 8, 11, 3, 2.6, "W");
+    pxTaper(grid, 14, 17, 6.5, 14, 8, 4.5, "W");
+    pxEllipse(grid, 14, 5, 4.5, 6, "W");
+    pxEllipse(grid, 14, 11, 3, 2.6, "W");
     // ossicones (small knobs) instead of horns
-    pxThickLine(grid, 5, 0.5, 5, -1.5, 1.4, "K");
-    pxEllipse(grid, 5, -2, 1.2, 1.2, "K");
     pxThickLine(grid, 11, 0.5, 11, -1.5, 1.4, "K");
     pxEllipse(grid, 11, -2, 1.2, 1.2, "K");
+    pxThickLine(grid, 17, 0.5, 17, -1.5, 1.4, "K");
+    pxEllipse(grid, 17, -2, 1.2, 1.2, "K");
     pxThickLine(grid, 33, 21, 36, 13, 1.6, "W");
     pxEllipse(grid, 36, 12, 1.8, 1.8, "K");
     pxQuadrupedLegs(grid, [15, 21, 27, 32]);
     pxOutline(grid, "K");
-    pxRect(grid, 6.2, 3, 7.4, 4.2, "K"); // narrow-set eyes
-    pxRect(grid, 8.6, 3, 9.8, 4.2, "K");
-    pxLine(grid, 7, 9, 8, 10.6, "K"); // small subtle mouth on the narrow muzzle
-    pxLine(grid, 8, 10.6, 9, 9, "K");
+    pxRect(grid, 12.2, 3, 13.4, 4.2, "K"); // narrow-set eyes
+    pxRect(grid, 14.6, 3, 15.8, 4.2, "K");
+    pxLine(grid, 13, 9, 14, 10.6, "K"); // clear small mouth on the narrow muzzle
+    pxLine(grid, 14, 10.6, 15, 9, "K");
     return grid;
   }
 
@@ -3072,10 +3075,13 @@
     const s = r / 8;
     pxRect(grid, cx - 3 * s, cy - 2 * s, cx - 1.5 * s, cy - 0.5 * s, "K");
     pxRect(grid, cx + 1.5 * s, cy - 2 * s, cx + 3 * s, cy - 0.5 * s, "K");
-    pxLine(grid, cx - 2.5 * s, cy + 1 * s, cx - 0.5 * s, cy + 3 * s, "K");
-    pxLine(grid, cx - 0.5 * s, cy + 3 * s, cx + 1.5 * s, cy + 1 * s, "K");
-    pxLine(grid, cx + 1.5 * s, cy + 1 * s, cx + 3.5 * s, cy + 3 * s, "K");
-    pxLine(grid, cx - 0.5 * s, cy + 3 * s, cx - 0.5 * s, cy + 5 * s, "K");
+    // clear "w" mouth + "u" chin, matching the standard cat face pattern
+    pxLine(grid, cx - 2.5 * s, cy + 1 * s, cx - 1 * s, cy + 2.6 * s, "K");
+    pxLine(grid, cx - 1 * s, cy + 2.6 * s, cx, cy + 1.4 * s, "K");
+    pxLine(grid, cx, cy + 1.4 * s, cx + 1 * s, cy + 2.6 * s, "K");
+    pxLine(grid, cx + 1 * s, cy + 2.6 * s, cx + 2.5 * s, cy + 1 * s, "K");
+    pxLine(grid, cx - 0.6 * s, cy + 3.2 * s, cx, cy + 4.6 * s, "K");
+    pxLine(grid, cx, cy + 4.6 * s, cx + 0.6 * s, cy + 3.2 * s, "K");
   }
 
   function buildBirdGrid() {
@@ -3112,10 +3118,13 @@
 
   function buildFlyingGrid() {
     const grid = makePxGrid();
-    pxEllipse(grid, 12, 5, 4, 3.4, "W");
-    pxEllipse(grid, 18, 3, 5, 4, "W");
-    pxEllipse(grid, 24, 5, 4, 3.4, "W");
-    pxEllipse(grid, 18, 7, 6, 3.5, "W");
+    // fluffy cloud, raised clear of the head so the ears have room to show below it,
+    // connected by a thin stem
+    pxEllipse(grid, 12, 0, 4, 3.4, "W");
+    pxEllipse(grid, 18, -2, 5, 4, "W");
+    pxEllipse(grid, 24, 0, 4, 3.4, "W");
+    pxEllipse(grid, 18, 2, 6, 3.5, "W");
+    pxThickLine(grid, 18, 4.5, 18, 9, 1.6, "W"); // thin stem connecting cloud to head
     buildBirdHead(grid, 18, 16, 8);
     pxEllipse(grid, 18, 26, 17, 4.5, "W");
     pxTriangle(grid, 4, 26, 30, 2, "K");
