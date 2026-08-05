@@ -2986,44 +2986,47 @@
     const grid = makePxGrid();
     // horizontal oval body, scaled up
     pxEllipse(grid, 21, 21, 12, 9, "W");
-    // gourd-shaped head: bigger bulbous lower jowl + narrower upper lobe, merged
-    pxEllipse(grid, 8, 17, 8, 7, "W");
-    pxEllipse(grid, 8, 9, 6, 5.5, "W");
+    // wide, blocky bovine head: rounder upper skull + a WIDE flat snout - deliberately
+    // distinct from Giraffe's narrow elongated face
+    pxEllipse(grid, 8, 9, 5.5, 5, "W");
+    pxEllipse(grid, 8, 18, 9, 6, "W");
+    pxRect(grid, 0, 18, 16, 22, "W");
     pxThickLine(grid, 4, 3, 2, -1, 1.8, "K");
     pxThickLine(grid, 12, 3, 14, -1, 1.8, "K");
     pxThickLine(grid, 32, 19, 36, 10, 1.8, "W");
     pxEllipse(grid, 36, 9, 2, 2, "K");
     pxQuadrupedLegs(grid, [12, 19, 26, 31]);
     pxOutline(grid, "K");
-    // face, positioned on the lower gourd bulb
-    pxRect(grid, 5, 14, 6.5, 15.5, "K");
-    pxRect(grid, 10, 14, 11.5, 15.5, "K");
-    pxLine(grid, 6.5, 18, 8, 20, "K");
-    pxLine(grid, 8, 20, 9.5, 18, "K");
-    pxLine(grid, 8, 20, 8, 22, "K");
+    pxRect(grid, 5, 12, 6.5, 13.5, "K"); // eyes on the upper skull
+    pxRect(grid, 10, 12, 11.5, 13.5, "K");
+    pxEllipse(grid, 5.5, 19, 1, 0.8, "K"); // nostrils on the wide snout
+    pxEllipse(grid, 10.5, 19, 1, 0.8, "K");
+    pxLine(grid, 4, 21.5, 8, 22.7, "K"); // wide flat mouth line
+    pxLine(grid, 8, 22.7, 12, 21.5, "K");
     return grid;
   }
 
   function buildGiraffeGrid() {
     const grid = makePxGrid();
     pxEllipse(grid, 23, 23, 11, 8, "W");
-    // long neck rising up-left from the body to the bigger head
-    pxTaper(grid, 17, 17, 6.5, 8, 7, 5.5, "W");
-    pxEllipse(grid, 8, 6, 7, 6.5, "W");
+    // long neck rising up-left from the body to a NARROW elongated head - deliberately
+    // distinct from Cow's wide blocky face
+    pxTaper(grid, 17, 17, 6.5, 8, 8, 4.5, "W");
+    pxEllipse(grid, 8, 5, 4.5, 6, "W");
+    pxEllipse(grid, 8, 11, 3, 2.6, "W");
     // ossicones (small knobs) instead of horns
-    pxThickLine(grid, 5, 2, 5, -0.5, 1.4, "K");
-    pxEllipse(grid, 5, -1, 1.2, 1.2, "K");
-    pxThickLine(grid, 11, 2, 11, -0.5, 1.4, "K");
-    pxEllipse(grid, 11, -1, 1.2, 1.2, "K");
+    pxThickLine(grid, 5, 0.5, 5, -1.5, 1.4, "K");
+    pxEllipse(grid, 5, -2, 1.2, 1.2, "K");
+    pxThickLine(grid, 11, 0.5, 11, -1.5, 1.4, "K");
+    pxEllipse(grid, 11, -2, 1.2, 1.2, "K");
     pxThickLine(grid, 33, 21, 36, 13, 1.6, "W");
     pxEllipse(grid, 36, 12, 1.8, 1.8, "K");
     pxQuadrupedLegs(grid, [15, 21, 27, 32]);
     pxOutline(grid, "K");
-    pxRect(grid, 6, 4, 7.2, 5.2, "K");
-    pxRect(grid, 10.5, 4, 11.7, 5.2, "K");
-    pxLine(grid, 7, 8, 8, 9.7, "K");
-    pxLine(grid, 8, 9.7, 9, 8, "K");
-    pxLine(grid, 8, 9.7, 8, 11.5, "K");
+    pxRect(grid, 6.2, 3, 7.4, 4.2, "K"); // narrow-set eyes
+    pxRect(grid, 8.6, 3, 9.8, 4.2, "K");
+    pxLine(grid, 7, 9, 8, 10.6, "K"); // small subtle mouth on the narrow muzzle
+    pxLine(grid, 8, 10.6, 9, 9, "K");
     return grid;
   }
 
@@ -3045,9 +3048,13 @@
     pxOutline(grid, "K");
     pxRect(grid, 6, 13, 7.2, 14.2, "K");
     pxRect(grid, 10.5, 13, 11.7, 14.2, "K");
-    pxLine(grid, 7, 17, 8, 19, "K");
-    pxLine(grid, 8, 19, 9, 17, "K");
-    pxLine(grid, 8, 19, 8, 21, "K");
+    // clear "w" mouth + "u" chin, matching the standard cat face pattern
+    pxLine(grid, 6.3, 16.5, 7.3, 18, "K");
+    pxLine(grid, 7.3, 18, 8, 16.8, "K");
+    pxLine(grid, 8, 16.8, 8.7, 18, "K");
+    pxLine(grid, 8.7, 18, 9.7, 16.5, "K");
+    pxLine(grid, 7.5, 19, 8, 20.5, "K");
+    pxLine(grid, 8, 20.5, 8.5, 19, "K");
     return grid;
   }
 
