@@ -959,7 +959,7 @@
     { id:"gross",  name:"Gross Cat", emoji:"🤢", cost:600,  hp:1000, dmg:250, range:350*RANGE_SCALE, cycle:4.23, fore:0.27, tgt:"single", speed:10*SPEED_SCALE, cd:2.2,  kb:3, trait:"Traitless", strongAgainst:[],      color:"#7cc36a", sprite:"grossCat" },
     { id:"cow",    name:"Cow Cat",   emoji:"🐮", cost:750,  hp:1250, dmg:32,  range:140*RANGE_SCALE, cycle:0.33, fore:0.20, tgt:"single", speed:30*SPEED_SCALE, cd:2,    kb:5, trait:"Traitless", strongAgainst:[],      color:"#ffe0e0", sprite:"cowCat" },
     { id:"bird",   name:"Bird Cat",  emoji:"🐦", cost:975,  hp:750,  dmg:350, range:170*RANGE_SCALE, cycle:1.63, fore:0.33, tgt:"area",   speed:10*SPEED_SCALE, cd:2,    kb:4, trait:"Traitless", strongAgainst:[],      color:"#5fb0ff", sprite:"birdCat" },
-    { id:"fish",   name:"Fish Cat",  emoji:"🐟", cost:1200, hp:1750, dmg:450, range:150*RANGE_SCALE, cycle:1.77, fore:0.33, tgt:"single", speed:10*SPEED_SCALE, cd:4.2,  kb:3, trait:"Traitless", strongAgainst:["Red"], color:"#4fd0d8" },
+    { id:"fish",   name:"Fish Cat",  emoji:"🐟", cost:1200, hp:1750, dmg:450, range:150*RANGE_SCALE, cycle:1.77, fore:0.33, tgt:"single", speed:10*SPEED_SCALE, cd:4.2,  kb:3, trait:"Traitless", strongAgainst:["Red"], color:"#4fd0d8", sprite:"fishCat" },
     { id:"lizard", name:"Lizard Cat",emoji:"🦎", cost:1500, hp:2000, dmg:875, range:400*RANGE_SCALE, cycle:4.30, fore:0.33, tgt:"single", speed:10*SPEED_SCALE, cd:10.2, kb:3, trait:"Traitless", strongAgainst:[],      color:"#8be06a" },
     { id:"titan",  name:"Titan Cat", emoji:"👹", cost:1950, hp:2500, dmg:700, range:150*RANGE_SCALE, cycle:2.23, fore:0.6,  tgt:"area",   speed:8*SPEED_SCALE,  cd:18.2, kb:1, trait:"Traitless", strongAgainst:[],      color:"#ff8c3b" },
   ];
@@ -1000,7 +1000,7 @@
     gross:  { name: "Sexy Legs Cat",  emoji: "🦵", cycle: 4.17, fore: 0.20, sprite: "sexyLegsCat" },
     cow:    { name: "Giraffe Cat",    emoji: "🦒", sprite: "giraffeCat" },
     bird:   { name: "UFO Cat",        emoji: "🛸", cycle: 1.90, fore: 0.60, dmgMult: 494 / 420, sprite: "ufoCat" },
-    fish:   { name: "Whale Cat",      emoji: "🐋" },
+    fish:   { name: "Whale Cat",      emoji: "🐋", sprite: "whaleCat" },
     lizard: { name: "Dragon Cat",     emoji: "🐉", cycle: 4.23, fore: 0.27 },
     titan:  { name: "Mythical Titan", emoji: "🔱" },
   };
@@ -1017,7 +1017,7 @@
     gross:  { name: "Macho Leg Cat",  emoji: "🦿", hp: 2000, dmg: 500, cd: 7.53, strongAgainst: ["Alien"], sprite: "machoLegCat" },
     cow:    { name: "Lion Cat",       emoji: "🦁", hp: 2500, dmg: 65,  cd: 4.20, sprite: "lionCat" },
     bird:   { name: "The Flying Cat", emoji: "🦅", hp: 1500, dmg: 825, cd: 3.53, sprite: "flyingCat" },
-    fish:   { name: "Island Cat",     emoji: "🏝️", hp: 3500, dmg: 900, cd: 8.20, strongAgainst: ["Red"] },
+    fish:   { name: "Island Cat",     emoji: "🏝️", hp: 3500, dmg: 900, cd: 8.20, strongAgainst: ["Red"], sprite: "islandCat" },
     lizard: { name: "King Dragon Cat",emoji: "🦖", hp: 2250, dmg: 1000, cd: 16.87 },
     titan:  { name: "Jamiera Cat",    emoji: "😈", hp: 5000, dmg: 1400, cd: 22.20,
               strongAgainst: ["Red","Floating","Black","Angel","Alien","Zombie","Relic","Aku","White"] },
@@ -2606,6 +2606,7 @@
     }
   }
   function pxTriangle(grid, apexX, apexY, baseY, baseHalfW, color) {
+    apexY = Math.round(apexY); baseY = Math.round(baseY);
     for (let y = apexY; y <= baseY; y++) {
       const t = (y - apexY) / (baseY - apexY);
       const halfW = t * baseHalfW;
@@ -3094,6 +3095,78 @@
     return grid;
   }
 
+  // ---------------------------------------------------------------------------
+  // Fish Cat family: Fish Cat keeps the normal round Cat body with a fish riding on its
+  // shoulder; Whale Cat and Island Cat replace it with an increasingly larger shark theme.
+  // ---------------------------------------------------------------------------
+  function buildFishBaseBody(grid) {
+    pxOctagonBody(grid, 8.5, 28.5, 5.2, 27.3, 6.3, 6.3, "W");
+    pxTriangle(grid, 5.4, 2, 9.4, 1.1, "W");
+    pxTriangle(grid, 30.6, 2, 9.4, 1.1, "W");
+  }
+
+  function buildFishGrid() {
+    const grid = makePxGrid();
+    buildFishBaseBody(grid);
+    pxLegs(grid, 0);
+    pxOutline(grid, "K");
+    pxFace(grid, 0);
+    // a fish draped over the shoulder: since it's white-on-white against the cat's own body,
+    // draw its silhouette in black first (1px larger) so it gets its own visible outline even
+    // where it overlaps the body, then fill white on top, inset by 1px.
+    pxEllipse(grid, 27, 9, 5.8, 4.4, "K");
+    pxTriangle(grid, 32, 9, 5.3, 3, "K");
+    pxTriangle(grid, 27, 3.8, 7.8, 2.8, "K");
+    pxEllipse(grid, 27, 9, 4.8, 3.4, "W");
+    pxTriangle(grid, 31, 9, 4.7, 2.2, "W");
+    pxTriangle(grid, 27, 4.5, 6.8, 2, "W");
+    pxLine(grid, 24.5, 8, 26, 6.5, "K"); // scale lines
+    pxLine(grid, 26, 9.5, 27.5, 8, "K");
+    pxLine(grid, 24.5, 11, 26, 9.5, "K");
+    return grid;
+  }
+
+  function buildWhaleGrid() {
+    const grid = makePxGrid();
+    buildFishBaseBody(grid);
+    pxLegs(grid, 0);
+    pxOutline(grid, "K");
+    // shark head: gray dorsal cap overlapping the top/front of the body, with fin nubs
+    pxEllipse(grid, 14, 9, 9.5, 7, "G");
+    pxTriangle(grid, 10, 2, 8, 2, "G");
+    pxTriangle(grid, 18, 2, 8, 2, "G");
+    pxTriangle(grid, 34, 20, 9, 5, "W"); // tail fin trailing to the right
+    pxOutline(grid, "K");
+    // big open mouth: black cavity with a row of white teeth along the top edge
+    pxRect(grid, 6, 13, 21, 17, "K");
+    for (let x = 7; x < 21; x += 2) pxTriangle(grid, x, 13, 15.5, 1, "W");
+    pxOutline(grid, "K");
+    pxRect(grid, 9, 5, 10.5, 6.5, "K"); // eyes
+    pxRect(grid, 17, 5, 18.5, 6.5, "K");
+    return grid;
+  }
+
+  function buildIslandGrid() {
+    const grid = makePxGrid();
+    // a giant shark-island body, much wider/flatter than the base Cat oval
+    pxEllipse(grid, 18, 22, 17, 12, "G");
+    pxTriangle(grid, 6, 8, 15, 3, "G");
+    pxTriangle(grid, 14, 8, 15, 3, "G");
+    pxRect(grid, 3, 30, 33, 34, "W"); // white underbelly
+    for (let x = 4; x < 33; x += 3) pxTriangle(grid, x, 29, 33, 1.5, "W"); // jagged foam edge
+    pxOutline(grid, "K");
+    pxRect(grid, 6, 15, 8, 17, "W");
+    pxRect(grid, 6.5, 15.5, 7.5, 16.5, "K"); // eye
+    // tiny cat sunbathing on top, with a beach umbrella
+    pxEllipse(grid, 20, 10, 3, 2.2, "W");
+    pxTriangle(grid, 17.5, 4, 8, 1, "W");
+    pxTriangle(grid, 20, 4, 8, 1, "W");
+    pxThickLine(grid, 26, 12, 26, 4, 0.8, "K");
+    pxTriangle(grid, 26, 1, 5, 4, "W");
+    pxOutline(grid, "K");
+    return grid;
+  }
+
   // heightScale: per-sprite vertical stretch, anchored at the ground, so different units can
   // be taller/shorter than the base Cat without redesigning their whole coordinate grid - the
   // "scaling tool" for keeping cats' relative sizes right when reference art has no scale bar.
@@ -3113,6 +3186,9 @@
     birdCat: { grid: buildBirdGrid() },
     ufoCat: { grid: buildUfoGrid() },
     flyingCat: { grid: buildFlyingGrid() },
+    fishCat: { grid: buildFishGrid() },
+    whaleCat: { grid: buildWhaleGrid() },
+    islandCat: { grid: buildIslandGrid(), heightScale: 1.15 },
     axeCat: { grid: buildAxeGrid() },
     braveCat: { grid: buildBraveGrid() },
     darkCat: { grid: buildDarkGrid() },
