@@ -3551,28 +3551,34 @@
   // heightScale: per-sprite vertical stretch, anchored at the ground, so different units can
   // be taller/shorter than the base Cat without redesigning their whole coordinate grid - the
   // "scaling tool" for keeping cats' relative sizes right when reference art has no scale bar.
+  // heightScale values below come from a side-by-side sizing pass: each family's 3 reference
+  // photos (same background/camera per family) were laid on a shared ruler to compare how
+  // tall each cat's head reaches relative to the ground, then cross-referenced against known
+  // relative sizes for cats without a shared-background reference (e.g. Tank vs base Cat).
+  // floatHeight lifts flying units (Bird/UFO/Flying) off the ground, since their reference
+  // photos show them hovering well above their own shadow, unlike every grounded unit.
   const PIXEL_SPRITES = {
     cat: { grid: buildCatGrid() },
     machoCat: { grid: buildMachoGrid() },
     mohawkCat: { grid: buildMohawkGrid() },
-    tank: { grid: buildTankGrid(), heightScale: 1.3 },
-    wallCat: { grid: buildWallGrid(), heightScale: 1.3 },
-    eraserCat: { grid: buildEraserGrid(), heightScale: 1.3 },
-    grossCat: { grid: buildGrossGrid() },
-    sexyLegsCat: { grid: buildSexyLegsGrid() },
-    machoLegCat: { grid: buildMachoLegGrid() },
-    cowCat: { grid: buildCowGrid() },
-    giraffeCat: { grid: buildGiraffeGrid() },
-    lionCat: { grid: buildLionGrid() },
-    birdCat: { grid: buildBirdGrid() },
-    ufoCat: { grid: buildUfoGrid() },
-    flyingCat: { grid: buildFlyingGrid() },
+    tank: { grid: buildTankGrid(), heightScale: 1.25 },
+    wallCat: { grid: buildWallGrid(), heightScale: 1.35 },
+    eraserCat: { grid: buildEraserGrid(), heightScale: 1.35 },
+    grossCat: { grid: buildGrossGrid(), heightScale: 1.35 },
+    sexyLegsCat: { grid: buildSexyLegsGrid(), heightScale: 1.4 },
+    machoLegCat: { grid: buildMachoLegGrid(), heightScale: 1.35 },
+    cowCat: { grid: buildCowGrid(), heightScale: 1.05 },
+    giraffeCat: { grid: buildGiraffeGrid(), heightScale: 1.25 },
+    lionCat: { grid: buildLionGrid(), heightScale: 1.2 },
+    birdCat: { grid: buildBirdGrid(), heightScale: 0.85, floatHeight: 46 },
+    ufoCat: { grid: buildUfoGrid(), heightScale: 0.9, floatHeight: 50 },
+    flyingCat: { grid: buildFlyingGrid(), heightScale: 1.0, floatHeight: 56 },
     fishCat: { grid: buildFishGrid() },
-    whaleCat: { grid: buildWhaleGrid() },
-    islandCat: { grid: buildIslandGrid(), heightScale: 1.15 },
-    lizardCat: { grid: buildLizardGrid() },
-    dragonCat: { grid: buildDragonGrid() },
-    kingDragonCat: { grid: buildKingDragonGrid() },
+    whaleCat: { grid: buildWhaleGrid(), heightScale: 1.1 },
+    islandCat: { grid: buildIslandGrid(), heightScale: 1.25 },
+    lizardCat: { grid: buildLizardGrid(), heightScale: 0.85 },
+    dragonCat: { grid: buildDragonGrid(), heightScale: 1.6 },
+    kingDragonCat: { grid: buildKingDragonGrid(), heightScale: 1.7 },
     axeCat: { grid: buildAxeGrid() },
     braveCat: { grid: buildBraveGrid() },
     darkCat: { grid: buildDarkGrid() },
@@ -3631,7 +3637,11 @@
     // Sprites are authored facing left (their "front" - face leading, any side panel/detail
     // trailing). Player units move left, so they draw unflipped; enemy units move right, so
     // they get mirrored to face their own direction of travel.
-    drawPixelGrid(sprite.grid, x + lean * dir, groundY - 2 + (u.swing >= 0 ? 0 : bob), cell, !isPlayer, sprite.heightScale);
+    // floatHeight lifts flying units (Bird/UFO/Flying Cat) well above the ground, matching
+    // their reference art where they hover with a visible gap above their own shadow instead
+    // of standing on it like every grounded unit.
+    const floatY = groundY - (sprite.floatHeight || 0);
+    drawPixelGrid(sprite.grid, x + lean * dir, floatY - 2 + (u.swing >= 0 ? 0 : bob), cell, !isPlayer, sprite.heightScale);
     ctx.restore();
   }
 
