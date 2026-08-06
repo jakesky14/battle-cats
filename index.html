@@ -262,6 +262,18 @@
     border: 5px solid #4a3810;
     text-shadow: 2px 2px 0 #000, -2px 2px 0 #000, 2px -2px 0 #000, -2px -2px 0 #000;
   }
+  .rising-btn { font-size: 22px; position: relative; }
+  .rising-chapter-tag {
+    position: absolute; top: -14px; left: -14px;
+    background: #1a1008; color: #fff; border: 2px solid #4a3810; border-radius: 6px;
+    padding: 4px 10px; font-size: 13px; font-weight: 800;
+  }
+  .treasure-counter-box {
+    width: 220px; margin-top: 8px;
+    background: rgba(20,14,6,.55); border: 3px solid #4a3810; border-radius: 10px;
+    padding: 10px; text-align: center;
+    color: #ffe27a; font-weight: 800; font-size: 15px; letter-spacing: 1px;
+  }
   .giant-square-btn.legendstages {
     background:
       radial-gradient(circle at 30% 85%, #ffcf4d 0%, #ff7a1f 22%, #b3220a 50%, #1c0500 82%),
@@ -681,6 +693,15 @@
     <button class="giant-square-btn battlecats" id="modeBattleCatsBtn">EMPIRE<br>OF CATS</button>
     <button class="giant-square-btn legendstages" id="modeLegendStagesBtn">LEGEND<br>STAGES</button>
   </div>
+</div>
+
+<div id="risingScreen" class="title-bg hidden">
+  <button class="giant-square-btn battlecats rising-btn" id="risingChapterBtn">
+    <span class="rising-chapter-tag">Chapter 1</span>
+    THE BATTLE CATS RISING
+  </button>
+  <div class="treasure-counter-box" id="risingTreasureBox">-TREASURE 0/48-</div>
+  <button class="back-corner-btn" id="risingBackBtn">◀ Back</button>
 </div>
 
 <div id="settingsScreen" class="title-bg hidden">
@@ -1163,6 +1184,7 @@
   // Persistent meta-progression: survives between battles, and across reloads via localStorage.
   const profile = {
     xp: 0,
+    superiorTreasures: 0,
     catLevels: Object.fromEntries(CATS.map(c => [c.id, 1])),
     catPlus: Object.fromEntries(CATS.map(c => [c.id, 0])), // "+N" bonus levels past the lv20 cap
     equip: ["cat", null, null, null, null, null, null, null, null, null],
@@ -1503,6 +1525,7 @@
   // ---------------------------------------------------------------------------
   const titleScreen = document.getElementById("titleScreen");
   const modeSelectScreen = document.getElementById("modeSelectScreen");
+  const risingScreen = document.getElementById("risingScreen");
   const settingsScreen = document.getElementById("settingsScreen");
   const mainMenu = document.getElementById("mainMenu");
   const upgradeScreen = document.getElementById("upgradeScreen");
@@ -1672,11 +1695,12 @@
   }
 
   function showScreen(el) {
-    [titleScreen, modeSelectScreen, settingsScreen, mainMenu, upgradeScreen, equipScreen, capsuleScreen, storageScreen,
+    [titleScreen, modeSelectScreen, risingScreen, settingsScreen, mainMenu, upgradeScreen, equipScreen, capsuleScreen, storageScreen,
      userRankScreen, calendarScreen, storeScreen, battleMenuScreen, gamatotoScreen, gamatotoAreaScreen, appEl].forEach(s => s.classList.add("hidden"));
     el.classList.remove("hidden");
     if (el === mainMenu) renderMainMenu();
     if (el === titleScreen) renderTitleScreen();
+    if (el === risingScreen) renderRisingScreen();
     if (el === settingsScreen) renderSettingsScreen();
     if (el === userRankScreen) renderUserRankScreen();
     if (el === calendarScreen) renderCalendarScreen();
@@ -1686,11 +1710,18 @@
     if (el === gamatotoAreaScreen) renderGamatotoAreaScreen();
   }
 
+  function renderRisingScreen() {
+    const n = profile.superiorTreasures || 0;
+    document.getElementById("risingTreasureBox").textContent = `-TREASURE ${n}/48-`;
+  }
+
   document.getElementById("titlePlayBtn").addEventListener("click", () => showScreen(modeSelectScreen));
   document.getElementById("titleSettingsBtn").addEventListener("click", () => showScreen(settingsScreen));
   document.getElementById("modeSelectCloseBtn").addEventListener("click", () => showScreen(titleScreen));
   document.getElementById("settingsCloseBtn").addEventListener("click", () => showScreen(titleScreen));
-  document.getElementById("modeBattleCatsBtn").addEventListener("click", () => showScreen(mainMenu));
+  document.getElementById("modeBattleCatsBtn").addEventListener("click", () => showScreen(risingScreen));
+  document.getElementById("risingChapterBtn").addEventListener("click", () => showScreen(mainMenu));
+  document.getElementById("risingBackBtn").addEventListener("click", () => showScreen(modeSelectScreen));
   // Legend Stages: intentionally does nothing yet.
 
   document.getElementById("userRankBtn").addEventListener("click", () => showScreen(userRankScreen));
