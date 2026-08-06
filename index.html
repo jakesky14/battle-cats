@@ -3592,9 +3592,13 @@
     tank: { grid: buildTankGrid(), heightScale: 1.25 },
     wallCat: { grid: buildWallGrid(), heightScale: 1.35 },
     eraserCat: { grid: buildEraserGrid(), heightScale: 1.35 },
-    grossCat: { grid: buildGrossGrid() },
-    sexyLegsCat: { grid: buildSexyLegsGrid() },
-    machoLegCat: { grid: buildMachoLegGrid() },
+    // legSplitRow marks where each head ellipse ends, so only the legs below it stretch
+    // 1.5x - the heads themselves stay completely undistorted
+    grossCat: { grid: buildGrossGrid(), legSplitRow: 19, legScale: 1.5 },
+    sexyLegsCat: { grid: buildSexyLegsGrid(), legSplitRow: 18, legScale: 1.5 },
+    // legSplitRow 17 = right where the head ellipse ends, so only the neck/thighs/shins
+    // below it get stretched 1.5x - the head itself stays completely undistorted
+    machoLegCat: { grid: buildMachoLegGrid(), legSplitRow: 17, legScale: 1.5 },
     cowCat: { grid: buildCowGrid(), heightScale: 1.05 },
     giraffeCat: { grid: buildGiraffeGrid(), heightScale: 1.25 },
     lionCat: { grid: buildLionGrid(), heightScale: 1.2 },
@@ -3630,17 +3634,31 @@
   renderSpriteIcon(document.getElementById("gamatotoIcon"), buildGamatotoGrid());
   renderSpriteIcon(document.getElementById("catFoodIcon"), buildCatFoodCanGrid());
 
-  function drawPixelGrid(grid, cx, groundYPx, cell, flip, heightScale, targetCtx) {
+  // legSplitRow/legScale let a sprite's legs be lengthened WITHOUT also stretching its head:
+  // rows from legSplitRow down to the ground get spaced legScale times further apart, while
+  // rows above legSplitRow keep their original spacing (head stays undistorted). The whole
+  // sprite is then shifted up by the extra distance the stretch adds, so the now-longer legs
+  // still land exactly on the ground line instead of pushing the feet below it.
+  function drawPixelGrid(grid, cx, groundYPx, cell, flip, heightScale, targetCtx, legSplitRow, legScale) {
     const c2d = targetCtx || ctx;
     c2d.save();
     c2d.translate(cx, groundYPx);
     c2d.scale(flip ? -1 : 1, heightScale || 1);
+    const hasSplit = legSplitRow != null && legScale && legScale !== 1;
+    const extra = hasSplit ? (PXH - 1 - legSplitRow) * (legScale - 1) : 0;
     for (let y = 0; y < PXH; y++) {
+      let rowY = y;
+      let rowH = 1;
+      if (hasSplit && y >= legSplitRow) {
+        rowY = legSplitRow + (y - legSplitRow) * legScale;
+        rowH = legScale;
+      }
+      rowY -= extra;
       for (let x = 0; x < PXW; x++) {
         const c = grid[y][x];
         if (!c) continue;
         c2d.fillStyle = PX_PALETTE[c];
-        c2d.fillRect((x - PXW / 2) * cell, (y - PXH + 1) * cell, cell + 0.5, cell + 0.5);
+        c2d.fillRect((x - PXW / 2) * cell, (rowY - PXH + 1) * cell, cell + 0.5, rowH * cell + 0.5);
       }
     }
     c2d.restore();
@@ -3669,7 +3687,7 @@
     // their reference art where they hover with a visible gap above their own shadow instead
     // of standing on it like every grounded unit.
     const floatY = groundY - (sprite.floatHeight || 0);
-    drawPixelGrid(sprite.grid, x + lean * dir, floatY - 2 + (u.swing >= 0 ? 0 : bob), cell, !isPlayer, sprite.heightScale);
+    drawPixelGrid(sprite.grid, x + lean * dir, floatY - 2 + (u.swing >= 0 ? 0 : bob), cell, !isPlayer, sprite.heightScale, undefined, sprite.legSplitRow, sprite.legScale);
     ctx.restore();
   }
 
