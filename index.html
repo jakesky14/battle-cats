@@ -3030,13 +3030,20 @@
     const grid = makePxGrid();
     buildRoundBody(grid);
     // handle: thin diagonal from the paw up into the left margin
-    pxThickLine(grid, 11, 22, 1, 10, 2, "W");
+    pxThickLine(grid, 11, 22, 3, 10, 2, "W");
     pxOutline(grid, "K");
     pxFace(grid, 0);
     pxLegs(grid, 0);
-    // blade: a wide diagonal band (the cutting edge) at the top of the handle
-    pxThickLine(grid, -4, 3, 4, 10, 5, "S");
+    // blade: a wide diagonal band (the cutting edge) at the top of the handle - kept fully
+    // on-grid (min x including the thick-line offset is 0, not negative) since a previous
+    // pass started it at x=-4 and silently clipped the left portion of the axe head
+    pxThickLine(grid, 2, 3, 7, 10, 5, "S");
     pxOutline(grid, "K");
+    // wounded eye: a gray patch with an X mark over the right eye, matching the reference
+    pxEllipse(grid, 22, 14, 2.6, 2.3, "G");
+    pxOutline(grid, "K");
+    pxLine(grid, 20.3, 12.3, 23.7, 15.7, "K");
+    pxLine(grid, 23.7, 12.3, 20.3, 15.7, "K");
     return grid;
   }
 
@@ -3101,14 +3108,17 @@
   function buildGrossGrid() {
     const grid = makePxGrid();
     // head kept at its original size/position - the extra height this family needs comes
-    // entirely from longer legs below, not from stretching the head via heightScale
+    // entirely from longer legs below, not from stretching the head via heightScale.
+    // Thickened from 1.7 to 2.6: at actual battle render scale (~1.55px/cell) the original
+    // thin legs anti-aliased away, making all 3 evolutions look like "a head on 2 sticks" -
+    // this needs to unmistakably read as 4 thin SPINDLY legs, not blend into the others.
     pxEllipse(grid, 18, 11, 9.5, 8.4, "W");
     pxTriangle(grid, 10.5, 0, 6, 1.9, "W");
     pxTriangle(grid, 25.5, 0, 6, 1.9, "W");
-    pxThickLine(grid, 11, 19, 6, 39, 1.7, "W");
-    pxThickLine(grid, 15, 19, 15, 39, 1.7, "W");
-    pxThickLine(grid, 21, 19, 21, 39, 1.7, "W");
-    pxThickLine(grid, 25, 19, 30, 39, 1.7, "W");
+    pxThickLine(grid, 10, 19, 5, 39, 2.6, "W");
+    pxThickLine(grid, 15, 19, 15, 39, 2.6, "W");
+    pxThickLine(grid, 21, 19, 21, 39, 2.6, "W");
+    pxThickLine(grid, 26, 19, 31, 39, 2.6, "W");
     pxOutline(grid, "K");
     buildGrossHeadFace(grid, 18, 11);
     return grid;
@@ -3116,11 +3126,15 @@
 
   function buildSexyLegsGrid() {
     const grid = makePxGrid();
-    // head kept at its original size/position - only the single leg is stretched longer
+    // head kept at its original size/position. Redesigned to stay THICK for most of its
+    // length (only narrowing right at the ankle) instead of tapering thin immediately - the
+    // previous version tapered down so fast it read as "2 thin legs" just like Gross Cat's
+    // spindly legs, instead of "one unmistakably thick leg."
     pxEllipse(grid, 18, 10, 9.5, 8.4, "W");
     pxTriangle(grid, 10.5, 0, 6, 1.9, "W");
     pxTriangle(grid, 25.5, 0, 6, 1.9, "W");
-    pxTaper(grid, 18, 16, 9.5, 19, 39, 3.6, "W");
+    pxTaper(grid, 18, 16, 9.5, 19, 34, 7, "W");
+    pxTaper(grid, 19, 34, 7, 19, 39, 3.4, "W");
     pxEllipse(grid, 19, 39.3, 2.3, 1.1, "W");
     pxOutline(grid, "K");
     pxLine(grid, 19, 26, 19, 38, "K"); // center divider suggesting two legs pressed together
