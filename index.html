@@ -230,9 +230,10 @@
     margin-top: -14px;
   }
   .title-crowd-canvas {
-    position: absolute; left: 0; right: 0; bottom: 0; width: 100%; height: 130px;
+    position: absolute; left: 0; right: 0; bottom: 0; width: 100%; height: 150px;
     image-rendering: pixelated; z-index: 1;
   }
+  .title-mascot-canvas { width: 90px; height: 100px; image-rendering: pixelated; }
   .title-menu-buttons { display: flex; flex-direction: column; gap: 18px; width: 320px; position: relative; z-index: 2; }
   .title-menu-buttons .menu-btn { justify-content: center; background: linear-gradient(180deg,#ffe066,#f0a800); color: #5a3a00; }
   .title-menu-buttons .menu-btn:active { transform: translateY(4px); }
@@ -679,6 +680,7 @@
       <span class="title-word battle">Battle</span>
       <span class="title-word cats">Cats</span>
     </div>
+    <canvas id="titleMascotCanvas" class="title-mascot-canvas" width="90" height="100"></canvas>
   </div>
   <canvas id="titleCrowdCanvas" class="title-crowd-canvas"></canvas>
   <div class="title-menu-buttons">
@@ -1744,6 +1746,17 @@
     titleTestModeBtn.classList.toggle("active", profile.testMode);
     applyLanguage();
     renderTitleCrowd();
+    renderTitleMascot();
+  }
+
+  // A single bigger pixel Cat standing next to the logo, echoing the mascot cat beside the
+  // wordmark in the reference layout.
+  function renderTitleMascot() {
+    const canvas = document.getElementById("titleMascotCanvas");
+    if (!canvas) return;
+    const mctx = canvas.getContext("2d");
+    mctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawPixelGrid(PIXEL_SPRITES.cat.grid, canvas.width / 2, canvas.height - 4, 2.3, true, 1, mctx);
   }
 
   // A dense crowd of small cat-face silhouettes filling the bottom of the title screen,
@@ -1752,22 +1765,29 @@
     const canvas = document.getElementById("titleCrowdCanvas");
     if (!canvas) return;
     const w = Math.max(300, Math.round(canvas.clientWidth || canvas.parentElement.clientWidth || 800));
-    const h = 130;
+    const h = 150;
     canvas.width = w;
     canvas.height = h;
     const cctx = canvas.getContext("2d");
-    const grid = PIXEL_SPRITES.cat.grid;
+    // mostly base Cat, with Gross Cat and Tank Cat sprinkled in for variety
+    const crowdGrids = [PIXEL_SPRITES.cat.grid, PIXEL_SPRITES.cat.grid, PIXEL_SPRITES.cat.grid,
+      PIXEL_SPRITES.grossCat.grid, PIXEL_SPRITES.cat.grid, PIXEL_SPRITES.tank.grid];
+    const pick = i => crowdGrids[Math.abs(i * 47 + 11) % crowdGrids.length];
+    const jitter = i => ((Math.abs(i * 37) % 9) - 4) * 1.2;
+    // 3 staggered rows for depth: back row smallest/faintest, front row biggest/full opacity
     const rows = [
-      { y: h - 4, cell: 3.4, spacing: 0.88, alpha: 1 },
-      { y: h - 48, cell: 2.6, spacing: 0.92, alpha: 0.75 },
+      { y: h - 66, cell: 2.1, spacing: 0.95, alpha: 0.55 },
+      { y: h - 36, cell: 2.8, spacing: 0.9, alpha: 0.8 },
+      { y: h - 2, cell: 3.6, spacing: 0.86, alpha: 1 },
     ];
-    rows.forEach(row => {
+    rows.forEach((row, rowIdx) => {
       const spriteW = PXW * row.cell;
       const step = spriteW * row.spacing;
       const count = Math.ceil(w / step) + 2;
       cctx.globalAlpha = row.alpha;
       for (let i = -1; i < count; i++) {
-        drawPixelGrid(grid, i * step, row.y, row.cell, i % 2 === 0, 1, cctx);
+        const seed = i * 3 + rowIdx;
+        drawPixelGrid(pick(seed), i * step, row.y + jitter(seed), row.cell, seed % 2 === 0, 1, cctx);
       }
     });
     cctx.globalAlpha = 1;
