@@ -3100,13 +3100,15 @@
 
   function buildGrossGrid() {
     const grid = makePxGrid();
+    // head kept at its original size/position - the extra height this family needs comes
+    // entirely from longer legs below, not from stretching the head via heightScale
     pxEllipse(grid, 18, 11, 9.5, 8.4, "W");
     pxTriangle(grid, 10.5, 0, 6, 1.9, "W");
     pxTriangle(grid, 25.5, 0, 6, 1.9, "W");
-    pxThickLine(grid, 11, 19, 7, 36, 1.7, "W");
-    pxThickLine(grid, 15, 19, 15, 36, 1.7, "W");
-    pxThickLine(grid, 21, 19, 21, 36, 1.7, "W");
-    pxThickLine(grid, 25, 19, 29, 36, 1.7, "W");
+    pxThickLine(grid, 11, 19, 6, 39, 1.7, "W");
+    pxThickLine(grid, 15, 19, 15, 39, 1.7, "W");
+    pxThickLine(grid, 21, 19, 21, 39, 1.7, "W");
+    pxThickLine(grid, 25, 19, 30, 39, 1.7, "W");
     pxOutline(grid, "K");
     buildGrossHeadFace(grid, 18, 11);
     return grid;
@@ -3114,19 +3116,22 @@
 
   function buildSexyLegsGrid() {
     const grid = makePxGrid();
+    // head kept at its original size/position - only the single leg is stretched longer
     pxEllipse(grid, 18, 10, 9.5, 8.4, "W");
     pxTriangle(grid, 10.5, 0, 6, 1.9, "W");
     pxTriangle(grid, 25.5, 0, 6, 1.9, "W");
-    pxTaper(grid, 18, 17, 9.5, 19, 37, 3.6, "W");
-    pxEllipse(grid, 19, 37.5, 2.3, 1.4, "W");
+    pxTaper(grid, 18, 16, 9.5, 19, 39, 3.6, "W");
+    pxEllipse(grid, 19, 39.3, 2.3, 1.1, "W");
     pxOutline(grid, "K");
-    pxLine(grid, 19, 27, 19, 36, "K"); // center divider suggesting two legs pressed together
+    pxLine(grid, 19, 26, 19, 38, "K"); // center divider suggesting two legs pressed together
     buildGrossHeadFace(grid, 18, 10);
     return grid;
   }
 
   function buildMachoLegGrid() {
     const grid = makePxGrid();
+    // head kept at its original size/position - only the thighs/lower legs are stretched
+    // longer, using the full grid height down to the ground
     pxEllipse(grid, 18, 9, 9.5, 8.2, "W");
     pxTriangle(grid, 10.5, -1, 5, 1.9, "W");
     pxTriangle(grid, 25.5, -1, 5, 1.9, "W");
@@ -3135,10 +3140,10 @@
     pxTaper(grid, 18, 14, 15, 18, 20, 21, "W");
     pxEllipse(grid, 11.5, 21, 5.6, 6.4, "W");
     pxEllipse(grid, 24.5, 21, 5.6, 6.4, "W");
-    pxRect(grid, 8, 25, 15, 34, "W");
-    pxRect(grid, 21, 25, 28, 34, "W");
-    pxEllipse(grid, 9.5, 36, 3.4, 1.8, "W");
-    pxEllipse(grid, 26.5, 36, 3.4, 1.8, "W");
+    pxRect(grid, 8, 25, 15, 37, "W");
+    pxRect(grid, 21, 25, 28, 37, "W");
+    pxEllipse(grid, 9.5, 39, 3.4, 1.4, "W");
+    pxEllipse(grid, 26.5, 39, 3.4, 1.4, "W");
     pxOutline(grid, "K");
     buildGrossHeadFace(grid, 18, 9);
     pxLine(grid, 9, 25, 14, 25, "K");
@@ -3432,16 +3437,25 @@
   }
 
   function buildDragonBody(grid) {
-    pxTaper(grid, 18, 30, 13, 17, 10, 8, "W");
+    // rounder bulbous chest/belly tapering into a distinctly NARROW pinched neck (not one
+    // smooth blob-taper from hip to head) - the neck pinch is what makes this read as a
+    // creature with a head/neck/torso instead of a single tapered mass
+    pxTaper(grid, 17.5, 32, 15, 18, 22, 12, "W");
+    pxTaper(grid, 18, 22, 12, 16.5, 10, 5.5, "W");
     pxEllipse(grid, 16, 6, 7, 6.5, "W");
     pxTriangle(grid, 12, -1, 5, 1.6, "W");
     pxTriangle(grid, 19, -1, 5, 1.6, "W");
   }
   function buildDragonLegs(grid) {
-    pxTaper(grid, 14, 29, 7, 13, 37, 4, "W");
-    pxTaper(grid, 21, 29, 7, 22, 37, 4, "W");
-    pxEllipse(grid, 12, 37.5, 3, 1.6, "W");
-    pxEllipse(grid, 23, 37.5, 3, 1.6, "W");
+    pxTaper(grid, 14, 30, 7.5, 12, 36, 4, "W");
+    pxTaper(grid, 22, 30, 7.5, 24, 36, 4, "W");
+    // clawed feet: a flat foot pad with 2 small toe notches
+    pxEllipse(grid, 10.5, 37, 3.4, 1.8, "W");
+    pxLine(grid, 9, 37.5, 8, 38.5, "K");
+    pxLine(grid, 11, 37.8, 10.3, 38.8, "K");
+    pxEllipse(grid, 25.5, 37, 3.4, 1.8, "W");
+    pxLine(grid, 24, 37.5, 23, 38.5, "K");
+    pxLine(grid, 26, 37.8, 25.3, 38.8, "K");
   }
   function buildDragonTail(grid) {
     pxTaper(grid, 23, 27, 12, 36, 32, 4.5, "K");
@@ -3564,9 +3578,9 @@
     tank: { grid: buildTankGrid(), heightScale: 1.25 },
     wallCat: { grid: buildWallGrid(), heightScale: 1.35 },
     eraserCat: { grid: buildEraserGrid(), heightScale: 1.35 },
-    grossCat: { grid: buildGrossGrid(), heightScale: 1.35 },
-    sexyLegsCat: { grid: buildSexyLegsGrid(), heightScale: 1.4 },
-    machoLegCat: { grid: buildMachoLegGrid(), heightScale: 1.35 },
+    grossCat: { grid: buildGrossGrid() },
+    sexyLegsCat: { grid: buildSexyLegsGrid() },
+    machoLegCat: { grid: buildMachoLegGrid() },
     cowCat: { grid: buildCowGrid(), heightScale: 1.05 },
     giraffeCat: { grid: buildGiraffeGrid(), heightScale: 1.25 },
     lionCat: { grid: buildLionGrid(), heightScale: 1.2 },
