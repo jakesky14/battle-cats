@@ -3015,29 +3015,29 @@
     return grid;
   }
 
-  // Shared round Cat-style body (same octagon as buildCatGrid), offsettable by dx so a
-  // held weapon has room to extend past the silhouette without falling off the grid.
-  // Narrower body (same pattern as Macho/Mohawk Cat: reduced chamferX, not a whole-body
-  // shift) so held items have margin on both sides without pushing the body/ears past the
-  // grid edge - a wide body shifted sideways was clipping the far ear and chamfer off-grid.
+  // Shared round Cat-style body - EXACT same octagon dimensions as buildCatGrid, so Axe/
+  // Brave/Dark Cat's heads are the same size as the base Cat's (a previous pass narrowed
+  // this body to leave margin for held weapons, but that made the head noticeably smaller
+  // than a normal cat). Weapons now overlap the body's own silhouette instead of sitting
+  // beside it in a margin, since there's no longer much margin to spare.
   function buildRoundBody(grid) {
-    pxOctagonBody(grid, 11, 25, 5.2, 27.3, 3.5, 6.3, "W");
-    pxTriangle(grid, 8, 2, 9.4, 1.1, "W");
-    pxTriangle(grid, 28, 2, 9.4, 1.1, "W");
+    pxOctagonBody(grid, 8.5, 28.5, 5.2, 27.3, 6.3, 6.3, "W");
+    pxTriangle(grid, 5.4, 2, 9.4, 1.1, "W");
+    pxTriangle(grid, 30.6, 2, 9.4, 1.1, "W");
   }
 
   function buildAxeGrid() {
     const grid = makePxGrid();
     buildRoundBody(grid);
-    // handle: thin diagonal from the paw up into the left margin
-    pxThickLine(grid, 11, 22, 3, 10, 2, "W");
+    // handle: thin diagonal from the paw up, overlapping the body's own left side
+    pxThickLine(grid, 14, 22, 4, 8, 2, "W");
     pxOutline(grid, "K");
     pxFace(grid, 0);
     pxLegs(grid, 0);
     // blade: a wide diagonal band (the cutting edge) at the top of the handle - kept fully
     // on-grid (min x including the thick-line offset is 0, not negative) since a previous
     // pass started it at x=-4 and silently clipped the left portion of the axe head
-    pxThickLine(grid, 2, 3, 7, 10, 5, "S");
+    pxThickLine(grid, 1, 2, 6, 8, 5, "S");
     pxOutline(grid, "K");
     // wounded eye: a gray patch with an X mark over the right eye, matching the reference
     pxEllipse(grid, 22, 14, 2.6, 2.3, "G");
@@ -3050,12 +3050,12 @@
   function buildBraveGrid() {
     const grid = makePxGrid();
     buildRoundBody(grid);
-    // sword held upright in the left margin + a larger shield in the right margin
-    pxThickLine(grid, 5, 24, 1, 2, 2, "S");
-    pxRect(grid, -1, 22, 3, 24, "Y"); // crossguard/hilt
-    pxEllipse(grid, 30, 22, 5, 6, "S"); // shield (enlarged)
-    pxRect(grid, 28.5, 19, 31.5, 25, "K"); // cross emblem
-    pxRect(grid, 27, 21, 33, 23, "K");
+    // sword held upright overlapping the body's left side + a shield overlapping the right
+    pxThickLine(grid, 7, 24, 3, 3, 2, "S");
+    pxRect(grid, 1, 22, 5, 24, "Y"); // crossguard/hilt
+    pxEllipse(grid, 31, 20, 4.5, 5.5, "S"); // shield
+    pxRect(grid, 29.5, 17.5, 32.5, 23, "K"); // cross emblem
+    pxRect(grid, 28, 19.5, 34, 21.5, "K");
     pxOutline(grid, "K");
     pxFace(grid, 0);
     pxLegs(grid, 0);
@@ -3069,11 +3069,11 @@
   function buildDarkGrid() {
     const grid = makePxGrid();
     buildRoundBody(grid);
-    pxThickLine(grid, 5, 24, 1, 2, 2, "S");
-    pxRect(grid, -1, 22, 3, 24, "K"); // black hilt, matching the dark theme
-    pxEllipse(grid, 30, 22, 5, 6, "S"); // shield (enlarged)
-    pxRect(grid, 28.5, 19, 31.5, 25, "K");
-    pxRect(grid, 27, 21, 33, 23, "K");
+    pxThickLine(grid, 7, 24, 3, 3, 2, "S");
+    pxRect(grid, 1, 22, 5, 24, "K"); // black hilt, matching the dark theme
+    pxEllipse(grid, 31, 20, 4.5, 5.5, "S"); // shield
+    pxRect(grid, 29.5, 17.5, 32.5, 23, "K");
+    pxRect(grid, 28, 19.5, 34, 21.5, "K");
     pxOutline(grid, "K");
     pxFace(grid, 0);
     pxLegs(grid, 0);
@@ -3094,74 +3094,67 @@
   // long sleek tapered leg, Macho Leg Cat has two thick muscular bowed legs. Scaled up ~20%
   // from an earlier pass per feedback, so this family reads at the same visual weight as the
   // other full-body sprites.
-  function buildGrossHeadFace(grid, cx, cy) {
-    pxRect(grid, cx - 3, cy - 1, cx - 2, cy, "K");
-    pxRect(grid, cx + 2, cy - 1, cx + 3, cy, "K");
-    pxLine(grid, cx - 2, cy + 2, cx - 1, cy + 3.5, "K");
-    pxLine(grid, cx - 1, cy + 3.5, cx, cy + 2.7, "K");
-    pxLine(grid, cx, cy + 2.7, cx + 1, cy + 3.5, "K");
-    pxLine(grid, cx + 1, cy + 3.5, cx + 2, cy + 2, "K");
-    pxLine(grid, cx - 1, cy + 4, cx, cy + 6, "K");
-    pxLine(grid, cx, cy + 6, cx + 1, cy + 4, "K");
+  function buildGrossHeadFace(grid, cx, cy, s) {
+    s = s || 1;
+    pxRect(grid, cx - 3 * s, cy - 1 * s, cx - 2 * s, cy, "K");
+    pxRect(grid, cx + 2 * s, cy - 1 * s, cx + 3 * s, cy, "K");
+    pxLine(grid, cx - 2 * s, cy + 2 * s, cx - 1 * s, cy + 3.5 * s, "K");
+    pxLine(grid, cx - 1 * s, cy + 3.5 * s, cx, cy + 2.7 * s, "K");
+    pxLine(grid, cx, cy + 2.7 * s, cx + 1 * s, cy + 3.5 * s, "K");
+    pxLine(grid, cx + 1 * s, cy + 3.5 * s, cx + 2 * s, cy + 2 * s, "K");
+    pxLine(grid, cx - 1 * s, cy + 4 * s, cx, cy + 6 * s, "K");
+    pxLine(grid, cx, cy + 6 * s, cx + 1 * s, cy + 4 * s, "K");
   }
+
+  // Head size for this whole family now matches the base Cat's exactly (buildRoundBody is
+  // the same octagon buildCatGrid uses) - a previous pass used a smaller ellipse head, which
+  // read as noticeably smaller than a normal cat. Face features are scaled up (GROSS_FACE_S)
+  // to match, since they were sized for that smaller head. Since the bigger head now eats
+  // into the row budget the legs used to stretch into, legScale is bumped from 1.5 to 2.2 so
+  // the legs stay just as long as the last pass established, not shorter.
+  const GROSS_FACE_S = 1.7;
+  const GROSS_HEAD_CY = 16.25;
 
   function buildGrossGrid() {
     const grid = makePxGrid();
-    // head kept at its original size/position - the extra height this family needs comes
-    // entirely from longer legs below, not from stretching the head via heightScale.
-    // Thickened from 1.7 to 2.6: at actual battle render scale (~1.55px/cell) the original
-    // thin legs anti-aliased away, making all 3 evolutions look like "a head on 2 sticks" -
-    // this needs to unmistakably read as 4 thin SPINDLY legs, not blend into the others.
-    pxEllipse(grid, 18, 11, 9.5, 8.4, "W");
-    pxTriangle(grid, 10.5, 0, 6, 1.9, "W");
-    pxTriangle(grid, 25.5, 0, 6, 1.9, "W");
-    pxThickLine(grid, 10, 19, 5, 39, 2.6, "W");
-    pxThickLine(grid, 15, 19, 15, 39, 2.6, "W");
-    pxThickLine(grid, 21, 19, 21, 39, 2.6, "W");
-    pxThickLine(grid, 26, 19, 31, 39, 2.6, "W");
+    buildRoundBody(grid);
+    pxThickLine(grid, 10, 27, 6, 39, 2.4, "W");
+    pxThickLine(grid, 15, 27, 15, 39, 2.4, "W");
+    pxThickLine(grid, 21, 27, 21, 39, 2.4, "W");
+    pxThickLine(grid, 26, 27, 30, 39, 2.4, "W");
     pxOutline(grid, "K");
-    buildGrossHeadFace(grid, 18, 11);
+    buildGrossHeadFace(grid, 18, GROSS_HEAD_CY, GROSS_FACE_S);
     return grid;
   }
 
   function buildSexyLegsGrid() {
     const grid = makePxGrid();
-    // head kept at its original size/position. Redesigned to stay THICK for most of its
-    // length (only narrowing right at the ankle) instead of tapering thin immediately - the
-    // previous version tapered down so fast it read as "2 thin legs" just like Gross Cat's
-    // spindly legs, instead of "one unmistakably thick leg."
-    pxEllipse(grid, 18, 10, 9.5, 8.4, "W");
-    pxTriangle(grid, 10.5, 0, 6, 1.9, "W");
-    pxTriangle(grid, 25.5, 0, 6, 1.9, "W");
-    pxTaper(grid, 18, 16, 9.5, 19, 34, 7, "W");
-    pxTaper(grid, 19, 34, 7, 19, 39, 3.4, "W");
+    buildRoundBody(grid);
+    pxTaper(grid, 18, 27, 9.5, 19, 35, 7, "W");
+    pxTaper(grid, 19, 35, 7, 19, 39, 3.4, "W");
     pxEllipse(grid, 19, 39.3, 2.3, 1.1, "W");
     pxOutline(grid, "K");
-    pxLine(grid, 19, 26, 19, 38, "K"); // center divider suggesting two legs pressed together
-    buildGrossHeadFace(grid, 18, 10);
+    pxLine(grid, 19, 29, 19, 38, "K"); // center divider suggesting two legs pressed together
+    buildGrossHeadFace(grid, 18, GROSS_HEAD_CY, GROSS_FACE_S);
     return grid;
   }
 
   function buildMachoLegGrid() {
     const grid = makePxGrid();
-    // head kept at its original size/position - only the thighs/lower legs are stretched
-    // longer, using the full grid height down to the ground
-    pxEllipse(grid, 18, 9, 9.5, 8.2, "W");
-    pxTriangle(grid, 10.5, -1, 5, 1.9, "W");
-    pxTriangle(grid, 25.5, -1, 5, 1.9, "W");
-    // neck/shoulders taper connecting the head's bottom directly into the thigh tops, so the
-    // whole silhouette reads as one continuous rounded-triangle shape (no waist gap)
-    pxTaper(grid, 18, 14, 15, 18, 20, 21, "W");
-    pxEllipse(grid, 11.5, 21, 5.6, 6.4, "W");
-    pxEllipse(grid, 24.5, 21, 5.6, 6.4, "W");
-    pxRect(grid, 8, 25, 15, 37, "W");
-    pxRect(grid, 21, 25, 28, 37, "W");
+    buildRoundBody(grid);
+    // thighs pick up directly where the head's own body silhouette ends, no separate neck
+    // taper needed now that the head is full Cat-size (its own bottom curve already reads as
+    // the transition into the thighs)
+    pxEllipse(grid, 11.5, 27, 5.6, 5, "W");
+    pxEllipse(grid, 24.5, 27, 5.6, 5, "W");
+    pxRect(grid, 8, 27, 15, 37, "W");
+    pxRect(grid, 21, 27, 28, 37, "W");
     pxEllipse(grid, 9.5, 39, 3.4, 1.4, "W");
     pxEllipse(grid, 26.5, 39, 3.4, 1.4, "W");
     pxOutline(grid, "K");
-    buildGrossHeadFace(grid, 18, 9);
-    pxLine(grid, 9, 25, 14, 25, "K");
-    pxLine(grid, 22, 25, 27, 25, "K");
+    buildGrossHeadFace(grid, 18, GROSS_HEAD_CY, GROSS_FACE_S);
+    pxLine(grid, 9, 30, 14, 30, "K");
+    pxLine(grid, 22, 30, 27, 30, "K");
     return grid;
   }
 
@@ -3268,10 +3261,16 @@
   // UFO Cat swaps them for a flying saucer disc, The Flying Cat adds a fluffy cloud above
   // and a city-block band around the saucer.
   // ---------------------------------------------------------------------------
-  function buildBirdHead(grid, cx, cy, r) {
-    pxEllipse(grid, cx, cy, r, r * 0.92, "W");
-    pxTriangle(grid, cx - r * 0.5, cy - r - 2, cy - r + 3, 1.5, "W");
-    pxTriangle(grid, cx + r * 0.5, cy - r - 2, cy - r + 3, 1.5, "W");
+  // ry/earBaseHalfW are optional overrides (default to the original r*0.92 / 1.5 so UFO Cat
+  // and The Flying Cat, which still call this with just r, render byte-identical to before) -
+  // used to give Bird Cat specifically a bigger head matching the base Cat's size, without
+  // resizing UFO/Flying Cat too.
+  function buildBirdHead(grid, cx, cy, r, ry, earBaseHalfW) {
+    ry = ry != null ? ry : r * 0.92;
+    earBaseHalfW = earBaseHalfW != null ? earBaseHalfW : 1.5;
+    pxEllipse(grid, cx, cy, r, ry, "W");
+    pxTriangle(grid, cx - r * 0.5, cy - r - 2, cy - r + 3, earBaseHalfW, "W");
+    pxTriangle(grid, cx + r * 0.5, cy - r - 2, cy - r + 3, earBaseHalfW, "W");
   }
   function buildBirdFace(grid, cx, cy, r) {
     const s = r / 8;
@@ -3288,20 +3287,23 @@
 
   function buildBirdGrid() {
     const grid = makePxGrid();
-    buildBirdHead(grid, 18, 20, 9);
+    // head enlarged to match the base Cat's exact size (rx 16.3 / ry 11.05, matching Cat's
+    // octagon body bounding box) - a previous pass used r=9, noticeably smaller than a
+    // normal cat's head. Wings/face scaled and repositioned to match.
+    buildBirdHead(grid, 18, 23, 16.3, 11.05, 2.6);
     // wings: rounded feather fan spreading out and slightly up from each shoulder
-    pxEllipse(grid, 3, 17, 6, 3, "W");
-    pxEllipse(grid, -2, 15, 5, 2.6, "W");
-    pxEllipse(grid, 5, 22, 5, 2.6, "W");
-    pxEllipse(grid, 33, 17, 6, 3, "W");
-    pxEllipse(grid, 38, 15, 5, 2.6, "W");
-    pxEllipse(grid, 31, 22, 5, 2.6, "W");
+    pxEllipse(grid, 0, 20, 9, 4.5, "W");
+    pxEllipse(grid, -7, 17, 7.5, 4, "W");
+    pxEllipse(grid, 4, 27, 7.5, 4, "W");
+    pxEllipse(grid, 36, 20, 9, 4.5, "W");
+    pxEllipse(grid, 43, 17, 7.5, 4, "W");
+    pxEllipse(grid, 32, 27, 7.5, 4, "W");
     pxOutline(grid, "K");
-    pxLine(grid, 1, 14, 3, 20, "K");
-    pxLine(grid, 5, 19, 6, 24, "K");
-    pxLine(grid, 35, 14, 33, 20, "K");
-    pxLine(grid, 31, 19, 30, 24, "K");
-    buildBirdFace(grid, 18, 20, 9);
+    pxLine(grid, -4, 16, 0, 24, "K");
+    pxLine(grid, 4, 23, 5, 30, "K");
+    pxLine(grid, 40, 16, 36, 24, "K");
+    pxLine(grid, 32, 23, 31, 30, "K");
+    buildBirdFace(grid, 18, 23, 16.3);
     return grid;
   }
 
@@ -3592,13 +3594,13 @@
     tank: { grid: buildTankGrid(), heightScale: 1.25 },
     wallCat: { grid: buildWallGrid(), heightScale: 1.35 },
     eraserCat: { grid: buildEraserGrid(), heightScale: 1.35 },
-    // legSplitRow marks where each head ellipse ends, so only the legs below it stretch
-    // 1.5x - the heads themselves stay completely undistorted
-    grossCat: { grid: buildGrossGrid(), legSplitRow: 19, legScale: 1.5 },
-    sexyLegsCat: { grid: buildSexyLegsGrid(), legSplitRow: 18, legScale: 1.5 },
-    // legSplitRow 17 = right where the head ellipse ends, so only the neck/thighs/shins
-    // below it get stretched 1.5x - the head itself stays completely undistorted
-    machoLegCat: { grid: buildMachoLegGrid(), legSplitRow: 17, legScale: 1.5 },
+    // legSplitRow 27 = the bottom of the head (now full Cat-size), so only the legs below it
+    // stretch - the head itself stays completely undistorted. legScale bumped to 2.2 (from
+    // 1.5) since the bigger head leaves less pre-stretch row budget for the legs than before;
+    // this keeps the legs about as long on screen as the previous pass established.
+    grossCat: { grid: buildGrossGrid(), legSplitRow: 27, legScale: 2.2 },
+    sexyLegsCat: { grid: buildSexyLegsGrid(), legSplitRow: 27, legScale: 2.2 },
+    machoLegCat: { grid: buildMachoLegGrid(), legSplitRow: 27, legScale: 2.2 },
     cowCat: { grid: buildCowGrid(), heightScale: 1.05 },
     giraffeCat: { grid: buildGiraffeGrid(), heightScale: 1.25 },
     lionCat: { grid: buildLionGrid(), heightScale: 1.2 },
