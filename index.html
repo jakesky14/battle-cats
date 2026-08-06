@@ -254,8 +254,22 @@
     box-shadow: 0 8px 0 rgba(0,0,0,.3);
   }
   .giant-square-btn:active { transform: translateY(4px); box-shadow: 0 4px 0 rgba(0,0,0,.3); }
-  .giant-square-btn.battlecats   { background: linear-gradient(160deg,#ff8a4c,#d8481f); }
-  .giant-square-btn.legendstages { background: linear-gradient(160deg,#5fb0ff,#1f4fbd); }
+  .giant-square-btn.battlecats {
+    background:
+      repeating-linear-gradient(0deg, rgba(0,0,0,.08) 0px, rgba(0,0,0,.08) 1px, transparent 1px, transparent 22px),
+      repeating-linear-gradient(90deg, rgba(0,0,0,.08) 0px, rgba(0,0,0,.08) 1px, transparent 1px, transparent 22px),
+      radial-gradient(ellipse at 30% 25%, #e8c85a 0%, #b3901f 55%, #6b4f12 100%);
+    border: 5px solid #4a3810;
+    text-shadow: 2px 2px 0 #000, -2px 2px 0 #000, 2px -2px 0 #000, -2px -2px 0 #000;
+  }
+  .giant-square-btn.legendstages {
+    background:
+      radial-gradient(circle at 30% 85%, #ffcf4d 0%, #ff7a1f 22%, #b3220a 50%, #1c0500 82%),
+      radial-gradient(circle at 72% 25%, rgba(255,154,61,.5) 0%, transparent 55%);
+    border: 5px solid #1a0800;
+    color: #ffe27a;
+    text-shadow: 2px 2px 0 #000, -2px 2px 0 #000, 2px -2px 0 #000, -2px -2px 0 #000;
+  }
 
   .settings-panel {
     background: rgba(0,0,0,.35); border-radius: 16px; padding: 30px 40px;
@@ -664,7 +678,7 @@
 <div id="modeSelectScreen" class="title-bg hidden">
   <button class="close-circle-btn" id="modeSelectCloseBtn">✕</button>
   <div class="mode-select-buttons">
-    <button class="giant-square-btn battlecats" id="modeBattleCatsBtn">BATTLE<br>CATS</button>
+    <button class="giant-square-btn battlecats" id="modeBattleCatsBtn">EMPIRE<br>OF CATS</button>
     <button class="giant-square-btn legendstages" id="modeLegendStagesBtn">LEGEND<br>STAGES</button>
   </div>
 </div>
