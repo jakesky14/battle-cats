@@ -159,18 +159,18 @@
     box-shadow: 0 3px 0 rgba(0,0,0,.3);
   }
   .menu-buttons {
-    margin-top: 84px;
+    margin-top: 40px;
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: 16px;
     width: 440px;
   }
   .menu-btn {
     display: flex; align-items: center; gap: 20px;
-    font-size: 36px; font-weight: 800; letter-spacing: .5px;
+    font-size: 32px; font-weight: 800; letter-spacing: .5px;
     color: #fff;
     border: none; border-radius: 20px;
-    padding: 28px 36px;
+    padding: 20px 36px;
     cursor: pointer;
     box-shadow: 0 8px 0 rgba(0,0,0,.35);
     text-align: left;
@@ -178,12 +178,27 @@
   .menu-btn:active { transform: translateY(4px); box-shadow: 0 4px 0 rgba(0,0,0,.35); }
   .menu-btn .ico { font-size: 44px; }
   .sprite-icon { width: 44px; height: 44px; image-rendering: pixelated; flex-shrink: 0; }
-  .menu-btn.battle  { background: linear-gradient(180deg,#4fa3ff,#1f74dd); }
-  .menu-btn.upgrade { background: linear-gradient(180deg,#6fd08a,#2f9d55); }
-  .menu-btn.equip   { background: linear-gradient(180deg,#e0a95f,#b9773a); }
+  .menu-btn.yellow  { background: linear-gradient(180deg,#ffe066,#f0a800); color: #5a3a00; justify-content: center; }
   .menu-btn.gamatoto { background: linear-gradient(180deg,#9f7ee0,#6b45b9); }
   .menu-btn.play     { background: linear-gradient(180deg,#ff8a4c,#d85a1f); }
   .menu-btn.settings { background: linear-gradient(180deg,#9a9aa8,#5c5c6e); }
+  .gamatoto-row { display: flex; align-items: center; gap: 14px; }
+  .gamatoto-row .menu-btn.gamatoto {
+    flex: 0 0 auto; padding: 10px 12px; font-size: 14px; gap: 8px; border-radius: 12px;
+  }
+  .gamatoto-row .menu-btn.gamatoto .sprite-icon { width: 30px; height: 30px; }
+  .side-btn {
+    flex: 1 1 0; height: 100%; min-height: 66px;
+    background: linear-gradient(180deg,#c9a3ff,#8a5fd6); color: #fff;
+    border: none; border-radius: 14px; font-weight: 800; font-size: 16px; cursor: pointer;
+    box-shadow: 0 5px 0 rgba(0,0,0,.35);
+  }
+  .side-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 rgba(0,0,0,.35); }
+  .catbase-title-row { display: flex; align-items: center; gap: 10px; align-self: flex-start; }
+  .chapter-arrow-btn {
+    background: #f4e2b8; color: #6e4527; border: 3px solid #3f2a17; border-radius: 8px;
+    width: 34px; height: 34px; font-weight: 900; cursor: pointer;
+  }
 
   /* ---- Title / mode-select / settings screens ---- */
   .title-bg {
@@ -296,10 +311,16 @@
   }
   .settings-lang-btn.active { border-color: #2f9d55; }
 
-  .cat-food-row {
+  .bottom-cluster {
     position: absolute;
     right: 16px;
     bottom: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .cat-food-row {
     display: flex;
     align-items: center;
     gap: 10px;
@@ -310,23 +331,25 @@
     padding: 12px 24px;
     font-size: 28px;
     font-weight: 700;
+    display: flex; align-items: center; gap: 10px;
   }
+  .cat-food-icon { width: 32px; height: 32px; image-rendering: pixelated; flex-shrink: 0; }
   .store-btn {
     background: linear-gradient(180deg,#ffcf3f,#f0a800); color: #201800;
-    border: none; border-radius: 8px; padding: 12px 20px;
-    font-weight: 800; font-size: 18px; cursor: pointer;
+    border: none; border-radius: 8px; padding: 12px 24px;
+    font-weight: 800; font-size: 28px; cursor: pointer;
     box-shadow: 0 3px 0 rgba(0,0,0,.3);
   }
 
   .rank-row {
     align-self: flex-start;
     margin-top: 8px;
-    display: flex; align-items: center; gap: 8px;
+    display: flex; align-items: center; gap: 24px;
   }
   .rank-btn {
     position: relative;
-    background: rgba(0,0,0,.35); color: #f4e2b8; border: none; border-radius: 8px;
-    padding: 8px 16px; font-weight: 800; font-size: 14px; cursor: pointer;
+    background: rgba(0,0,0,.35); color: #f4e2b8; border: none; border-radius: 24px;
+    padding: 24px 48px; font-weight: 800; font-size: 42px; cursor: pointer;
   }
   .rank-alert-dot {
     position: absolute; top: -4px; right: -4px;
@@ -336,8 +359,8 @@
   }
   @keyframes rank-dot-flash { 0%, 100% { opacity: 1; } 50% { opacity: .15; } }
   .calendar-btn {
-    background: rgba(0,0,0,.35); color: #f4e2b8; border: none; border-radius: 8px;
-    padding: 8px 12px; font-size: 16px; cursor: pointer;
+    background: rgba(0,0,0,.35); color: #f4e2b8; border: none; border-radius: 24px;
+    padding: 24px 36px; font-size: 48px; cursor: pointer;
   }
 
   .rank-current { color: #f4e2b8; font-size: 18px; font-weight: 800; margin-top: 20px; }
@@ -609,7 +632,6 @@
   }
 
   .capsule-row {
-    position: absolute; bottom: 90px; right: 16px;
     display: flex; gap: 12px;
   }
   .capsule-btn, .storage-btn {
@@ -715,25 +737,35 @@
 </div>
 
 <div id="mainMenu" class="screen hidden">
-  <div class="screen-title" id="lbl-catbase">Cat Base</div>
+  <div class="catbase-title-row">
+    <div class="screen-title" id="lbl-catbase">Cat Base</div>
+    <button class="chapter-arrow-btn" id="catbaseChapterBtn">▶</button>
+  </div>
+  <div class="xp-display">XP <span id="mainXpAmt">0</span></div>
   <div class="rank-row">
-    <button class="rank-btn" id="userRankBtn">🏅 Rank <span id="userRankAmt">0</span><span class="rank-alert-dot hidden" id="rankAlertDot"></span></button>
+    <button class="rank-btn" id="userRankBtn"><span id="userRankAmt">0</span><span class="rank-alert-dot hidden" id="rankAlertDot"></span></button>
     <button class="calendar-btn" id="calendarBtn">📅</button>
   </div>
   <div class="menu-buttons">
-    <button class="menu-btn battle" id="menuBattleBtn"><span class="ico">⚔️</span><span id="lbl-battle">START!</span></button>
-    <button class="menu-btn upgrade" id="menuUpgradeBtn"><span class="ico">⬆️</span><span id="lbl-upgrade">UPGRADE</span></button>
-    <button class="menu-btn equip" id="menuEquipBtn"><span class="ico">🐱</span><span id="lbl-equip">EQUIP</span></button>
-    <button class="menu-btn gamatoto" id="menuGamatotoBtn"><canvas id="gamatotoIcon" width="44" height="44" class="sprite-icon"></canvas><span>GAMATOTO</span></button>
+    <button class="menu-btn yellow" id="menuBattleBtn"><span id="lbl-battle">START!</span></button>
+    <button class="menu-btn yellow" id="menuUpgradeBtn"><span id="lbl-upgrade">UPGRADE</span></button>
+    <button class="menu-btn yellow" id="menuEquipBtn"><span id="lbl-equip">EQUIP</span></button>
+    <div class="gamatoto-row">
+      <button class="side-btn" id="menuMenuBtn">MENU</button>
+      <button class="menu-btn gamatoto" id="menuGamatotoBtn"><canvas id="gamatotoIcon" width="44" height="44" class="sprite-icon"></canvas><span>GAMATOTO</span></button>
+      <button class="side-btn" id="menuMissionsBtn">MISSIONS</button>
+    </div>
   </div>
   <button class="back-corner-btn" id="mainMenuBackBtn">◀ Back</button>
-  <div class="cat-food-row">
-    <button class="store-btn" id="storeBtn">🏪 Store</button>
-    <div class="cat-food">🍡 Cat Food: <span id="catFoodAmt">0</span></div>
-  </div>
-  <div class="capsule-row">
-    <button class="storage-btn" id="menuStorageBtn">📦 Storage</button>
-    <button class="capsule-btn" id="menuCapsuleBtn">🎰 CAT CAPSULE</button>
+  <div class="bottom-cluster">
+    <div class="capsule-row">
+      <button class="storage-btn" id="menuStorageBtn">STORAGE</button>
+      <button class="capsule-btn" id="menuCapsuleBtn">CAT CAPSULE</button>
+    </div>
+    <div class="cat-food-row">
+      <button class="store-btn" id="storeBtn">STORE</button>
+      <div class="cat-food"><canvas id="catFoodIcon" width="32" height="32" class="cat-food-icon"></canvas>Cat Food: <span id="catFoodAmt">0</span></div>
+    </div>
   </div>
 
   <div id="dailyRewardModal" class="daily-modal hidden">
@@ -742,6 +774,14 @@
       <div class="daily-modal-desc" id="dailyRewardDesc"></div>
       <button class="daily-claim-btn" id="dailyClaimBtn">Claim</button>
     </div>
+  </div>
+</div>
+
+<div id="chapterSelectScreen" class="title-bg hidden">
+  <button class="close-circle-btn" id="chapterSelectCloseBtn">✕</button>
+  <div class="mode-select-buttons">
+    <button class="giant-square-btn battlecats" id="chapterEmpireBtn">EMPIRE<br>OF CATS</button>
+    <button class="giant-square-btn legendstages" id="chapterLegendBtn">LEGEND<br>STAGES</button>
   </div>
 </div>
 
@@ -1528,6 +1568,7 @@
   const titleScreen = document.getElementById("titleScreen");
   const modeSelectScreen = document.getElementById("modeSelectScreen");
   const risingScreen = document.getElementById("risingScreen");
+  const chapterSelectScreen = document.getElementById("chapterSelectScreen");
   const settingsScreen = document.getElementById("settingsScreen");
   const mainMenu = document.getElementById("mainMenu");
   const upgradeScreen = document.getElementById("upgradeScreen");
@@ -1547,6 +1588,7 @@
   const userRankAmtEl = document.getElementById("userRankAmt");
   const rankAlertDotEl = document.getElementById("rankAlertDot");
   const catFoodAmtEl = document.getElementById("catFoodAmt");
+  const mainXpAmtEl = document.getElementById("mainXpAmt");
   const ENERGY_PER_BATTLE = 10;
 
   // Daily reward: gated on real Date.now() timestamps stored in the saved profile, so it works
@@ -1588,6 +1630,7 @@
     // and use a Leadership there to refill before attacking (the real energy gate is on ATTACK).
     userRankAmtEl.textContent = profile.userRank || 0;
     catFoodAmtEl.textContent = profile.catFood || 0;
+    mainXpAmtEl.textContent = profile.xp || 0;
     const nextReward = RANK_REWARDS[profile.claimedRankRewards];
     rankAlertDotEl.classList.toggle("hidden", !(nextReward && (profile.userRank || 0) >= nextReward[0]));
     checkDailyReward();
@@ -1697,7 +1740,7 @@
   }
 
   function showScreen(el) {
-    [titleScreen, modeSelectScreen, risingScreen, settingsScreen, mainMenu, upgradeScreen, equipScreen, capsuleScreen, storageScreen,
+    [titleScreen, modeSelectScreen, risingScreen, chapterSelectScreen, settingsScreen, mainMenu, upgradeScreen, equipScreen, capsuleScreen, storageScreen,
      userRankScreen, calendarScreen, storeScreen, battleMenuScreen, gamatotoScreen, gamatotoAreaScreen, appEl].forEach(s => s.classList.add("hidden"));
     el.classList.remove("hidden");
     if (el === mainMenu) renderMainMenu();
@@ -1732,6 +1775,11 @@
   document.getElementById("calendarBackBtn").addEventListener("click", () => showScreen(mainMenu));
   document.getElementById("storeBtn").addEventListener("click", () => showScreen(storeScreen));
   document.getElementById("storeBackBtn").addEventListener("click", () => showScreen(mainMenu));
+  document.getElementById("catbaseChapterBtn").addEventListener("click", () => showScreen(chapterSelectScreen));
+  document.getElementById("chapterSelectCloseBtn").addEventListener("click", () => showScreen(mainMenu));
+  document.getElementById("chapterEmpireBtn").addEventListener("click", () => showScreen(risingScreen));
+  // Legend Stages (from the chapter select screen too): intentionally does nothing yet.
+  // MENU / MISSIONS: intentionally do nothing yet, same as Legend Stages.
 
   const titleTestModeBtn = document.getElementById("testModeBtn");
   titleTestModeBtn.addEventListener("click", () => {
@@ -2723,7 +2771,7 @@
   // fall back to the existing rounded-rect + emoji rendering below.
   // ---------------------------------------------------------------------------
   const PXW = 36, PXH = 40; // sprite grid size, in cells (2x res for finer detail)
-  const PX_PALETTE = { W: "#ffffff", K: "#20201c", G: "#b0b0b0", S: "#d8d8de", M: "#ff2ee0", Y: "#e8c34a" };
+  const PX_PALETTE = { W: "#ffffff", K: "#20201c", G: "#b0b0b0", S: "#d8d8de", M: "#ff2ee0", Y: "#e8c34a", O: "#e8791f" };
 
   function makePxGrid() { return Array.from({ length: PXH }, () => Array(PXW).fill(null)); }
 
@@ -3478,6 +3526,28 @@
     return grid;
   }
 
+  // ---------------------------------------------------------------------------
+  // Cat Food can: an original pixel sprite (not the official artwork) - a silver-lidded
+  // orange can with a small white cat-face label. Used as a small icon next to the Cat Food
+  // counter.
+  // ---------------------------------------------------------------------------
+  function buildCatFoodCanGrid() {
+    const grid = makePxGrid();
+    pxRect(grid, 6, 12, 30, 30, "O"); // can body
+    pxEllipse(grid, 18, 12, 12, 4, "S"); // lid
+    pxEllipse(grid, 18, 12, 9, 2.6, "G"); // lid inner rim
+    pxOutline(grid, "K");
+    pxEllipse(grid, 18, 22, 8, 7, "W"); // label patch
+    pxTriangle(grid, 13, 15, 6, 1.6, "W");
+    pxTriangle(grid, 23, 15, 6, 1.6, "W");
+    pxOutline(grid, "K");
+    pxRect(grid, 15.5, 20, 16.5, 21, "K");
+    pxRect(grid, 19.5, 20, 20.5, 21, "K");
+    pxLine(grid, 16, 23.5, 18, 25.5, "K");
+    pxLine(grid, 18, 25.5, 20, 23.5, "K");
+    return grid;
+  }
+
   // heightScale: per-sprite vertical stretch, anchored at the ground, so different units can
   // be taller/shorter than the base Cat without redesigning their whole coordinate grid - the
   // "scaling tool" for keeping cats' relative sizes right when reference art has no scale bar.
@@ -3524,6 +3594,7 @@
     }
   }
   renderSpriteIcon(document.getElementById("gamatotoIcon"), buildGamatotoGrid());
+  renderSpriteIcon(document.getElementById("catFoodIcon"), buildCatFoodCanGrid());
 
   function drawPixelGrid(grid, cx, groundYPx, cell, flip, heightScale, targetCtx) {
     const c2d = targetCtx || ctx;
