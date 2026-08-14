@@ -558,6 +558,7 @@
     gap: 8px; max-width: 460px;
   }
   .equip-grid .grid-item {
+    position: relative;
     background: rgba(0,0,0,.3); border-radius: 8px; padding: 8px 4px;
     text-align: center; cursor: pointer; border: 2px solid transparent;
   }
@@ -565,6 +566,12 @@
   .equip-grid .grid-item .emoji { font-size: 24px; }
   .equip-grid .grid-item .name { font-size: 10px; color: #f4e2b8; margin-top: 2px; }
   .equip-grid .grid-item .cost { font-size: 10px; color: #ffe45a; font-weight: 700; }
+  .form-btn {
+    position: absolute; top: 2px; right: 2px; width: 18px; height: 18px; padding: 0;
+    border-radius: 50%; background: rgba(0,0,0,.55); border: 1px solid #6fd08a;
+    color: #f4e2b8; font-size: 10px; line-height: 16px; cursor: pointer;
+  }
+  .form-btn:disabled { border-color: #555; color: #888; cursor: not-allowed; }
 
   .energy-display {
     position: absolute; right: 16px; bottom: 84px;
@@ -1169,6 +1176,49 @@
     return form;
   }
 
+  // Highest form tier (0=first, 1=evolved, 2=true) this cat has actually unlocked at the
+  // given level/plus - used to clamp the manually-selected display form below.
+  function highestUnlockedTier(c, lvl, plus) {
+    let tier = 0;
+    if (lvl >= EVOLVE_LEVEL && EVOLUTIONS[c.id]) tier = 1;
+    if (lvl + plus >= EVOLVE3_LEVEL && THIRD_EVOLUTIONS[c.id]) tier = 2;
+    return tier;
+  }
+
+  // Identity/ability fields (name, emoji, sprite, trait, strongAgainst) for one specific form
+  // tier, independent of level - the same chaining evolvedForm does, just without touching
+  // hp/dmg/cycle/fore/cd/kb, so a manually-selected earlier form never weakens the cat.
+  function formIdentityAt(c, tier) {
+    let f = { name: c.name, emoji: c.emoji, sprite: c.sprite, trait: c.trait, strongAgainst: c.strongAgainst };
+    if (tier >= 1) {
+      const evo = EVOLUTIONS[c.id];
+      if (evo) f = { ...f, name: evo.name, emoji: evo.emoji, sprite: evo.sprite !== undefined ? evo.sprite : f.sprite };
+    }
+    if (tier >= 2) {
+      const evo3 = THIRD_EVOLUTIONS[c.id];
+      if (evo3) f = {
+        ...f,
+        name: evo3.name,
+        emoji: evo3.emoji,
+        sprite: evo3.sprite !== undefined ? evo3.sprite : f.sprite,
+        strongAgainst: evo3.strongAgainst !== undefined ? evo3.strongAgainst : f.strongAgainst,
+      };
+    }
+    return f;
+  }
+
+  // Like evolvedForm, but the displayed/battling form's identity (name/emoji/sprite/trait/
+  // strongAgainst) follows the player's manual form-select button instead of always jumping to
+  // the highest unlocked tier. Stats (hp/dmg/cost/range/cycle/fore/speed/cd/kb) still always
+  // come from evolvedForm's natural highest-unlocked calculation - per the request, switching
+  // down a form doesn't cost you any stats, only the look and (sometimes) the type advantage.
+  function evolvedFormWithOverride(c, lvl, plus, formPref) {
+    const natural = evolvedForm(c, lvl, plus);
+    const unlocked = highestUnlockedTier(c, lvl, plus);
+    const tier = formPref == null ? unlocked : Math.min(formPref, unlocked);
+    return { ...natural, ...formIdentityAt(c, tier) };
+  }
+
   // Real per-cat XP cost tables. Keyed by target level (cost paid while at level-1 to reach it).
   const CAT_XP_TABLE = {
     cat:    {2:400,3:700,4:1100,5:1600,6:2200,7:2900,8:3700,9:4600,10:5600,
@@ -1229,6 +1279,10 @@
     superiorTreasures: 0,
     catLevels: Object.fromEntries(CATS.map(c => [c.id, 1])),
     catPlus: Object.fromEntries(CATS.map(c => [c.id, 0])), // "+N" bonus levels past the lv20 cap
+    // Manually-selected form tier per cat (0=first, 1=evolved, 2=true), via the equip-menu
+    // form button. Defaults to 2 ("always show the highest form I've unlocked" - the old,
+    // only, behavior), and is clamped to whatever's actually unlocked wherever it's read.
+    catForm: Object.fromEntries(CATS.map(c => [c.id, 2])),
     equip: ["cat", null, null, null, null, null, null, null, null, null],
     meta: {
       cannonPower: 1, cannonRange: 1, cannonCharge: 1,
@@ -1284,6 +1338,7 @@
     if (typeof saved.xp === "number") profile.xp = saved.xp;
     if (saved.catLevels) Object.assign(profile.catLevels, saved.catLevels);
     if (saved.catPlus) Object.assign(profile.catPlus, saved.catPlus);
+    if (saved.catForm) Object.assign(profile.catForm, saved.catForm);
     if (Array.isArray(saved.equip) && saved.equip.length === profile.equip.length) profile.equip = saved.equip;
     if (saved.meta) Object.assign(profile.meta, saved.meta);
     if (saved.metaPlus) Object.assign(profile.metaPlus, saved.metaPlus);
@@ -1437,7 +1492,7 @@
     dock.innerHTML = "";
     dock.style.gridTemplateColumns = `repeat(${Math.max(roster.length, 1)}, 1fr)`;
     unitEls = roster.map((c, i) => {
-      const form = evolvedForm(c, profile.catLevels[c.id] || 1, profile.catPlus[c.id] || 0);
+      const form = evolvedFormWithOverride(c, profile.catLevels[c.id] || 1, profile.catPlus[c.id] || 0, profile.catForm[c.id]);
       const el = document.createElement("div");
       el.className = "unit";
       const keyLabel = String(i + 1);
@@ -1464,7 +1519,7 @@
     G.money -= c.cost;
     const lvl = profile.catLevels[c.id] || 1;
     const plus = profile.catPlus[c.id] || 0;
-    const form = evolvedForm(c, lvl, plus);
+    const form = evolvedFormWithOverride(c, lvl, plus, profile.catForm[c.id]);
     G.cooldowns[i] = Math.max(2, form.cd - cdReduction());
     G.cooldownMax[i] = G.cooldowns[i]; // actual full duration for this deploy (post-floor/reduction), for the dock bar
     const mult = catLevelMult(lvl + plus);
@@ -2131,7 +2186,7 @@
     testRowEl.classList.toggle("hidden", !profile.testMode);
     catStrip.innerHTML = "";
     CATS.forEach(c => {
-      const form = evolvedForm(c, profile.catLevels[c.id] || 1, profile.catPlus[c.id] || 0);
+      const form = evolvedFormWithOverride(c, profile.catLevels[c.id] || 1, profile.catPlus[c.id] || 0, profile.catForm[c.id]);
       const el = document.createElement("div");
       el.className = "strip-item" + (c.id === selectedUpgradeCat ? " selected" : "");
       el.textContent = form.emoji;
@@ -2142,7 +2197,7 @@
     const base = CATS.find(c => c.id === selectedUpgradeCat);
     const lvl = profile.catLevels[base.id];
     const plus = profile.catPlus[base.id] || 0;
-    const c = evolvedForm(base, lvl, plus);
+    const c = evolvedFormWithOverride(base, lvl, plus, profile.catForm[base.id]);
     const need = catXpCost(base.id, lvl);
     const mult = catLevelMult(lvl + plus);
     upgradeXpAmt.textContent = Math.floor(profile.xp);
@@ -2189,20 +2244,26 @@
     profile.equip.forEach((id, i) => {
       const el = document.createElement("div");
       const c = id ? CATS.find(c => c.id === id) : null;
-      const form = c ? evolvedForm(c, profile.catLevels[c.id] || 1, profile.catPlus[c.id] || 0) : null;
+      const form = c ? evolvedFormWithOverride(c, profile.catLevels[c.id] || 1, profile.catPlus[c.id] || 0, profile.catForm[c.id]) : null;
       el.className = "equip-slot" + (i === selectedSlot ? " selected" : "") + (c ? "" : " empty");
       el.textContent = form ? form.emoji : (i + 1);
       el.addEventListener("click", () => { selectedSlot = i; renderEquipScreen(); });
       equipSlotsEl.appendChild(el);
     });
 
+    const FORM_TIER_NAMES = ["1st Form", "Evolved Form", "True Form"];
     equipGridEl.innerHTML = "";
     CATS.forEach(c => {
-      const form = evolvedForm(c, profile.catLevels[c.id] || 1, profile.catPlus[c.id] || 0);
+      const lvl = profile.catLevels[c.id] || 1;
+      const plus = profile.catPlus[c.id] || 0;
+      const unlocked = highestUnlockedTier(c, lvl, plus);
+      const form = evolvedFormWithOverride(c, lvl, plus, profile.catForm[c.id]);
+      const tier = Math.min(profile.catForm[c.id] ?? 2, unlocked);
       const el = document.createElement("div");
       const equippedSlot = profile.equip.indexOf(c.id);
       el.className = "grid-item" + (equippedSlot !== -1 ? " equipped" : "");
-      el.innerHTML = `<div class="emoji">${form.emoji}</div><div class="name">${form.name}</div><div class="cost">¢${c.cost}</div>`;
+      el.innerHTML = `<div class="emoji">${form.emoji}</div><div class="name">${form.name}</div><div class="cost">¢${c.cost}</div>` +
+        `<button class="form-btn" ${unlocked === 0 ? "disabled" : ""} title="${unlocked === 0 ? "No other forms unlocked yet" : "Switch form (now: " + FORM_TIER_NAMES[tier] + ")"}">⇄</button>`;
       el.addEventListener("click", () => {
         const currentSlot = profile.equip.indexOf(c.id);
         if (currentSlot === selectedSlot) {
@@ -2212,8 +2273,16 @@
           profile.equip[selectedSlot] = c.id;
         }
         equipDetailName.textContent = form.name;
-        equipDetailLevel.textContent = "Level " + profile.catLevels[c.id];
+        equipDetailLevel.textContent = "Level " + lvl + (plus > 0 ? " +" + plus : "") + " · " + FORM_TIER_NAMES[tier];
         equipDetailCost.textContent = "Cost ¢" + c.cost;
+        saveProfile();
+        renderEquipScreen();
+      });
+      el.querySelector(".form-btn").addEventListener("click", (ev) => {
+        ev.stopPropagation();
+        if (unlocked === 0) return;
+        const current = Math.min(profile.catForm[c.id] ?? 2, unlocked);
+        profile.catForm[c.id] = (current + 1) % (unlocked + 1);
         saveProfile();
         renderEquipScreen();
       });
@@ -3286,27 +3355,28 @@
 
   function buildBirdGrid() {
     const grid = makePxGrid();
-    // head enlarged to match the base Cat's exact size (rx 16.3 / ry 11.05, matching Cat's
-    // octagon body bounding box) - a previous pass used r=9, noticeably smaller than a
-    // normal cat's head. Wings/face scaled and repositioned to match.
-    buildBirdHead(grid, 18, 23, 16.3, 11.05, 2.6);
-    // wings: the enlarged head above now spans nearly the full 36-wide grid (x1.7-34.3),
-    // leaving no side margin - the previous wing ellipses were centered at/beyond x=0 and
-    // x=36, so half of every lobe fell off the sprite grid and never rendered. Fanned from
-    // the lower shoulders instead, where the head ellipse has already narrowed and left
-    // room on both sides, so every lobe sits fully on-canvas.
-    pxEllipse(grid, 8, 27, 8, 5.5, "W");
-    pxEllipse(grid, 5, 19, 5, 4, "W");
-    pxEllipse(grid, 5, 34, 5, 4, "W");
-    pxEllipse(grid, 27, 27, 8, 5.5, "W");
-    pxEllipse(grid, 30, 19, 5, 4, "W");
-    pxEllipse(grid, 30, 34, 5, 4, "W");
+    // Head pulled in slightly from the exact Cat-head match (rx 16.3 -> 14, ry 11.05 -> 9.5) -
+    // still clearly a full-size cat head (nowhere near the old, too-small r=9 version), but
+    // the previous exact match left only ~1.7 units of margin on each side of the 36-wide grid,
+    // which is why the wings kept reading as fused into the head/ears instead of popping out.
+    // This frees real side margin for the wings below.
+    buildBirdHead(grid, 18, 23, 14, 9.5, 2.2);
+    // wings: fanned out sideways from the head, into the margin freed above - a main lobe at
+    // shoulder height plus a smaller lobe above and below it, clear of the ears (which sit at
+    // x8.8-13.2/22.8-27.2) so they read as a separate feathered shape popping out past the
+    // head's own silhouette, not fused into it.
+    pxEllipse(grid, 4, 23, 4, 5, "W");
+    pxEllipse(grid, 3, 15, 3, 4, "W");
+    pxEllipse(grid, 4, 31, 4, 4, "W");
+    pxEllipse(grid, 32, 23, 4, 5, "W");
+    pxEllipse(grid, 33, 15, 3, 4, "W");
+    pxEllipse(grid, 32, 31, 4, 4, "W");
     pxOutline(grid, "K");
-    pxLine(grid, 2, 17, 7, 25, "K");
-    pxLine(grid, 3, 31, 7, 35, "K");
-    pxLine(grid, 33, 17, 28, 25, "K");
-    pxLine(grid, 32, 31, 28, 35, "K");
-    buildBirdFace(grid, 18, 23, 16.3);
+    pxLine(grid, 1, 12, 3, 19, "K");
+    pxLine(grid, 1, 27, 3, 33, "K");
+    pxLine(grid, 35, 12, 33, 19, "K");
+    pxLine(grid, 35, 27, 33, 33, "K");
+    buildBirdFace(grid, 18, 23, 14);
     return grid;
   }
 
