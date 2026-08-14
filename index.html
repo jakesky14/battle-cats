@@ -3178,7 +3178,7 @@
     // distinct from Giraffe's narrow elongated face
     pxEllipse(grid, 8, 9, 5.5, 5, "W");
     pxEllipse(grid, 8, 18, 9, 6, "W");
-    pxRect(grid, 0, 18, 16, 22, "W");
+    pxRect(grid, 0, 18, 16, 26, "W"); // extended down so the mouth/chin sit on solid muzzle, not the pinched ellipse tip
     pxThickLine(grid, 4, 3, 2, -1, 1.8, "K");
     pxThickLine(grid, 12, 3, 14, -1, 1.8, "K");
     pxThickLine(grid, 32, 19, 36, 10, 1.8, "W");
@@ -3187,17 +3187,15 @@
     pxOutline(grid, "K");
     pxRect(grid, 5, 12, 6.5, 13.5, "K"); // eyes on the upper skull
     pxRect(grid, 10, 12, 11.5, 13.5, "K");
-    // solid nose pad (unmissable at any scale, not a thin outline) with punched-out nostrils
-    pxEllipse(grid, 8, 19.5, 4, 2.4, "K");
-    pxEllipse(grid, 6.1, 19.3, 0.6, 0.5, "W");
-    pxEllipse(grid, 9.9, 19.3, 0.6, 0.5, "W");
-    // clear "w" mouth + "u" chin below the nose pad, matching the standard cat face pattern
-    pxLine(grid, 5, 22.5, 6.5, 24, "K");
-    pxLine(grid, 6.5, 24, 8, 22.8, "K");
-    pxLine(grid, 8, 22.8, 9.5, 24, "K");
-    pxLine(grid, 9.5, 24, 11, 22.5, "K");
-    pxLine(grid, 6.5, 25, 8, 27, "K");
-    pxLine(grid, 8, 27, 9.5, 25, "K");
+    // no separate snout/nose pad - just the mouth, like the base Cat's face
+    // clear "w" mouth + "u" chin, matching the standard cat face pattern -
+    // kept above y=25 (where the front leg begins) so the leg line doesn't cut through it
+    pxLine(grid, 5, 22.3, 6.5, 23.5, "K");
+    pxLine(grid, 6.5, 23.5, 8, 22.5, "K");
+    pxLine(grid, 8, 22.5, 9.5, 23.5, "K");
+    pxLine(grid, 9.5, 23.5, 11, 22.3, "K");
+    pxLine(grid, 6.5, 23.8, 8, 24.8, "K");
+    pxLine(grid, 8, 24.8, 9.5, 23.8, "K");
     return grid;
   }
 
