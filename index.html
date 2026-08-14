@@ -3187,15 +3187,14 @@
     pxOutline(grid, "K");
     pxRect(grid, 5, 12, 6.5, 13.5, "K"); // eyes on the upper skull
     pxRect(grid, 10, 12, 11.5, 13.5, "K");
-    // no separate snout/nose pad - just the mouth, like the base Cat's face
-    // clear "w" mouth + "u" chin, matching the standard cat face pattern -
-    // kept above y=25 (where the front leg begins) so the leg line doesn't cut through it
-    pxLine(grid, 5, 22.3, 6.5, 23.5, "K");
-    pxLine(grid, 6.5, 23.5, 8, 22.5, "K");
-    pxLine(grid, 8, 22.5, 9.5, 23.5, "K");
-    pxLine(grid, 9.5, 23.5, 11, 22.3, "K");
-    pxLine(grid, 6.5, 23.8, 8, 24.8, "K");
-    pxLine(grid, 8, 24.8, 9.5, 23.8, "K");
+    // no separate snout/nose pad - just the mouth, like the base Cat's face - moved up
+    // closer to the eyes and enlarged per feedback, still clear of the y=25 front leg start
+    pxLine(grid, 4, 17.3, 6, 19.3, "K");
+    pxLine(grid, 6, 19.3, 8, 17.6, "K");
+    pxLine(grid, 8, 17.6, 10, 19.3, "K");
+    pxLine(grid, 10, 19.3, 12, 17.3, "K");
+    pxLine(grid, 6.5, 19.8, 8, 22.3, "K");
+    pxLine(grid, 8, 22.3, 9.5, 19.8, "K");
     return grid;
   }
 
@@ -3291,18 +3290,22 @@
     // octagon body bounding box) - a previous pass used r=9, noticeably smaller than a
     // normal cat's head. Wings/face scaled and repositioned to match.
     buildBirdHead(grid, 18, 23, 16.3, 11.05, 2.6);
-    // wings: rounded feather fan spreading out and slightly up from each shoulder
-    pxEllipse(grid, 0, 20, 9, 4.5, "W");
-    pxEllipse(grid, -7, 17, 7.5, 4, "W");
-    pxEllipse(grid, 4, 27, 7.5, 4, "W");
-    pxEllipse(grid, 36, 20, 9, 4.5, "W");
-    pxEllipse(grid, 43, 17, 7.5, 4, "W");
-    pxEllipse(grid, 32, 27, 7.5, 4, "W");
+    // wings: the enlarged head above now spans nearly the full 36-wide grid (x1.7-34.3),
+    // leaving no side margin - the previous wing ellipses were centered at/beyond x=0 and
+    // x=36, so half of every lobe fell off the sprite grid and never rendered. Fanned from
+    // the lower shoulders instead, where the head ellipse has already narrowed and left
+    // room on both sides, so every lobe sits fully on-canvas.
+    pxEllipse(grid, 8, 27, 8, 5.5, "W");
+    pxEllipse(grid, 5, 19, 5, 4, "W");
+    pxEllipse(grid, 5, 34, 5, 4, "W");
+    pxEllipse(grid, 27, 27, 8, 5.5, "W");
+    pxEllipse(grid, 30, 19, 5, 4, "W");
+    pxEllipse(grid, 30, 34, 5, 4, "W");
     pxOutline(grid, "K");
-    pxLine(grid, -4, 16, 0, 24, "K");
-    pxLine(grid, 4, 23, 5, 30, "K");
-    pxLine(grid, 40, 16, 36, 24, "K");
-    pxLine(grid, 32, 23, 31, 30, "K");
+    pxLine(grid, 2, 17, 7, 25, "K");
+    pxLine(grid, 3, 31, 7, 35, "K");
+    pxLine(grid, 33, 17, 28, 25, "K");
+    pxLine(grid, 32, 31, 28, 35, "K");
     buildBirdFace(grid, 18, 23, 16.3);
     return grid;
   }
