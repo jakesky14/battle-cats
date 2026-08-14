@@ -3355,41 +3355,38 @@
 
   function buildBirdGrid() {
     const grid = makePxGrid();
-    // Head pulled in slightly from the exact Cat-head match (rx 16.3 -> 14, ry 11.05 -> 9.5) -
-    // still clearly a full-size cat head (nowhere near the old, too-small r=9 version), but
-    // the previous exact match left only ~1.7 units of margin on each side of the 36-wide grid,
-    // which is why the wings kept reading as fused into the head/ears instead of popping out.
-    // This frees real side margin for the wings below.
-    buildBirdHead(grid, 18, 23, 14, 9.5, 2.2);
-    // wings: fanned out sideways from the head, into the margin freed above - a main lobe at
-    // shoulder height plus a smaller lobe above and below it, clear of the ears (which sit at
-    // x8.8-13.2/22.8-27.2) so they read as a separate feathered shape popping out past the
-    // head's own silhouette, not fused into it.
-    pxEllipse(grid, 4, 23, 4, 5, "W");
-    pxEllipse(grid, 3, 15, 3, 4, "W");
-    pxEllipse(grid, 4, 31, 4, 4, "W");
-    pxEllipse(grid, 32, 23, 4, 5, "W");
-    pxEllipse(grid, 33, 15, 3, 4, "W");
-    pxEllipse(grid, 32, 31, 4, 4, "W");
+    // Literally "a basic cat sized head, with a basic cat face" per feedback: the exact same
+    // octagon + ears as the base Cat (byte-identical params), with the same pxFace, instead of
+    // an ellipse approximation with its own custom face - no legs, since Bird Cat floats.
+    pxOctagonBody(grid, 8.5, 28.5, 5.2, 27.3, 6.3, 6.3, "W");
+    pxTriangle(grid, 5.4, 2, 9.4, 1.1, "W");
+    pxTriangle(grid, 30.6, 2, 9.4, 1.1, "W");
+    // Two wings, one per side, each ~half the head's own radii (head rx~16.3/ry~11.05 -> wing
+    // rx8/ry6). The head's own width already nearly fills the 36-wide grid, so each wing sits
+    // entirely below the head's chin (y27.3), just barely tucking under it, rather than beside
+    // it at its widest point where there's almost no margin - and since the two wings don't
+    // need to meet in the middle (the gap between them is open background, not enclosed by
+    // anything above), there's no risk of the outline tracing a false "hole" between them.
+    pxEllipse(grid, 8, 32, 8, 6, "W");
+    pxEllipse(grid, 28, 32, 8, 6, "W");
     pxOutline(grid, "K");
-    pxLine(grid, 1, 12, 3, 19, "K");
-    pxLine(grid, 1, 27, 3, 33, "K");
-    pxLine(grid, 35, 12, 33, 19, "K");
-    pxLine(grid, 35, 27, 33, 33, "K");
-    buildBirdFace(grid, 18, 23, 14);
+    pxLine(grid, 3, 27, 9, 25, "K");
+    pxLine(grid, 33, 27, 27, 25, "K");
+    pxFace(grid, 0);
     return grid;
   }
 
   function buildUfoGrid() {
     const grid = makePxGrid();
-    buildBirdHead(grid, 18, 15, 8);
-    pxEllipse(grid, 18, 25, 16, 4, "W");
-    pxTriangle(grid, 4, 25, 29, 2, "K");
-    pxTriangle(grid, 32, 25, 29, 2, "K");
-    pxTriangle(grid, 18, 27, 34, 2, "K");
+    // Head enlarged (r 8 -> 10) so the face has room to breathe instead of looking scrunched.
+    buildBirdHead(grid, 18, 16, 10);
+    pxEllipse(grid, 18, 27, 16, 4, "W");
+    pxTriangle(grid, 4, 27, 31, 2, "K");
+    pxTriangle(grid, 32, 27, 31, 2, "K");
+    pxTriangle(grid, 18, 29, 36, 2, "K");
     pxOutline(grid, "K");
-    pxLine(grid, 3, 25, 33, 25, "K");
-    buildBirdFace(grid, 18, 15, 8);
+    pxLine(grid, 3, 27, 33, 27, "K");
+    buildBirdFace(grid, 18, 16, 10);
     return grid;
   }
 
@@ -3409,7 +3406,12 @@
     pxTriangle(grid, 18, 28, 35, 2, "K");
     pxOutline(grid, "K");
     pxLine(grid, 2, 24, 34, 24, "K");
-    for (let x = 4; x < 34; x += 4) pxLine(grid, x, 21, x, 24, "K");
+    // buildings: thicker (2.4 vs 1px) and taller than before, tapered so the ones directly
+    // under the head stay short (avoiding a collision with the head's own silhouette) while
+    // the ones further out, clear of the head, rise much taller - reads as a skyline receding
+    // behind the head instead of a thin row of ticks.
+    const buildingTops = { 4: 15, 8: 17, 12: 21, 16: 21, 20: 21, 24: 20, 28: 17, 32: 15 };
+    for (let x = 4; x < 34; x += 4) pxThickLine(grid, x, buildingTops[x], x, 24, 2.4, "K");
     buildBirdFace(grid, 18, 16, 8);
     return grid;
   }
