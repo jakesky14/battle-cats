@@ -2862,6 +2862,18 @@
       }
     }
   }
+  // Like pxTriangle, but the apex can be below the base (apexY > baseY) - for shapes that
+  // point up, like a lower jaw's teeth, which pxTriangle's apexY<=baseY loop can't draw.
+  function pxTriangleV(grid, apexX, apexY, baseY, baseHalfW, color) {
+    const y0 = Math.round(Math.min(apexY, baseY)), y1 = Math.round(Math.max(apexY, baseY));
+    for (let y = y0; y <= y1; y++) {
+      const t = Math.abs(y - apexY) / Math.abs(baseY - apexY);
+      const halfW = t * baseHalfW;
+      for (let x = Math.round(apexX - halfW); x <= Math.round(apexX + halfW); x++) {
+        if (x >= 0 && x < PXW && y >= 0 && y < PXH) grid[y][x] = color;
+      }
+    }
+  }
   function pxRect(grid, x0, y0, x1, y1, color) {
     x0 = Math.round(x0); y0 = Math.round(y0); x1 = Math.round(x1); y1 = Math.round(y1);
     for (let y = y0; y <= y1; y++) {
@@ -3470,24 +3482,27 @@
   }
 
   function buildWhaleGrid() {
+    // Rebuilt from scratch per reference art: a standing quadruped (like Cow/Giraffe/Lion),
+    // not a sideways-swimming torpedo fish body - gray shark back/head/tail, white belly and
+    // legs, with both an upper AND lower row of teeth in the open mouth (previous version had
+    // only the upper row, and its mouth was a rectangle floating off the front of the body
+    // rather than integrated into the head).
     const grid = makePxGrid();
-    // bigger, rounder shark-torpedo body
-    pxTaperH(grid, 4, 19, 21, 28, 19, 7, "G");
-    pxEllipse(grid, 4, 19, 4, 10.5, "G"); // round off the front's flat taper edge
-    pxTaperH(grid, 28, 19, 7, 35, 12, 0, "G");
-    pxTaperH(grid, 28, 19, 7, 35, 26, 0, "G");
-    pxTaperH(grid, 6, 24, 12, 26, 24, 5, "W"); // white belly underside
-    pxTriangle(grid, 11, 3, 10, 2, "G"); // shark fin nubs
-    pxTriangle(grid, 17, 3, 10, 2, "G");
+    pxEllipse(grid, 20, 19, 13, 10, "G"); // gray back/head
+    pxEllipse(grid, 16, 27, 13, 8, "W");  // white belly
+    pxTriangle(grid, 11, 4, 13, 2.3, "G"); // shark-fin ears
+    pxTriangle(grid, 17, 4, 13, 2.3, "G");
+    pxTaper(grid, 29, 25, 10, 34, 8, 5, "G"); // tail sweeping up from the back...
+    pxTaper(grid, 34, 8, 5, 30, 3, 1, "G");   // ...and curling back over at the tip
+    pxRect(grid, 17, 19, 27, 27, "W"); // bridge the mouth box and the belly into one silhouette
+    pxQuadrupedLegs(grid, [10, 16, 23, 28]);
     pxOutline(grid, "K");
-    // big toothy mouth at the front
-    pxRect(grid, 3, 15, 16, 19, "K");
-    for (let x = 4; x < 16; x += 2) pxTriangle(grid, x, 15, 17.5, 1, "W");
+    pxRect(grid, 9, 13, 10.5, 14.5, "K"); // eyes
+    pxRect(grid, 14, 13, 15.5, 14.5, "K");
+    pxRect(grid, 4, 17, 18, 23, "K"); // open mouth
+    for (let x = 5; x < 18; x += 2) pxTriangle(grid, x, 17, 19.5, 1, "W");  // upper teeth
+    for (let x = 5; x < 18; x += 2) pxTriangleV(grid, x, 23, 20.5, 1, "W"); // lower teeth
     pxOutline(grid, "K");
-    pxRect(grid, 8, 8, 9.5, 9.5, "K"); // eyes
-    pxRect(grid, 13, 8, 14.5, 9.5, "K");
-    pxThickLine(grid, 12, 27, 11, 33, 1.8, "K");
-    pxThickLine(grid, 18, 28, 18, 33, 1.8, "K");
     return grid;
   }
 
