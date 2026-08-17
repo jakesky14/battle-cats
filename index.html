@@ -3365,20 +3365,14 @@
     pxOctagonBody(grid, 8.5, 28.5, 5.2, 27.3, 3, 6.3, "W");
     pxTriangle(grid, 5.4, 2, 9.4, 1.1, "W");
     pxTriangle(grid, 30.6, 2, 9.4, 1.1, "W");
-    // Wings at cheek height, to the sides (not below, per feedback) - mostly layered behind
-    // the head (still not much margin even with the narrower chamfer), so a seam line on each
-    // side marks the wing/head boundary explicitly, kept left/right of the eyes (x13-23) so it
-    // doesn't cross the face.
-    // centered so the ellipse's own rx fits fully within the 0-35 grid (cx=4/32 with rx=5
-    // put the outer tip at x=-1/37, off the grid, which clipped it flat instead of round)
-    pxEllipse(grid, 5, 17, 5, 10, "W");
-    pxEllipse(grid, 30, 17, 5, 10, "W");
+    // Wings actually shaped like wings (a round-ended blob doesn't read as one): rooted at the
+    // shoulder/cheek - mostly hidden behind the head there, same margin problem as always - and
+    // swept down along the side, tapering to a real point well below the chin, in the wide-open
+    // space below the head, so most of each wing's length is clearly visible.
+    pxTaper(grid, 9, 13, 10, 1, 32, 3, "W");
+    pxTaper(grid, 26, 13, 10, 34, 32, 3, "W");
     pxOutline(grid, "K");
     pxFace(grid, 0);
-    pxLine(grid, 5, 8, 9, 13, "K");
-    pxLine(grid, 5, 22, 9, 26, "K");
-    pxLine(grid, 30, 8, 26, 13, "K");
-    pxLine(grid, 30, 22, 26, 26, "K");
     return grid;
   }
 
