@@ -3369,14 +3369,16 @@
     // the head (still not much margin even with the narrower chamfer), so a seam line on each
     // side marks the wing/head boundary explicitly, kept left/right of the eyes (x13-23) so it
     // doesn't cross the face.
-    pxEllipse(grid, 4, 17, 5, 10, "W");
-    pxEllipse(grid, 32, 17, 5, 10, "W");
+    // centered so the ellipse's own rx fits fully within the 0-35 grid (cx=4/32 with rx=5
+    // put the outer tip at x=-1/37, off the grid, which clipped it flat instead of round)
+    pxEllipse(grid, 5, 17, 5, 10, "W");
+    pxEllipse(grid, 30, 17, 5, 10, "W");
     pxOutline(grid, "K");
     pxFace(grid, 0);
-    pxLine(grid, 4, 8, 8, 13, "K");
-    pxLine(grid, 4, 22, 8, 26, "K");
-    pxLine(grid, 32, 8, 28, 13, "K");
-    pxLine(grid, 32, 22, 28, 26, "K");
+    pxLine(grid, 5, 8, 9, 13, "K");
+    pxLine(grid, 5, 22, 9, 26, "K");
+    pxLine(grid, 30, 8, 26, 13, "K");
+    pxLine(grid, 30, 22, 26, 26, "K");
     return grid;
   }
 
