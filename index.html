@@ -3482,27 +3482,29 @@
   }
 
   function buildWhaleGrid() {
-    // Rebuilt from scratch per reference art: a standing quadruped (like Cow/Giraffe/Lion),
-    // not a sideways-swimming torpedo fish body - gray shark back/head/tail, white belly and
-    // legs, with both an upper AND lower row of teeth in the open mouth (previous version had
-    // only the upper row, and its mouth was a rectangle floating off the front of the body
-    // rather than integrated into the head).
+    // A standing-tall quadruped (the previous pass) read wrong per feedback: Whale Cat should
+    // be longer than tall, like the torpedo-shark body this replaced, not stretched vertically
+    // like Macho Leg/King Dragon Cat. Back to a long low taper body, but keeping this pass's
+    // real fixes: the mouth is integrated into the head silhouette (not a rectangle floating
+    // off the front) and has both an upper AND lower row of teeth.
     const grid = makePxGrid();
-    pxEllipse(grid, 20, 19, 13, 10, "G"); // gray back/head
-    pxEllipse(grid, 16, 27, 13, 8, "W");  // white belly
-    pxTriangle(grid, 11, 4, 13, 2.3, "G"); // shark-fin ears
-    pxTriangle(grid, 17, 4, 13, 2.3, "G");
-    pxTaper(grid, 29, 25, 10, 34, 8, 5, "G"); // tail sweeping up from the back...
-    pxTaper(grid, 34, 8, 5, 30, 3, 1, "G");   // ...and curling back over at the tip
-    pxRect(grid, 17, 19, 27, 27, "W"); // bridge the mouth box and the belly into one silhouette
-    pxQuadrupedLegs(grid, [10, 16, 23, 28]);
+    pxTaperH(grid, 3, 20, 18, 30, 20, 7, "G"); // long, low torpedo body
+    pxEllipse(grid, 3, 20, 3, 9, "G"); // round off the front's flat taper edge
+    pxTaperH(grid, 30, 20, 7, 35, 13, 1, "G"); // tail fin: two lobes fanning into a "V"
+    pxTaperH(grid, 30, 20, 7, 35, 27, 1, "G");
+    pxTriangle(grid, 9, 9, 12, 1.8, "G"); // shark-fin ears
+    pxTriangle(grid, 14, 9, 12, 1.8, "G");
+    pxTaperH(grid, 5, 26, 10, 24, 26, 4, "W"); // white belly underside
+    pxRect(grid, 2, 18, 15, 24, "W"); // bridge the mouth area into the body silhouette
     pxOutline(grid, "K");
-    pxRect(grid, 9, 13, 10.5, 14.5, "K"); // eyes
-    pxRect(grid, 14, 13, 15.5, 14.5, "K");
-    pxRect(grid, 4, 17, 18, 23, "K"); // open mouth
-    for (let x = 5; x < 18; x += 2) pxTriangle(grid, x, 17, 19.5, 1, "W");  // upper teeth
-    for (let x = 5; x < 18; x += 2) pxTriangleV(grid, x, 23, 20.5, 1, "W"); // lower teeth
+    pxRect(grid, 8, 12, 9.5, 13.5, "K"); // eyes
+    pxRect(grid, 12, 12, 13.5, 13.5, "K");
+    pxRect(grid, 2, 18, 15, 24, "K"); // open mouth
+    for (let x = 3; x < 15; x += 2) pxTriangle(grid, x, 18, 20.5, 1, "W");  // upper teeth
+    for (let x = 3; x < 15; x += 2) pxTriangleV(grid, x, 24, 21.5, 1, "W"); // lower teeth
     pxOutline(grid, "K");
+    pxThickLine(grid, 11, 27, 10, 32, 1.8, "K"); // small stubby legs underneath
+    pxThickLine(grid, 17, 28, 17, 32, 1.8, "K");
     return grid;
   }
 
