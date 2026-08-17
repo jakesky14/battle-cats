@@ -3355,24 +3355,28 @@
 
   function buildBirdGrid() {
     const grid = makePxGrid();
-    // Literally "a basic cat sized head, with a basic cat face" per feedback: the exact same
-    // octagon + ears as the base Cat (byte-identical params), with the same pxFace, instead of
-    // an ellipse approximation with its own custom face - no legs, since Bird Cat floats.
-    pxOctagonBody(grid, 8.5, 28.5, 5.2, 27.3, 6.3, 6.3, "W");
+    // Literally "a basic cat sized head, with a basic cat face" per feedback: the same core
+    // head box (xL/xR/yT/yB) as the base Cat, so pxFace - whose eye/mouth coords all fall
+    // inside that core box - still lines up exactly. Only the chamfer (the flare that widens
+    // the octagon out to its full silhouette at mid-height) is narrowed, 6.3->3, which doesn't
+    // move the core box at all but frees real side margin at cheek height for the wings below
+    // to actually show up in, instead of the flare eating all of it. No legs, since Bird Cat
+    // floats.
+    pxOctagonBody(grid, 8.5, 28.5, 5.2, 27.3, 3, 6.3, "W");
     pxTriangle(grid, 5.4, 2, 9.4, 1.1, "W");
     pxTriangle(grid, 30.6, 2, 9.4, 1.1, "W");
-    // Two wings, one per side, each ~half the head's own radii (head rx~16.3/ry~11.05 -> wing
-    // rx8/ry6). The head's own width already nearly fills the 36-wide grid, so each wing sits
-    // entirely below the head's chin (y27.3), just barely tucking under it, rather than beside
-    // it at its widest point where there's almost no margin - and since the two wings don't
-    // need to meet in the middle (the gap between them is open background, not enclosed by
-    // anything above), there's no risk of the outline tracing a false "hole" between them.
-    pxEllipse(grid, 8, 32, 8, 6, "W");
-    pxEllipse(grid, 28, 32, 8, 6, "W");
+    // Wings at cheek height, to the sides (not below, per feedback) - mostly layered behind
+    // the head (still not much margin even with the narrower chamfer), so a seam line on each
+    // side marks the wing/head boundary explicitly, kept left/right of the eyes (x13-23) so it
+    // doesn't cross the face.
+    pxEllipse(grid, 4, 17, 5, 10, "W");
+    pxEllipse(grid, 32, 17, 5, 10, "W");
     pxOutline(grid, "K");
-    pxLine(grid, 3, 27, 9, 25, "K");
-    pxLine(grid, 33, 27, 27, 25, "K");
     pxFace(grid, 0);
+    pxLine(grid, 4, 8, 8, 13, "K");
+    pxLine(grid, 4, 22, 8, 26, "K");
+    pxLine(grid, 32, 8, 28, 13, "K");
+    pxLine(grid, 32, 22, 28, 26, "K");
     return grid;
   }
 
