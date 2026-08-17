@@ -3363,13 +3363,28 @@
     // to actually show up in, instead of the flare eating all of it. No legs, since Bird Cat
     // floats.
     pxOctagonBody(grid, 8.5, 28.5, 5.2, 27.3, 3, 6.3, "W");
+    const earMask = makePxGrid();
+    pxTriangle(earMask, 5.4, 2, 9.4, 1.1, "W");
+    pxTriangle(earMask, 30.6, 2, 9.4, 1.1, "W");
     pxTriangle(grid, 5.4, 2, 9.4, 1.1, "W");
     pxTriangle(grid, 30.6, 2, 9.4, 1.1, "W");
     // Wings pointing up and out, per the reference art: rooted near the ear base/shoulder and
     // swept up into the wide-open space above the head (nothing else occupies y0-9 besides the
-    // thin ear wedges), tapering to a point near the top corner - not drooping down.
-    pxTaper(grid, 9, 15, 10, 0, 1, 3, "W");
-    pxTaper(grid, 26, 15, 10, 35, 1, 3, "W");
+    // thin ear wedges), tapering to a point near the top corner - not drooping down. Sized big
+    // enough that they'd otherwise fuse solidly into the ears (both being plain white fill), so
+    // a 1-cell moat is carved around each ear right after, clearing any wing pixel adjacent to
+    // it - without that real gap, the automatic outline can't draw a boundary between two
+    // touching white shapes, and the ears would visually disappear into the wings.
+    pxTaper(grid, 9, 15, 14, 0, 1, 6, "W");
+    pxTaper(grid, 26, 15, 14, 35, 1, 6, "W");
+    const moatDeltas = [[0, 1], [0, -1], [1, 0], [-1, 0]];
+    for (let y = 0; y < PXH; y++) for (let x = 0; x < PXW; x++) {
+      if (earMask[y][x] || !grid[y][x]) continue;
+      if (moatDeltas.some(([dx, dy]) => {
+        const ny = y + dy, nx = x + dx;
+        return ny >= 0 && ny < PXH && nx >= 0 && nx < PXW && earMask[ny][nx];
+      })) grid[y][x] = null;
+    }
     pxOutline(grid, "K");
     pxFace(grid, 0);
     return grid;
