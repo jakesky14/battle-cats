@@ -1080,7 +1080,7 @@
     { id:"bird",   name:"Bird Cat",  emoji:"🐦", cost:975,  hp:750,  dmg:350, range:170*RANGE_SCALE, cycle:1.63, fore:0.33, tgt:"area",   speed:10*SPEED_SCALE, cd:2,    kb:4, trait:"Traitless", strongAgainst:[],      color:"#5fb0ff", sprite:"birdCat" },
     { id:"fish",   name:"Fish Cat",  emoji:"🐟", cost:1200, hp:1750, dmg:450, range:150*RANGE_SCALE, cycle:1.77, fore:0.33, tgt:"single", speed:10*SPEED_SCALE, cd:4.2,  kb:3, trait:"Traitless", strongAgainst:["Red"], color:"#4fd0d8", sprite:"fishCat" },
     { id:"lizard", name:"Lizard Cat",emoji:"🦎", cost:1500, hp:2000, dmg:875, range:400*RANGE_SCALE, cycle:4.30, fore:0.33, tgt:"single", speed:10*SPEED_SCALE, cd:10.2, kb:3, trait:"Traitless", strongAgainst:[],      color:"#8be06a", sprite:"lizardCat" },
-    { id:"titan",  name:"Titan Cat", emoji:"👹", cost:1950, hp:2500, dmg:700, range:150*RANGE_SCALE, cycle:2.23, fore:0.6,  tgt:"area",   speed:8*SPEED_SCALE,  cd:18.2, kb:1, trait:"Traitless", strongAgainst:[],      color:"#ff8c3b" },
+    { id:"titan",  name:"Titan Cat", emoji:"👹", cost:1950, hp:2500, dmg:700, range:150*RANGE_SCALE, cycle:2.23, fore:0.6,  tgt:"area",   speed:8*SPEED_SCALE,  cd:18.2, kb:1, trait:"Traitless", strongAgainst:[],      color:"#ff8c3b", sprite:"titanCat" },
   ];
 
   // Enemy roster.
@@ -1121,7 +1121,7 @@
     bird:   { name: "UFO Cat",        emoji: "🛸", cycle: 1.90, fore: 0.60, dmgMult: 494 / 420, sprite: "ufoCat" },
     fish:   { name: "Whale Cat",      emoji: "🐋", sprite: "whaleCat" },
     lizard: { name: "Dragon Cat",     emoji: "🐉", cycle: 4.23, fore: 0.27, sprite: "dragonCat" },
-    titan:  { name: "Mythical Titan", emoji: "🔱" },
+    titan:  { name: "Mythical Titan", emoji: "🔱", sprite: "mythicalTitanCat" },
   };
 
   // True (3rd) forms, unlocked at effective level 30 (lv20 cap + 10 catPlus). hp/dmg here are new
@@ -1139,7 +1139,8 @@
     fish:   { name: "Island Cat",     emoji: "🏝️", hp: 3500, dmg: 900, cd: 8.20, strongAgainst: ["Red"], sprite: "islandCat" },
     lizard: { name: "King Dragon Cat",emoji: "🦖", hp: 2250, dmg: 1000, cd: 16.87, sprite: "kingDragonCat" },
     titan:  { name: "Jamiera Cat",    emoji: "😈", hp: 5000, dmg: 1400, cd: 22.20,
-              strongAgainst: ["Red","Floating","Black","Angel","Alien","Zombie","Relic","Aku","White"] },
+              strongAgainst: ["Red","Floating","Black","Angel","Alien","Zombie","Relic","Aku","White"],
+              sprite: "jamieraCat" },
   };
   // Not implemented (need mechanics this game doesn't have yet, or never trigger against our
   // current enemy roster anyway): The Flying Cat's Angel-Weaken proc, Island Cat's 2% Critical
@@ -2840,7 +2841,7 @@
   // fall back to the existing rounded-rect + emoji rendering below.
   // ---------------------------------------------------------------------------
   const PXW = 36, PXH = 40; // sprite grid size, in cells (2x res for finer detail)
-  const PX_PALETTE = { W: "#ffffff", K: "#20201c", G: "#b0b0b0", S: "#d8d8de", M: "#ff2ee0", Y: "#e8c34a", O: "#e8791f" };
+  const PX_PALETTE = { W: "#ffffff", K: "#20201c", G: "#b0b0b0", S: "#d8d8de", M: "#ff2ee0", Y: "#e8c34a", O: "#e8791f", R: "#e0392b" };
 
   function makePxGrid() { return Array.from({ length: PXH }, () => Array(PXW).fill(null)); }
 
@@ -3496,15 +3497,16 @@
     pxTriangle(grid, 14, 9, 12, 1.8, "G");
     pxTaperH(grid, 5, 26, 10, 24, 26, 4, "W"); // white belly underside
     pxRect(grid, 2, 18, 15, 24, "W"); // bridge the mouth area into the body silhouette
+    pxQuadrupedLegs(grid, [8, 13, 19, 24]); // four legs, per the reference (was two stubs)
     pxOutline(grid, "K");
-    pxRect(grid, 8, 12, 9.5, 13.5, "K"); // eyes
-    pxRect(grid, 12, 12, 13.5, 13.5, "K");
+    pxRect(grid, 8, 13.5, 9.5, 15, "K"); // eyes, moved down slightly
+    pxRect(grid, 12, 13.5, 13.5, 15, "K");
+    pxRect(grid, 8.3, 13.8, 8.8, 14.3, "W"); // small white pupils
+    pxRect(grid, 12.3, 13.8, 12.8, 14.3, "W");
     pxRect(grid, 2, 18, 15, 24, "K"); // open mouth
     for (let x = 3; x < 15; x += 2) pxTriangle(grid, x, 18, 20.5, 1, "W");  // upper teeth
     for (let x = 3; x < 15; x += 2) pxTriangleV(grid, x, 24, 21.5, 1, "W"); // lower teeth
     pxOutline(grid, "K");
-    pxThickLine(grid, 11, 27, 10, 32, 1.8, "K"); // small stubby legs underneath
-    pxThickLine(grid, 17, 28, 17, 32, 1.8, "K");
     return grid;
   }
 
@@ -3684,6 +3686,120 @@
     return grid;
   }
 
+  // ---------------------------------------------------------------------------
+  // Titan Cat family: unlike every other cat, a humanoid figure (cat head on a long-limbed
+  // body) rather than a round chibi blob with legs sticking out - per reference art. All three
+  // forms share the same base pose/proportions (buildTitanoidBase), differing only in head
+  // style, skin texture, and (Jamiera) clothing. Deliberately sized within the same 36x40 grid
+  // and drawn with no heightScale multiplier (unlike the fake-tall stretch used for e.g. King
+  // Dragon Cat) - it just naturally reads taller than the round cats because the humanoid pose
+  // itself uses nearly the full grid height, not because it's artificially scaled up.
+  // ---------------------------------------------------------------------------
+  function buildTitanoidBase(grid, color) {
+    pxRect(grid, 16.5, 9, 19.5, 11.5, color); // neck
+    pxTaper(grid, 18, 10.5, 13, 18, 24, 8.5, color); // torso
+    pxTaper(grid, 11.5, 12, 4.2, 6, 28, 3, color); // left arm
+    pxTaper(grid, 24.5, 12, 4.2, 30, 28, 3, color); // right arm
+    pxEllipse(grid, 5.5, 30, 2.6, 3.2, color); // left hand
+    pxEllipse(grid, 30.5, 30, 2.6, 3.2, color); // right hand
+    pxTaper(grid, 15, 24, 5.5, 13, 37, 3.8, color); // left leg
+    pxTaper(grid, 21, 24, 5.5, 23, 37, 3.8, color); // right leg
+    pxEllipse(grid, 10.3, 38, 3.2, 1.8, color); // left foot
+    pxEllipse(grid, 25.7, 38, 3.2, 1.8, color); // right foot
+  }
+  // finger separations cut into the hands, and toe separations into the feet - drawn after the
+  // outline pass, so they read as linework on top rather than notches in the silhouette itself
+  function titanoidFingerNotches(grid) {
+    for (const [cx, cy] of [[5.5, 30], [30.5, 30]]) {
+      for (let i = -1; i <= 1; i++) pxThickLine(grid, cx + i * 1.4, cy + 0.5, cx + i * 1.4, cy + 3.5, 1, "K");
+    }
+    for (const [cx, cy] of [[10.3, 38], [25.7, 38]]) {
+      for (let i = -1; i <= 1; i++) pxThickLine(grid, cx + i * 1.6, cy - 0.5, cx + i * 1.6, cy + 1.5, 1, "K");
+    }
+  }
+  // collarbone/pec/ab linework - skipped for Jamiera, whose torso is covered by a shirt
+  function titanoidBodyLines(grid) {
+    pxLine(grid, 18, 18, 18, 20, "K"); // belly button
+    pxLine(grid, 14.5, 13, 16, 15, "K"); // collar/pec lines
+    pxLine(grid, 21.5, 13, 20, 15, "K");
+    pxLine(grid, 15.5, 20, 17, 22, "K"); // ab/waist lines
+    pxLine(grid, 20.5, 20, 19, 22, "K");
+  }
+  function titanoidFace(grid) {
+    pxRect(grid, 16.3, 5.5, 17, 6.2, "K"); // eyes
+    pxRect(grid, 19, 5.5, 19.7, 6.2, "K");
+    pxRect(grid, 17.65, 6.9, 18.35, 7.4, "K"); // nose
+    pxLine(grid, 16.9, 7.9, 18, 8.6, "K"); // mouth
+    pxLine(grid, 18, 8.6, 19.1, 7.9, "K");
+  }
+
+  function buildTitanGrid() {
+    const grid = makePxGrid();
+    buildTitanoidBase(grid, "W");
+    pxEllipse(grid, 18, 6, 4.3, 4, "W"); // cat head
+    pxTriangle(grid, 15.3, 0.5, 3.5, 1.2, "W");
+    pxTriangle(grid, 20.7, 0.5, 3.5, 1.2, "W");
+    pxOutline(grid, "K");
+    titanoidFace(grid);
+    titanoidBodyLines(grid);
+    titanoidFingerNotches(grid);
+    return grid;
+  }
+
+  function buildMythicalTitanGrid() {
+    const grid = makePxGrid();
+    buildTitanoidBase(grid, "W");
+    pxEllipse(grid, 18, 6, 4.3, 4, "K"); // black shadow-cat head
+    pxTriangle(grid, 15.3, 0.5, 3.5, 1.2, "K");
+    pxTriangle(grid, 20.7, 0.5, 3.5, 1.2, "K");
+    pxOutline(grid, "K");
+    pxRect(grid, 16.3, 5.3, 17, 6, "W"); // glowing eyes
+    pxRect(grid, 19, 5.3, 19.7, 6, "W");
+    pxLine(grid, 16.3, 7.5, 17.1, 8.3, "W"); // jagged open mouth
+    pxLine(grid, 17.1, 8.3, 17.9, 7.6, "W");
+    pxLine(grid, 17.9, 7.6, 18.7, 8.3, "W");
+    pxLine(grid, 18.7, 8.3, 19.5, 7.5, "W");
+    // black leopard-print spots across the shoulders/chest/upper arms
+    for (const [x, y, r] of [[13, 13, 1], [15, 11.5, 0.8], [23, 13, 1], [21, 11.5, 0.8],
+      [10.5, 17, 0.9], [25.5, 17, 0.9], [12, 21, 0.8], [24, 21, 0.8], [16, 17, 0.7], [20, 17, 0.7]]) {
+      pxEllipse(grid, x, y, r, r * 0.8, "K");
+    }
+    titanoidBodyLines(grid);
+    titanoidFingerNotches(grid);
+    return grid;
+  }
+
+  function buildJamieraGrid() {
+    const grid = makePxGrid();
+    buildTitanoidBase(grid, "W");
+    pxEllipse(grid, 18, 6, 4.3, 4, "W"); // cat head (normal, not the black Mythical Titan one)
+    pxTriangle(grid, 15.3, 0.5, 3.5, 1.2, "W");
+    pxTriangle(grid, 20.7, 0.5, 3.5, 1.2, "W");
+    pxOutline(grid, "K");
+    titanoidFace(grid);
+    // leopard-print cuffs on the forearms
+    for (const [x, y] of [[7.3, 23], [8.7, 24.5], [28.7, 23], [27.3, 24.5]]) pxEllipse(grid, x, y, 0.9, 0.7, "K");
+    // white T-shirt: same color as skin, so a hem + sleeve-edge seam carries the garment shape
+    pxLine(grid, 12, 22.5, 24, 22.5, "K");
+    pxLine(grid, 12.3, 12.6, 10.8, 14.2, "K");
+    pxLine(grid, 23.7, 12.6, 25.2, 14.2, "K");
+    // heart print
+    pxEllipse(grid, 16.7, 14.7, 1.3, 1.1, "R");
+    pxEllipse(grid, 19.3, 14.7, 1.3, 1.1, "R");
+    pxTriangleV(grid, 18, 17.3, 14.9, 2.7, "R");
+    // "I love mackerel" in hiragana below the heart - best-effort at 36px wide: full stroke
+    // counts for sa/ba just read as noise at this resolution, so simplified to each
+    // character's most distinctive strokes with a clear gap between them
+    pxLine(grid, 14, 19.3, 16.3, 19.3, "K"); // sa: top horizontal
+    pxLine(grid, 14.3, 20.5, 16.5, 22.2, "K"); // sa: diagonal sweep
+    pxLine(grid, 18.3, 19, 18.3, 22.3, "K"); // ba: vertical stroke
+    pxLine(grid, 18.3, 20.5, 20.3, 20.5, "K"); // ba: horizontal cross
+    pxRect(grid, 20.6, 18.5, 20.9, 18.8, "K"); // ba: dakuten marks
+    pxRect(grid, 21.1, 18.5, 21.4, 18.8, "K");
+    titanoidFingerNotches(grid);
+    return grid;
+  }
+
   // heightScale: per-sprite vertical stretch, anchored at the ground, so different units can
   // be taller/shorter than the base Cat without redesigning their whole coordinate grid - the
   // "scaling tool" for keeping cats' relative sizes right when reference art has no scale bar.
@@ -3722,6 +3838,9 @@
     axeCat: { grid: buildAxeGrid() },
     braveCat: { grid: buildBraveGrid() },
     darkCat: { grid: buildDarkGrid() },
+    titanCat: { grid: buildTitanGrid() },
+    mythicalTitanCat: { grid: buildMythicalTitanGrid() },
+    jamieraCat: { grid: buildJamieraGrid() },
   };
 
   // Renders a pixel-sprite grid onto a small standalone <canvas> icon (its own context, not
