@@ -3910,9 +3910,12 @@
     darkCat: { grid: buildDarkGrid() },
     // scale 3: per feedback, this family should stand ~3x as tall as the base Cat - a uniform
     // scale (not heightScale, which only stretches Y and would leave them looking thin/warped)
-    titanCat: { grid: buildTitanGrid(), scale: 3 },
-    mythicalTitanCat: { grid: buildMythicalTitanGrid(), scale: 3 },
-    jamieraCat: { grid: buildJamieraGrid(), scale: 3 },
+    // scale 2.2 (down from an initial 3, per feedback "a little too big" - limited so the new
+    // head-top height matches where the shoulders (row 10.5) used to sit at scale 3, out of the
+    // sprite's total height to its ear tips (row 0.5): 3 * (39-10.5)/(39-0.5) ~= 2.2
+    titanCat: { grid: buildTitanGrid(), scale: 2.2 },
+    mythicalTitanCat: { grid: buildMythicalTitanGrid(), scale: 2.2 },
+    jamieraCat: { grid: buildJamieraGrid(), scale: 2.2 },
   };
 
   // Renders a pixel-sprite grid onto a small standalone <canvas> icon (its own context, not
