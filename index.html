@@ -1110,22 +1110,22 @@
   // strongAgainst = enemy traits this unit deals 1.5x damage to, and takes 0.5x damage from.
   // kb = knockback count: gets knocked back after losing each 1/kb chunk of max HP (last one on death).
   const CATS = [
-    { id:"cat",    name:"Cat",       emoji:"🐱", cost:75,   hp:250,  dmg:20,  range:140*RANGE_SCALE, cycle:1.23, fore:0.27, tgt:"single", speed:8*SPEED_SCALE,  cd:2,    kb:3, trait:"Traitless", strongAgainst:[],      color:"#f4f4f4", sprite:"cat" },
-    { id:"tank",   name:"Tank Cat",  emoji:"🛡️", cost:150,  hp:1000, dmg:5,   range:110*RANGE_SCALE, cycle:2.23, fore:0.27, tgt:"area",   speed:8*SPEED_SCALE,  cd:2,    kb:1, trait:"Traitless", strongAgainst:[],      color:"#c9a26a", sprite:"tank" },
-    { id:"axe",    name:"Axe Cat",   emoji:"🪓", cost:300,  hp:500,  dmg:62,  range:150*RANGE_SCALE, cycle:0.90, fore:0.27, tgt:"single", speed:12*SPEED_SCALE, cd:2,    kb:3, trait:"Traitless", strongAgainst:["Red"], color:"#e06b4a", sprite:"axeCat" },
-    { id:"gross",  name:"Gross Cat", emoji:"🤢", cost:600,  hp:1000, dmg:250, range:350*RANGE_SCALE, cycle:4.23, fore:0.27, tgt:"single", speed:10*SPEED_SCALE, cd:2.2,  kb:3, trait:"Traitless", strongAgainst:[],      color:"#7cc36a", sprite:"grossCat" },
-    { id:"cow",    name:"Cow Cat",   emoji:"🐮", cost:750,  hp:1250, dmg:32,  range:140*RANGE_SCALE, cycle:0.33, fore:0.20, tgt:"single", speed:30*SPEED_SCALE, cd:2,    kb:5, trait:"Traitless", strongAgainst:[],      color:"#ffe0e0", sprite:"cowCat" },
-    { id:"bird",   name:"Bird Cat",  emoji:"🐦", cost:975,  hp:750,  dmg:350, range:170*RANGE_SCALE, cycle:1.63, fore:0.33, tgt:"area",   speed:10*SPEED_SCALE, cd:2,    kb:4, trait:"Traitless", strongAgainst:[],      color:"#5fb0ff", sprite:"birdCat" },
-    { id:"fish",   name:"Fish Cat",  emoji:"🐟", cost:1200, hp:1750, dmg:450, range:150*RANGE_SCALE, cycle:1.77, fore:0.33, tgt:"single", speed:10*SPEED_SCALE, cd:4.2,  kb:3, trait:"Traitless", strongAgainst:["Red"], color:"#4fd0d8", sprite:"fishCat" },
-    { id:"lizard", name:"Lizard Cat",emoji:"🦎", cost:1500, hp:2000, dmg:875, range:400*RANGE_SCALE, cycle:4.30, fore:0.33, tgt:"single", speed:10*SPEED_SCALE, cd:10.2, kb:3, trait:"Traitless", strongAgainst:[],      color:"#8be06a", sprite:"lizardCat" },
-    { id:"titan",  name:"Titan Cat", emoji:"👹", cost:1950, hp:2500, dmg:700, range:150*RANGE_SCALE, cycle:2.23, fore:0.6,  tgt:"area",   speed:8*SPEED_SCALE,  cd:18.2, kb:1, trait:"Traitless", strongAgainst:[],      color:"#ff8c3b", sprite:"titanCat" },
+    { id:"cat",    name:"Cat",       emoji:"🐱", cost:75,   hp:100,  dmg:8,   range:140*RANGE_SCALE, cycle:1.23, fore:0.27, tgt:"single", speed:10*SPEED_SCALE, cd:2,    kb:3, trait:"Traitless", strongAgainst:[],      color:"#f4f4f4", sprite:"cat" },
+    { id:"tank",   name:"Tank Cat",  emoji:"🛡️", cost:150,  hp:400,  dmg:2,   range:110*RANGE_SCALE, cycle:2.23, fore:0.27, tgt:"area",   speed:8*SPEED_SCALE,  cd:2,    kb:1, trait:"Traitless", strongAgainst:[],      color:"#c9a26a", sprite:"tank" },
+    { id:"axe",    name:"Axe Cat",   emoji:"🪓", cost:300,  hp:200,  dmg:25,  range:150*RANGE_SCALE, cycle:0.90, fore:0.27, tgt:"single", speed:12*SPEED_SCALE, cd:2,    kb:3, trait:"Traitless", strongAgainst:["Red"], color:"#e06b4a", sprite:"axeCat" },
+    { id:"gross",  name:"Gross Cat", emoji:"🤢", cost:600,  hp:400,  dmg:100, range:350*RANGE_SCALE, cycle:4.23, fore:0.27, tgt:"single", speed:10*SPEED_SCALE, cd:2.2,  kb:3, trait:"Traitless", strongAgainst:[],      color:"#7cc36a", sprite:"grossCat" },
+    { id:"cow",    name:"Cow Cat",   emoji:"🐮", cost:750,  hp:500,  dmg:13,  range:140*RANGE_SCALE, cycle:0.33, fore:0.20, tgt:"single", speed:30*SPEED_SCALE, cd:2,    kb:5, trait:"Traitless", strongAgainst:[],      color:"#ffe0e0", sprite:"cowCat" },
+    { id:"bird",   name:"Bird Cat",  emoji:"🐦", cost:975,  hp:300,  dmg:140, range:170*RANGE_SCALE, cycle:1.63, fore:0.33, tgt:"area",   speed:10*SPEED_SCALE, cd:2,    kb:4, trait:"Traitless", strongAgainst:[],      color:"#5fb0ff", sprite:"birdCat" },
+    { id:"fish",   name:"Fish Cat",  emoji:"🐟", cost:1200, hp:700,  dmg:180, range:150*RANGE_SCALE, cycle:1.77, fore:0.33, tgt:"single", speed:10*SPEED_SCALE, cd:4.2,  kb:3, trait:"Traitless", strongAgainst:["Red"], color:"#4fd0d8", sprite:"fishCat" },
+    { id:"lizard", name:"Lizard Cat",emoji:"🦎", cost:1500, hp:800,  dmg:350, range:400*RANGE_SCALE, cycle:4.30, fore:0.33, tgt:"single", speed:10*SPEED_SCALE, cd:10.2, kb:3, trait:"Traitless", strongAgainst:[],      color:"#8be06a", sprite:"lizardCat" },
+    { id:"titan",  name:"Titan Cat", emoji:"👹", cost:1950, hp:1000, dmg:280, range:150*RANGE_SCALE, cycle:2.23, fore:0.6,  tgt:"area",   speed:8*SPEED_SCALE,  cd:18.2, kb:1, trait:"Traitless", strongAgainst:[],      color:"#ff8c3b", sprite:"titanCat" },
     // Special Cat, found via the Cat Base door-handle secret (see doorSecretModal below) rather
     // than the normal Cat Capsule pool - excluded from CAPSULE_POOL for that reason. Its
-    // "against Black" trait is a real Freeze proc (see the freeze field + damageAmount/update
-    // below), even though no enemy in ENEMIES currently has the Black trait to trigger it against -
+    // "against Dark" trait is a real Freeze proc (see the freeze field + damageAmount/update
+    // below), even though no enemy in ENEMIES currently has the Dark trait to trigger it against -
     // matches how this file already keeps not-yet-relevant True Form procs on the books (see the
     // note above THIRD_EVOLUTIONS).
-    { id:"flower", name:"Flower Cat", emoji:"🌸", cost:510, hp:888, dmg:122, range:240*RANGE_SCALE, cycle:2.83, fore:0.40, tgt:"single", speed:16*SPEED_SCALE, cd:5.87, kb:5, trait:"Traitless", strongAgainst:[], rarity:"special", freeze:{ trait:"Black", chance:0.20, duration:2.0 }, color:"#ff9fd0", sprite:"flowerCat" },
+    { id:"flower", name:"Flower Cat", emoji:"🌸", cost:510, hp:150, dmg:20, range:240*RANGE_SCALE, cycle:2.77, fore:0.40, tgt:"single", speed:16*SPEED_SCALE, cd:5.87, kb:5, trait:"Traitless", strongAgainst:[], rarity:"special", freeze:{ trait:"Dark", chance:0.20, duration:2.0 }, color:"#ff9fd0", sprite:"flowerCat" },
   ];
 
   // Enemy roster.
@@ -1163,11 +1163,11 @@
     axe:    { name: "Brave Cat",      emoji: "🦸", sprite: "braveCat" },
     gross:  { name: "Sexy Legs Cat",  emoji: "🦵", cycle: 4.17, fore: 0.20, sprite: "sexyLegsCat" },
     cow:    { name: "Giraffe Cat",    emoji: "🦒", sprite: "giraffeCat" },
-    bird:   { name: "UFO Cat",        emoji: "🛸", cycle: 1.90, fore: 0.60, dmgMult: 494 / 420, sprite: "ufoCat" },
+    bird:   { name: "UFO Cat",        emoji: "🛸", cycle: 1.90, fore: 0.60, dmgMult: 165 / 140, sprite: "ufoCat" },
     fish:   { name: "Whale Cat",      emoji: "🐋", sprite: "whaleCat" },
     lizard: { name: "Dragon Cat",     emoji: "🐉", cycle: 4.23, fore: 0.27, sprite: "dragonCat" },
     titan:  { name: "Mythical Titan", emoji: "🔱", sprite: "mythicalTitanCat" },
-    flower: { name: "Cooldown Cat",   emoji: "⏱️", sprite: "cooldownCat" },
+    flower: { name: "Cooldown Cat",   emoji: "⏱️", cycle: 2.83, hpMult: 355 / 150, dmgMult: 49 / 20, sprite: "cooldownCat" },
   };
 
   // Special Cats (currently just Flower Cat -> Cooldown Cat) don't get a True Form here at all -
@@ -1181,21 +1181,25 @@
   // form already resolved to (confirmed against the data: e.g. Macho Leg Cat's cycle/fore match Sexy
   // Legs Cat's, not base Gross Cat's). cd and traits are fully replaced per the given data.
   const THIRD_EVOLUTIONS = {
-    cat:    { name: "Mohawk Cat",     emoji: "🤘", hp: 500,  dmg: 40, sprite: "mohawkCat" },
-    tank:   { name: "Eraser Cat",     emoji: "🪨", hp: 1500, dmg: 10, sprite: "eraserCat" },
-    axe:    { name: "Dark Cat",       emoji: "🌑", hp: 1000, dmg: 125, cd: 2.00, strongAgainst: ["Red"], sprite: "darkCat" },
-    gross:  { name: "Macho Leg Cat",  emoji: "🦿", hp: 2000, dmg: 500, cd: 7.53, strongAgainst: ["Alien"], sprite: "machoLegCat" },
-    cow:    { name: "Lion Cat",       emoji: "🦁", hp: 2500, dmg: 65,  cd: 4.20, sprite: "lionCat" },
-    bird:   { name: "The Flying Cat", emoji: "🦅", hp: 1500, dmg: 825, cd: 3.53, sprite: "flyingCat" },
-    fish:   { name: "Island Cat",     emoji: "🏝️", hp: 3500, dmg: 900, cd: 8.20, strongAgainst: ["Red"], sprite: "islandCat" },
-    lizard: { name: "King Dragon Cat",emoji: "🦖", hp: 2250, dmg: 1000, cd: 16.87, sprite: "kingDragonCat" },
-    titan:  { name: "Jamiera Cat",    emoji: "😈", hp: 5000, dmg: 1400, cd: 22.20,
-              strongAgainst: ["Red","Floating","Black","Angel","Alien","Zombie","Relic","Aku","White"],
+    cat:    { name: "Mohawk Cat",     emoji: "🤘", hp: 200,  dmg: 16, sprite: "mohawkCat" },
+    tank:   { name: "Eraser Cat",     emoji: "🪨", hp: 600,  dmg: 4, sprite: "eraserCat" },
+    axe:    { name: "Dark Cat",       emoji: "🌑", hp: 400,  dmg: 50, cd: 2.00, strongAgainst: ["Red"], sprite: "darkCat" },
+    gross:  { name: "Macho Leg Cat",  emoji: "🦿", hp: 800,  dmg: 200, cd: 7.53, strongAgainst: ["Alien"], sprite: "machoLegCat" },
+    cow:    { name: "Lion Cat",       emoji: "🦁", hp: 1000, dmg: 26,  cd: 4.20, sprite: "lionCat" },
+    bird:   { name: "The Flying Cat", emoji: "🦅", hp: 600,  dmg: 330, cd: 3.53, sprite: "flyingCat" },
+    // crit: a chance-based mult x damage hit, with its own "clang" sound cue - see rollCrit below.
+    fish:   { name: "Island Cat",     emoji: "🏝️", hp: 1400, dmg: 367, cd: 8.20, strongAgainst: ["Red"],
+              crit: { chance: 0.02, mult: 3 }, sprite: "islandCat" },
+    lizard: { name: "King Dragon Cat",emoji: "🦖", hp: 900,  dmg: 400, cd: 16.87, sprite: "kingDragonCat" },
+    // knockbackProc: a chance, on each hit against a Strong-Against trait, to force a knockback
+    // outside the normal kb-threshold system - see applyKnockbackProc below.
+    titan:  { name: "Jamiera Cat",    emoji: "😈", hp: 2000, dmg: 560, cd: 22.20,
+              strongAgainst: ["Red","Floating","Dark","Traitless","Angel","Alien","Zombie","Relic","Aku"],
+              knockbackProc: { chance: 0.30 },
               sprite: "jamieraCat" },
   };
-  // Not implemented (need mechanics this game doesn't have yet, or never trigger against our
-  // current enemy roster anyway): The Flying Cat's Angel-Weaken proc, Island Cat's 2% Critical
-  // chance, Jamiera Cat's 30% enemy-knockback-on-hit proc.
+  // Not implemented (needs mechanics this game doesn't have yet): The Flying Cat's Angel-Weaken
+  // proc - no Angel trait or weaken status exists in this game.
 
   function evolvedForm(c, lvl, plus) {
     plus = plus || 0;
@@ -1208,6 +1212,7 @@
         emoji: evo.emoji,
         cycle: evo.cycle !== undefined ? evo.cycle : form.cycle,
         fore: evo.fore !== undefined ? evo.fore : form.fore,
+        hp: evo.hpMult ? form.hp * evo.hpMult : form.hp,
         dmg: evo.dmgMult ? form.dmg * evo.dmgMult : form.dmg,
         sprite: evo.sprite !== undefined ? evo.sprite : form.sprite,
       };
@@ -1222,6 +1227,8 @@
         dmg: evo3.dmg,
         cd: evo3.cd !== undefined ? evo3.cd : form.cd,
         strongAgainst: evo3.strongAgainst !== undefined ? evo3.strongAgainst : form.strongAgainst,
+        crit: evo3.crit !== undefined ? evo3.crit : form.crit,
+        knockbackProc: evo3.knockbackProc !== undefined ? evo3.knockbackProc : form.knockbackProc,
         sprite: evo3.sprite !== undefined ? evo3.sprite : form.sprite,
       };
     }
@@ -2762,6 +2769,25 @@
     defender.frozenUntil = Math.max(defender.frozenUntil || 0, G.time + fz.duration);
   }
 
+  // Critical hit: an attacker with a def.crit ({chance, mult}) has a chance for a landed hit to
+  // deal mult x its normal damage instead - paired with a "clang" sound cue (see playClang).
+  function rollCrit(attacker) {
+    const crit = attacker.def.crit;
+    return !!crit && Math.random() < crit.chance;
+  }
+
+  // Knockback proc: an attacker with a def.knockbackProc ({chance}) has a chance, on each hit
+  // against a defender whose trait it's Strong Against, to force a knockback outside the normal
+  // kb-threshold system (applyKnockback above) - same idea as Sniper the Cat's unconditional
+  // knockback, but chance-based and gated to the attacker's own Strong Against list.
+  function applyKnockbackProc(attacker, defender) {
+    const kp = attacker.def.knockbackProc;
+    if (!kp || !defender.def) return;
+    const strong = attacker.def.strongAgainst || [];
+    if (!strong.includes(defender.def.trait)) return;
+    if (Math.random() < kp.chance) knockbackPush(defender);
+  }
+
   function update(dt) {
     G.time += dt;
 
@@ -2837,10 +2863,13 @@
             ? targets
             : [targets.reduce((a, b) => Math.abs(a.x - u.x) <= Math.abs(b.x - u.x) ? a : b)];
           for (const t of hits) {
-            t.hp -= damageAmount(u, t);
+            let dmg = damageAmount(u, t);
+            if (rollCrit(u)) { dmg *= u.def.crit.mult; playClang(); }
+            t.hp -= dmg;
             t.flash = 0.12;
             applyKnockback(t);
             applyFreezeProc(u, t);
+            applyKnockbackProc(u, t);
           }
           G.fx.push({ x: (u.x + hits[0].x) / 2, y: 0, life: 0.25, t: u.team });
         }
@@ -4211,6 +4240,35 @@
       osc.start(t0);
       osc.stop(t0 + 0.34);
     } catch (e) { /* Web Audio unavailable - fail silently, the click still registers */ }
+  }
+  // Metallic "clang" cue for critical hits (Island Cat's crit proc) - two detuned square waves
+  // through a highpass filter for a tinny/metal impact, with a very short percussive decay.
+  function playClang() {
+    try {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === "suspended") audioCtx.resume();
+      const t0 = audioCtx.currentTime;
+      const osc1 = audioCtx.createOscillator();
+      const osc2 = audioCtx.createOscillator();
+      const filter = audioCtx.createBiquadFilter();
+      const gain = audioCtx.createGain();
+      osc1.type = "square";
+      osc1.frequency.setValueAtTime(1400, t0);
+      osc2.type = "square";
+      osc2.frequency.setValueAtTime(1850, t0);
+      filter.type = "highpass";
+      filter.frequency.value = 900;
+      gain.gain.setValueAtTime(0.22, t0);
+      gain.gain.exponentialRampToValueAtTime(0.001, t0 + 0.22);
+      osc1.connect(filter);
+      osc2.connect(filter);
+      filter.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc1.start(t0);
+      osc2.start(t0);
+      osc1.stop(t0 + 0.22);
+      osc2.stop(t0 + 0.22);
+    } catch (e) { /* Web Audio unavailable - fail silently */ }
   }
   const doorSecretModal = document.getElementById("doorSecretModal");
   const doorSecretDesc = document.getElementById("doorSecretDesc");
