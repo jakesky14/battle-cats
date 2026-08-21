@@ -611,6 +611,11 @@
   }
   .restart-btn { background: #b3322f; }
   .test-btn:disabled { filter: grayscale(.6) brightness(.7); cursor: not-allowed; }
+  .test-hour-group { display: flex; gap: 4px; }
+  .test-hour-input {
+    width: 44px; border-radius: 6px; border: none; padding: 0 6px;
+    font-weight: 700; font-size: 12px; text-align: center;
+  }
 
   .daily-modal {
     position: absolute; inset: 0;
@@ -899,6 +904,10 @@
   <div class="xp-display">XP <span id="upgradeXpAmt">0</span></div>
   <div class="test-row hidden" id="testRow">
     <button class="test-btn" id="testPlusBtn">TEST: +1 PLUS LEVEL</button>
+    <span class="test-hour-group">
+      <input type="number" class="test-hour-input" id="testHourInput" min="1" max="24" value="24" title="1:00 - 24:00, 24:00 = midnight">
+      <button class="test-btn" id="testMidnightBtn">TEST: CHECK MIDNIGHT UNLOCK</button>
+    </span>
     <button class="test-btn restart-btn" id="restartGameBtn">RESTART GAME</button>
   </div>
   <div class="cat-strip" id="catStrip"></div>
@@ -1129,6 +1138,13 @@
     // Special Cat, found by winning any stage having deployed only 1 unit the whole battle (see
     // deployCount + the unlock check in endGame) - also excluded from CAPSULE_POOL. No True Form.
     { id:"capsule", name:"Capsule Cat", emoji:"🎰", cost:666, hp:1, dmg:300, range:140*RANGE_SCALE, cycle:7.40, fore:0.07, tgt:"single", speed:70*SPEED_SCALE, cd:11.20, kb:1, trait:"Traitless", strongAgainst:[], rarity:"special", color:"#f2f2f2", sprite:"capsuleCat" },
+    // Special Cat, found by launching the game at midnight local time (see checkMidnightUnlock).
+    // Evolves into Luchador Cat, whose cost/range/kb/tgt all differ from the 1st form - the only
+    // cat where that's true, which is why evolvedForm() now supports overriding those fields.
+    { id:"masked", name:"Masked Cat", emoji:"🐱", cost:75, hp:100, dmg:8, range:140*RANGE_SCALE, cycle:1.23, fore:0.27, tgt:"single", speed:10*SPEED_SCALE, cd:2, kb:3, trait:"Traitless", strongAgainst:[], rarity:"special", color:"#20201c", sprite:"maskedCat" },
+    // Special Cat, found by rolling the Cat Capsule 30+ times total (see capsuleRollCount) and
+    // then clearing any stage. Evolves into Vendor Cat with the same lv1 stats (name/sprite only).
+    { id:"toyMachine", name:"Toy Machine Cat", emoji:"🎁", cost:150, hp:450, dmg:10, range:110*RANGE_SCALE, cycle:2.27, fore:0.30, tgt:"area", speed:8*SPEED_SCALE, cd:2, kb:1, trait:"Traitless", strongAgainst:[], rarity:"special", color:"#f2f2f2", sprite:"toyMachineCat" },
   ];
 
   // Enemy roster.
@@ -1154,7 +1170,11 @@
 
   const XP_PER_WIN = 1000;
   const catLevelMult = lv => 1 + 0.2 * (lv - 1);        // +20% of base HP/DMG per level
-  const CAT_LEVEL_MAX = 20;
+  // Level cap is 10 until Empire of Cats Chapter 2 (not built yet) raises it to 20 - per the
+  // real leveling rules the user gave. Normal cats also cap at +19 bonus levels (see
+  // catPlusMax below); Special Cats have no + cap. With today's 10+19=29 ceiling, no normal cat
+  // can reach EVOLVE3_LEVEL (30) yet - True Forms only become reachable once Chapter 2 lands.
+  const CAT_LEVEL_MAX = 10;
   const EVOLVE_LEVEL = 10;
   const EVOLVE3_LEVEL = 30;  // effective level (catLevel + catPlus) needed for the True Form
 
@@ -1172,6 +1192,9 @@
     titan:  { name: "Mythical Titan", emoji: "🔱", sprite: "mythicalTitanCat" },
     flower: { name: "Cooldown Cat",   emoji: "⏱️", cycle: 2.83, hpMult: 355 / 150, dmgMult: 49 / 20, sprite: "cooldownCat" },
     capsule: { name: "Cramped Cats",  emoji: "🎱", sprite: "crampedCats" },
+    masked: { name: "Luchador Cat", emoji: "🤼", cycle: 2.23, fore: 0.60, hpMult: 500 / 100, dmgMult: 140 / 8,
+              cost: 975, range: 150 * RANGE_SCALE, kb: 1, tgt: "area", sprite: "luchadorCat" },
+    toyMachine: { name: "Vendor Cat", emoji: "🥤", sprite: "vendorCat" },
   };
 
   // Special Cats don't get a True Form here at all. Flower Cat's real unlock condition for one is
@@ -1218,6 +1241,10 @@
         fore: evo.fore !== undefined ? evo.fore : form.fore,
         hp: evo.hpMult ? form.hp * evo.hpMult : form.hp,
         dmg: evo.dmgMult ? form.dmg * evo.dmgMult : form.dmg,
+        cost: evo.cost !== undefined ? evo.cost : form.cost,
+        range: evo.range !== undefined ? evo.range : form.range,
+        kb: evo.kb !== undefined ? evo.kb : form.kb,
+        tgt: evo.tgt !== undefined ? evo.tgt : form.tgt,
         sprite: evo.sprite !== undefined ? evo.sprite : form.sprite,
       };
     }
@@ -1230,6 +1257,10 @@
         hp: evo3.hp,
         dmg: evo3.dmg,
         cd: evo3.cd !== undefined ? evo3.cd : form.cd,
+        cost: evo3.cost !== undefined ? evo3.cost : form.cost,
+        range: evo3.range !== undefined ? evo3.range : form.range,
+        kb: evo3.kb !== undefined ? evo3.kb : form.kb,
+        tgt: evo3.tgt !== undefined ? evo3.tgt : form.tgt,
         strongAgainst: evo3.strongAgainst !== undefined ? evo3.strongAgainst : form.strongAgainst,
         crit: evo3.crit !== undefined ? evo3.crit : form.crit,
         knockbackProc: evo3.knockbackProc !== undefined ? evo3.knockbackProc : form.knockbackProc,
@@ -1339,6 +1370,16 @@
              21:7500,22:9000,23:11700,24:15300,25:19800,26:25200,27:31500,28:38700,29:46800,30:55800,
              31:8750,32:10500,33:13650,34:17850,35:23100,36:29400,37:36750,38:45150,39:54600,40:65100,
              41:10000,42:12000,43:15600,44:20400,45:26400,46:33600,47:42000,48:51600,49:62400,50:74400},
+    masked: {2:500,3:1400,4:2600,5:4100,6:5900,7:8000,8:10400,9:13100,10:16100,
+             11:600,12:1000,13:2800,14:5200,15:8200,16:11800,17:16000,18:20800,19:26200,20:32200,
+             21:900,22:1500,23:4200,24:7800,25:12300,26:17700,27:24000,28:31200,29:39300,30:48300,
+             31:1050,32:1750,33:4900,34:9100,35:14350,36:20650,37:28000,38:36400,39:45850,40:56350,
+             41:1200,42:2000,43:5600,44:10400,45:16400,46:23600,47:32000,48:41600,49:52400,50:64400},
+    toyMachine: {2:2500,3:4000,4:6000,5:8500,6:11500,7:15000,8:19000,9:23500,10:28500,
+             11:2600,12:5000,13:8000,14:12000,15:17000,16:23000,17:30000,18:38000,19:47000,20:57000,
+             21:3900,22:7500,23:12000,24:18000,25:25500,26:34500,27:45000,28:57000,29:70500,30:85500,
+             31:4550,32:8750,33:14000,34:21000,35:29750,36:40250,37:52500,38:66500,39:82250,40:99750,
+             41:5200,42:10000,43:16000,44:24000,45:34000,46:46000,47:60000,48:76000,49:94000,50:114000},
   };
   // Secret Special Cats only show up in cat-selection lists (Upgrade, Equip) once found via
   // their own unlock condition - everything else in CATS has always just been freely available.
@@ -1346,8 +1387,25 @@
     return CATS.filter(c => {
       if (c.id === "flower") return profile.flowerCatUnlocked;
       if (c.id === "capsule") return profile.capsuleCatUnlocked;
+      if (c.id === "masked") return profile.maskedCatUnlocked;
+      if (c.id === "toyMachine") return profile.toyMachineCatUnlocked;
       return true;
     });
+  }
+  // Masked Cat's unlock: launching the game while it's the midnight hour, local time. hour is a
+  // real JS Date.getHours() value (0-23, where 0 = the midnight-to-1am hour) - the test control
+  // below labels that same hour "24:00" instead of "0:00", matching how the user wants to enter
+  // it, so it converts 24 -> 0 before calling this.
+  // Normal cats cap at +19 bonus levels; Special Cats (rarity:"special") have no + cap at all.
+  function catPlusMax(id) {
+    const c = CATS.find(c => c.id === id);
+    return c && c.rarity === "special" ? Infinity : 19;
+  }
+  function checkMidnightUnlock(hour) {
+    if (hour !== 0 || profile.maskedCatUnlocked) return false;
+    profile.maskedCatUnlocked = true;
+    saveProfile();
+    return true;
   }
   function catXpCost(id, lvl) {
     if (lvl >= CAT_LEVEL_MAX) return undefined;
@@ -1391,6 +1449,9 @@
     catFood: 0,    // +10 per stage win; spendable in the Store
     flowerCatUnlocked: false, // Special Cat found via the Cat Base door-handle secret (100 clicks, <=2s apart)
     capsuleCatUnlocked: false, // Special Cat found by clearing any stage having deployed only 1 unit
+    maskedCatUnlocked: false, // Special Cat found by launching the game during the midnight hour, local time
+    toyMachineCatUnlocked: false, // Special Cat found by rolling the Cat Capsule 30+ times, then clearing a stage
+    capsuleRollCount: 0, // lifetime Cat Capsule rolls - Toy Machine Cat's unlock threshold is 30
     items: { speedUp: 0, treasureRadar: 0, richCat: 0, sniperCat: 0, catCPU: 0, catJobs: 0, leadership: 0 },
     pendingDailyItem: null, // rolled once when a daily reward becomes available, granted on claim
     gamatoto: {
@@ -1409,6 +1470,7 @@
     if (!profile.testMode) return;
     profile.xp = TEST_RESOURCE_AMOUNT;
     TEST_INFINITE_ITEMS.forEach(key => { profile.items[key] = TEST_RESOURCE_AMOUNT; });
+    profile.tickets = Math.max(profile.tickets, 10); // always enough for a 10x Cat Capsule roll
   }
 
   const SAVE_KEY = "battleCatsProfile";
@@ -1438,6 +1500,9 @@
     if (typeof saved.catFood === "number") profile.catFood = saved.catFood;
     if (typeof saved.flowerCatUnlocked === "boolean") profile.flowerCatUnlocked = saved.flowerCatUnlocked;
     if (typeof saved.capsuleCatUnlocked === "boolean") profile.capsuleCatUnlocked = saved.capsuleCatUnlocked;
+    if (typeof saved.maskedCatUnlocked === "boolean") profile.maskedCatUnlocked = saved.maskedCatUnlocked;
+    if (typeof saved.toyMachineCatUnlocked === "boolean") profile.toyMachineCatUnlocked = saved.toyMachineCatUnlocked;
+    if (typeof saved.capsuleRollCount === "number") profile.capsuleRollCount = saved.capsuleRollCount;
     if (saved.items) Object.assign(profile.items, saved.items);
     if (saved.pendingDailyItem === null || typeof saved.pendingDailyItem === "string") {
       profile.pendingDailyItem = saved.pendingDailyItem;
@@ -1445,7 +1510,8 @@
     if (saved.gamatoto) Object.assign(profile.gamatoto, saved.gamatoto);
   }
 
-  const META_MAX = 20;
+  // Same level-10-until-Chapter-2 rule as CAT_LEVEL_MAX above, applies to all base upgrades.
+  const META_MAX = 10;
   const metaMax = key => key === "cannonRange" ? 10 : META_MAX;
   const metaCost = lv => 400 * lv; // XP cost to reach lv+1 (uniform placeholder across all 10 stats)
   const META_LIST = [
@@ -1587,7 +1653,7 @@
         `<div class="key">${keyLabel}</div>` +
         `<div class="emoji">${form.emoji}</div>` +
         `<div class="name">${form.name}</div>` +
-        `<div class="cost">¢${c.cost}</div>` +
+        `<div class="cost">¢${form.cost}</div>` +
         `<div class="cool" style="height:0%"></div>`;
       el.addEventListener("click", () => deploy(i));
       dock.appendChild(el);
@@ -1602,12 +1668,12 @@
     if (!G.running || G.over) return;
     const c = roster[i];
     if (!c) return;
-    if (G.cooldowns[i] > 0 || G.money < c.cost) return;
-    G.money -= c.cost;
-    G.deployCount++;
     const lvl = profile.catLevels[c.id] || 1;
     const plus = profile.catPlus[c.id] || 0;
     const form = evolvedFormWithOverride(c, lvl, plus, profile.catForm[c.id]);
+    if (G.cooldowns[i] > 0 || G.money < form.cost) return;
+    G.money -= form.cost;
+    G.deployCount++;
     G.cooldowns[i] = Math.max(2, form.cd - cdReduction());
     G.cooldownMax[i] = G.cooldowns[i]; // actual full duration for this deploy (post-floor/reduction), for the dock bar
     const mult = catLevelMult(lvl + plus);
@@ -2266,10 +2332,27 @@
   const testPlusBtn = document.getElementById("testPlusBtn");
   testPlusBtn.addEventListener("click", () => {
     if (!profile.testMode) return;
-    profile.catPlus[selectedUpgradeCat] = (profile.catPlus[selectedUpgradeCat] || 0) + 1;
+    const current = profile.catPlus[selectedUpgradeCat] || 0;
+    if (current >= catPlusMax(selectedUpgradeCat)) return;
+    profile.catPlus[selectedUpgradeCat] = current + 1;
     profile.userRank = (profile.userRank || 0) + 1; // matches the real Cat Capsule +1 reward's effect
     saveProfile();
     renderUpgradeScreen();
+  });
+
+  const testHourInput = document.getElementById("testHourInput");
+  document.getElementById("testMidnightBtn").addEventListener("click", () => {
+    if (!profile.testMode) return;
+    const hour = Math.min(24, Math.max(1, parseInt(testHourInput.value, 10) || 24));
+    const jsHour = hour === 24 ? 0 : hour;
+    if (profile.maskedCatUnlocked) {
+      alert("Masked Cat is already unlocked.");
+    } else if (checkMidnightUnlock(jsHour)) {
+      alert("🌙 It's midnight! Masked Cat joins your roster!");
+      renderUpgradeScreen();
+    } else {
+      alert(`${hour}:00 isn't midnight - Masked Cat needs 24:00.`);
+    }
   });
 
   document.getElementById("restartGameBtn").addEventListener("click", () => {
@@ -2362,7 +2445,7 @@
       const el = document.createElement("div");
       const equippedSlot = profile.equip.indexOf(c.id);
       el.className = "grid-item" + (equippedSlot !== -1 ? " equipped" : "") + (c.rarity === "special" ? " special" : "");
-      el.innerHTML = `<div class="emoji">${form.emoji}</div><div class="name">${form.name}</div><div class="cost">¢${c.cost}</div>` +
+      el.innerHTML = `<div class="emoji">${form.emoji}</div><div class="name">${form.name}</div><div class="cost">¢${form.cost}</div>` +
         `<button class="form-btn" ${unlocked === 0 ? "disabled" : ""} title="${unlocked === 0 ? "No other forms unlocked yet" : "Switch form (now: " + FORM_TIER_NAMES[tier] + ")"}">⇄</button>`;
       el.addEventListener("click", () => {
         const currentSlot = profile.equip.indexOf(c.id);
@@ -2376,7 +2459,7 @@
         equipDetailRarity.classList.toggle("special", c.rarity === "special");
         equipDetailName.textContent = form.name;
         equipDetailLevel.textContent = "Level " + lvl + (plus > 0 ? " +" + plus : "") + " · " + FORM_TIER_NAMES[tier];
-        equipDetailCost.textContent = "Cost ¢" + c.cost;
+        equipDetailCost.textContent = "Cost ¢" + form.cost;
         saveProfile();
         renderEquipScreen();
       });
@@ -2575,7 +2658,8 @@
     if (reward.type === "orb") {
       profile.metaPlus[reward.key] = (profile.metaPlus[reward.key] || 0) + 1;
     } else {
-      profile.catPlus[reward.id] = (profile.catPlus[reward.id] || 0) + 1;
+      const current = profile.catPlus[reward.id] || 0;
+      if (current < catPlusMax(reward.id)) profile.catPlus[reward.id] = current + 1;
     }
     profile.userRank = (profile.userRank || 0) + 1;
     saveProfile();
@@ -2638,6 +2722,7 @@
     if (profile.tickets <= 0) return;
     const count = profile.tickets;
     profile.tickets = 0;
+    profile.capsuleRollCount = (profile.capsuleRollCount || 0) + count;
     pullQueue = Array.from({ length: count }, rollCapsule);
     saveProfile();
     capsuleRollBtn.disabled = true;
@@ -2725,6 +2810,11 @@
       if (G.deployCount === 1 && !profile.capsuleCatUnlocked) {
         profile.capsuleCatUnlocked = true;
         capsuleUnlockMsg = " Cleared with just one unit sent out — Capsule Cat joins your roster! 🎰";
+      }
+      // Toy Machine Cat's unlock: roll the Cat Capsule 30+ times total, then clear any stage.
+      if ((profile.capsuleRollCount || 0) >= 30 && !profile.toyMachineCatUnlocked) {
+        profile.toyMachineCatUnlocked = true;
+        capsuleUnlockMsg += " Toy Machine Cat joins your roster! 🎁";
       }
     }
     saveProfile();
@@ -2851,7 +2941,9 @@
     if (G.activeItems.catCPU) {
       if (G.cannonGauge >= cannonGaugeTime()) fireCannon();
       for (let i = 0; i < roster.length; i++) {
-        if (G.cooldowns[i] <= 0 && G.money >= roster[i].cost) { deploy(i); break; }
+        const c = roster[i];
+        const cost = evolvedFormWithOverride(c, profile.catLevels[c.id] || 1, profile.catPlus[c.id] || 0, profile.catForm[c.id]).cost;
+        if (G.cooldowns[i] <= 0 && G.money >= cost) { deploy(i); break; }
       }
     }
 
@@ -3245,10 +3337,11 @@
   // this body to leave margin for held weapons, but that made the head noticeably smaller
   // than a normal cat). Weapons now overlap the body's own silhouette instead of sitting
   // beside it in a margin, since there's no longer much margin to spare.
-  function buildRoundBody(grid) {
-    pxOctagonBody(grid, 8.5, 28.5, 5.2, 27.3, 6.3, 6.3, "W");
-    pxTriangle(grid, 5.4, 2, 9.4, 1.1, "W");
-    pxTriangle(grid, 30.6, 2, 9.4, 1.1, "W");
+  function buildRoundBody(grid, color) {
+    color = color || "W";
+    pxOctagonBody(grid, 8.5, 28.5, 5.2, 27.3, 6.3, 6.3, color);
+    pxTriangle(grid, 5.4, 2, 9.4, 1.1, color);
+    pxTriangle(grid, 30.6, 2, 9.4, 1.1, color);
   }
 
   function buildAxeGrid() {
@@ -4205,6 +4298,88 @@
     return grid;
   }
 
+  // Masked Cat family: per the user, these "appear as a Cat and Titan Cat in a costume" - so
+  // both reuse an existing body (buildRoundBody, buildTitanoidBase+titanoidHead) recolored black,
+  // with a white luchador-mask patch over the eyes (the same two-pass outline trick used
+  // elsewhere: outline the black body/head first, then add the white patch and outline again so
+  // it gets its own seam instead of fusing into the surrounding black).
+  function buildMaskedGrid() {
+    const grid = makePxGrid();
+    buildRoundBody(grid, "K");
+    pxOutline(grid, "K");
+    pxEllipse(grid, 18, 15, 6.2, 5, "W");
+    pxOutline(grid, "K");
+    pxLine(grid, 14, 13.3, 16, 14.5, "K"); // squinting eyes
+    pxLine(grid, 20, 14.5, 22, 13.3, "K");
+    pxLine(grid, 15.5, 18, 18, 19.8, "K"); // small closed-mouth smile
+    pxLine(grid, 18, 19.8, 20.5, 18, "K");
+    return grid;
+  }
+
+  function buildLuchadorGrid() {
+    const grid = makePxGrid();
+    buildTitanoidBase(grid, "W"); // bare wrestler body
+    titanoidHead(grid, "K"); // black cat head
+    pxTriangle(grid, 15.3, 0.5, 3.5, 1.2, "K");
+    pxTriangle(grid, 20.7, 0.5, 3.5, 1.2, "K");
+    pxOutline(grid, "K");
+    pxEllipse(grid, 18, 7, 2.7, 2.3, "W"); // luchador mask patch
+    pxOutline(grid, "K");
+    pxLine(grid, 16.2, 6.2, 17, 6.8, "K"); // squinting eyes
+    pxLine(grid, 19, 6.8, 19.8, 6.2, "K");
+    pxLine(grid, 17, 8.4, 18, 9, "K"); // small mouth
+    pxLine(grid, 18, 9, 19, 8.4, "K");
+    titanoidBodyLines(grid);
+    pxRect(grid, 14.3, 21, 21.7, 25, "K"); // wrestling trunks
+    pxOutline(grid, "K");
+    titanoidFingerNotches(grid);
+    return grid;
+  }
+
+  // Toy Machine Cat family: a boxy vending/capsule machine with a cat peeking out of a clear
+  // dome up top, a blinking light, and a front dial - the "no" slash on Toy Machine Cat becomes
+  // a drink can on Vendor Cat, whose casing is also taller (see the heightScale on its
+  // PIXEL_SPRITES entry), matching the reference art's size jump between the two.
+  // Every pxOutline() call re-outlines the WHOLE current silhouette, not just whatever was most
+  // recently added - each call adds another 1-cell ring to the entire shape, so stacking too
+  // many calls creeps the black ring outward until it swallows most of the grid. Keeping this to
+  // one outline call per real "new piece added" (matching the count every other multi-part
+  // sprite in this file uses) avoids that runaway growth.
+  function buildToyMachineBodyOnto(grid) {
+    pxRect(grid, 6, 18, 30, 33, "W"); // main casing
+    pxRect(grid, 8, 12, 28, 18, "S"); // clear dome housing
+    pxEllipse(grid, 18, 13, 6, 5, "W"); // cat head peeking through the dome
+    pxTriangle(grid, 14, 6, 8, 1.2, "W");
+    pxTriangle(grid, 22, 6, 8, 1.2, "W");
+    pxEllipse(grid, 10, 15, 1.2, 0.9, "R"); // blinking indicator light
+    pxRect(grid, 9, 32, 12, 35, "S"); // feet
+    pxRect(grid, 24, 32, 27, 35, "S");
+    pxOutline(grid, "K");
+    pxEllipse(grid, 15.3, 12.3, 0.8, 1, "K"); // cat eyes
+    pxEllipse(grid, 20.7, 12.3, 0.8, 1, "K");
+    pxLine(grid, 17, 14.8, 18, 15.6, "K"); // cat mouth
+    pxLine(grid, 18, 15.6, 19, 14.8, "K");
+  }
+  function buildToyMachineGrid() {
+    const grid = makePxGrid();
+    buildToyMachineBodyOnto(grid);
+    pxEllipse(grid, 18, 26.5, 4, 4, "S"); // front dial
+    pxEllipse(grid, 18, 26.5, 3, 3, "W");
+    pxOutline(grid, "K");
+    pxLine(grid, 15.5, 24, 20.5, 29, "R"); // "no" slash
+    return grid;
+  }
+  function buildVendorGrid() {
+    const grid = makePxGrid();
+    buildToyMachineBodyOnto(grid);
+    pxEllipse(grid, 18, 26.5, 4, 4, "S"); // front dial window
+    pxEllipse(grid, 18, 26.5, 3, 3, "B");
+    pxOutline(grid, "K");
+    pxRect(grid, 16.7, 24.5, 19.3, 28.5, "W"); // drink can
+    pxLine(grid, 16.7, 26, 19.3, 26, "R");
+    return grid;
+  }
+
   // heightScale: per-sprite vertical stretch, anchored at the ground, so different units can
   // be taller/shorter than the base Cat without redesigning their whole coordinate grid - the
   // "scaling tool" for keeping cats' relative sizes right when reference art has no scale bar.
@@ -4255,6 +4430,10 @@
     cooldownCat: { grid: buildCooldownCatGrid() },
     capsuleCat: { grid: buildCapsuleCatGrid() },
     crampedCats: { grid: buildCrampedCatsGrid() },
+    maskedCat: { grid: buildMaskedGrid() },
+    luchadorCat: { grid: buildLuchadorGrid() },
+    toyMachineCat: { grid: buildToyMachineGrid() },
+    vendorCat: { grid: buildVendorGrid(), heightScale: 1.2 },
   };
 
   // Renders a pixel-sprite grid onto a small standalone <canvas> icon (its own context, not
@@ -4532,8 +4711,9 @@
     for (let i = 0; i < roster.length; i++) {
       const el = unitEls[i];
       const c = roster[i];
+      const cost = evolvedFormWithOverride(c, profile.catLevels[c.id] || 1, profile.catPlus[c.id] || 0, profile.catForm[c.id]).cost;
       const cd = G.cooldowns[i];
-      const affordable = G.money >= c.cost && cd <= 0 && G.running;
+      const affordable = G.money >= cost && cd <= 0 && G.running;
       el.classList.toggle("disabled", !affordable);
       const coolEl = el.lastElementChild;
       coolEl.style.height = cd > 0 ? (100 * cd / G.cooldownMax[i]) + "%" : "0%";
@@ -4564,6 +4744,9 @@
   }
 
   loadProfile();
+  if (checkMidnightUnlock(new Date().getHours())) {
+    alert("🌙 It's midnight! Masked Cat joins your roster!");
+  }
   buildDock();
   newGame();
   resize();
