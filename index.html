@@ -572,6 +572,8 @@
     background: #e8c46a; color: #5a3a10; font-weight: 800;
     padding: 3px 10px; border-radius: 6px; font-size: 12px; align-self: flex-start;
   }
+  .equip-detail-rarity.special { background: #ff6bc4; color: #3a0a26; }
+  .equip-grid .grid-item.special { border-color: #ff6bc4; box-shadow: 0 0 6px rgba(255,107,196,.6); }
   .equip-detail-name { font-size: 18px; font-weight: 800; color: #f4e2b8; }
   .equip-detail-level, .equip-detail-cost { color: #cbb27e; font-size: 13px; }
   .equip-grid {
@@ -808,7 +810,7 @@
   <div id="doorSecretModal" class="daily-modal hidden">
     <div class="daily-modal-inner">
       <div class="daily-modal-title">🐾 The doors creak open...</div>
-      <div class="daily-modal-desc">You found the secret! (More to come here soon.)</div>
+      <div class="daily-modal-desc" id="doorSecretDesc"></div>
       <button class="daily-claim-btn" id="doorSecretCloseBtn">Close</button>
     </div>
   </div>
@@ -917,7 +919,7 @@
   <div class="equip-slots" id="equipSlots"></div>
   <div class="equip-detail">
     <div>
-      <div class="equip-detail-rarity">Normal</div>
+      <div class="equip-detail-rarity" id="equipDetailRarity">Normal</div>
       <div class="equip-detail-name" id="equipDetailName">Select a cat</div>
       <div class="equip-detail-level" id="equipDetailLevel"></div>
       <div class="equip-detail-cost" id="equipDetailCost"></div>
@@ -1117,6 +1119,14 @@
     { id:"fish",   name:"Fish Cat",  emoji:"🐟", cost:1200, hp:1750, dmg:450, range:150*RANGE_SCALE, cycle:1.77, fore:0.33, tgt:"single", speed:10*SPEED_SCALE, cd:4.2,  kb:3, trait:"Traitless", strongAgainst:["Red"], color:"#4fd0d8", sprite:"fishCat" },
     { id:"lizard", name:"Lizard Cat",emoji:"🦎", cost:1500, hp:2000, dmg:875, range:400*RANGE_SCALE, cycle:4.30, fore:0.33, tgt:"single", speed:10*SPEED_SCALE, cd:10.2, kb:3, trait:"Traitless", strongAgainst:[],      color:"#8be06a", sprite:"lizardCat" },
     { id:"titan",  name:"Titan Cat", emoji:"👹", cost:1950, hp:2500, dmg:700, range:150*RANGE_SCALE, cycle:2.23, fore:0.6,  tgt:"area",   speed:8*SPEED_SCALE,  cd:18.2, kb:1, trait:"Traitless", strongAgainst:[],      color:"#ff8c3b", sprite:"titanCat" },
+    // Special Cat, found via the Cat Base door-handle secret (see doorSecretModal below) rather
+    // than the normal Cat Capsule pool - excluded from CAPSULE_POOL for that reason. No custom
+    // pixel sprite yet (falls back to the emoji+color renderer) - pending reference art. Its
+    // "against Black" trait is a real Freeze proc (see the freeze field + damageAmount/update
+    // below), even though no enemy in ENEMIES currently has the Black trait to trigger it against -
+    // matches how this file already keeps not-yet-relevant True Form procs on the books (see the
+    // note above THIRD_EVOLUTIONS).
+    { id:"flower", name:"Flower Cat", emoji:"🌸", cost:510, hp:888, dmg:122, range:240*RANGE_SCALE, cycle:2.83, fore:0.40, tgt:"single", speed:16*SPEED_SCALE, cd:5.87, kb:5, trait:"Traitless", strongAgainst:[], rarity:"special", freeze:{ trait:"Black", chance:0.20, duration:2.0 }, color:"#ff9fd0" },
   ];
 
   // Enemy roster.
@@ -1158,8 +1168,14 @@
     fish:   { name: "Whale Cat",      emoji: "🐋", sprite: "whaleCat" },
     lizard: { name: "Dragon Cat",     emoji: "🐉", cycle: 4.23, fore: 0.27, sprite: "dragonCat" },
     titan:  { name: "Mythical Titan", emoji: "🔱", sprite: "mythicalTitanCat" },
+    flower: { name: "Cooldown Cat",   emoji: "⏱️" },
   };
 
+  // Special Cats (currently just Flower Cat -> Cooldown Cat) don't get a True Form here at all -
+  // their real unlock condition is clearing a specific Legend Stage, not hitting an effective
+  // level, and Legend Stages don't exist in this game yet. Add a THIRD_EVOLUTIONS.flower entry
+  // (name/emoji/stats/sprite) once that stage exists and can gate it for real.
+  //
   // True (3rd) forms, unlocked at effective level 30 (lv20 cap + 10 catPlus). hp/dmg here are new
   // BASE values (still scaled by catLevelMult like any other cat), taken from the provided lv2 stat
   // rows divided by catLevelMult(2)=1.2. cycle/fore are left unset so they inherit whatever the 2nd
@@ -1303,7 +1319,17 @@
              21:6000,22:10500,23:18600,24:29400,25:42900,26:59100,27:78000,28:99600,29:123900,30:150900,
              31:7000,32:12250,33:21700,34:34300,35:50050,36:68950,37:91000,38:116200,39:144550,40:176050,
              41:8000,42:14000,43:24800,44:39200,45:57200,46:78800,47:104000,48:132800,49:165200,50:201200},
+    flower: {2:8000,3:12200,4:17800,5:24800,6:33200,7:43000,8:54200,9:66800,10:80800,
+             11:10000,12:16000,13:24400,14:35600,15:49600,16:66400,17:86000,18:108400,19:133600,20:161600,
+             21:15000,22:24000,23:36600,24:53400,25:74400,26:99600,27:129000,28:162600,29:200400,30:242400,
+             31:17500,32:28000,33:42700,34:62300,35:86800,36:116200,37:150500,38:189700,39:233800,40:282800,
+             41:20000,42:32000,43:48800,44:71200,45:99200,46:132800,47:172000,48:216800,49:267200,50:323200},
   };
+  // Flower Cat only shows up in cat-selection lists (Upgrade, Equip) once found via the Cat
+  // Base door-handle secret - everything else in CATS has always just been freely available.
+  function visibleCats() {
+    return CATS.filter(c => c.id !== "flower" || profile.flowerCatUnlocked);
+  }
   function catXpCost(id, lvl) {
     if (lvl >= CAT_LEVEL_MAX) return undefined;
     const table = CAT_XP_TABLE[id];
@@ -1344,6 +1370,7 @@
     userRank: 0,   // +1 every time a cat gains a level (paid) or a "+1" bonus level (capsule Use Now)
     claimedRankRewards: 0, // how many rank-reward tiers have been claimed, in order
     catFood: 0,    // +10 per stage win; spendable in the Store
+    flowerCatUnlocked: false, // Special Cat found via the Cat Base door-handle secret (100 clicks, <=2s apart)
     items: { speedUp: 0, treasureRadar: 0, richCat: 0, sniperCat: 0, catCPU: 0, catJobs: 0, leadership: 0 },
     pendingDailyItem: null, // rolled once when a daily reward becomes available, granted on claim
     gamatoto: {
@@ -1389,6 +1416,7 @@
     if (typeof saved.userRank === "number") profile.userRank = saved.userRank;
     if (typeof saved.claimedRankRewards === "number") profile.claimedRankRewards = saved.claimedRankRewards;
     if (typeof saved.catFood === "number") profile.catFood = saved.catFood;
+    if (typeof saved.flowerCatUnlocked === "boolean") profile.flowerCatUnlocked = saved.flowerCatUnlocked;
     if (saved.items) Object.assign(profile.items, saved.items);
     if (saved.pendingDailyItem === null || typeof saved.pendingDailyItem === "string") {
       profile.pendingDailyItem = saved.pendingDailyItem;
@@ -1565,7 +1593,7 @@
       def: { ...form, dmg: Math.round(form.dmg * mult) }, team: "player",
       x: P_BASE_X - 10,
       hp, max: hp,
-      swing: -1, swung: false, flash: 0, w: 30, kbCount: 0,
+      swing: -1, swung: false, flash: 0, w: 30, kbCount: 0, frozenUntil: 0,
     });
   }
 
@@ -1584,7 +1612,7 @@
       def: e, team: "enemy",
       x: E_BASE_X + 10,
       hp: e.hp, max: e.hp,
-      swing: -1, swung: false, flash: 0, w: e.w, kbCount: 0,
+      swing: -1, swung: false, flash: 0, w: e.w, kbCount: 0, frozenUntil: 0,
     });
   }
 
@@ -2233,7 +2261,7 @@
     enforceTestMode();
     testRowEl.classList.toggle("hidden", !profile.testMode);
     catStrip.innerHTML = "";
-    CATS.forEach(c => {
+    visibleCats().forEach(c => {
       const form = evolvedFormWithOverride(c, profile.catLevels[c.id] || 1, profile.catPlus[c.id] || 0, profile.catForm[c.id]);
       const el = document.createElement("div");
       el.className = "strip-item" + (c.id === selectedUpgradeCat ? " selected" : "");
@@ -2279,6 +2307,7 @@
   // ---------------------------------------------------------------------------
   const equipSlotsEl = document.getElementById("equipSlots");
   const equipGridEl = document.getElementById("equipGrid");
+  const equipDetailRarity = document.getElementById("equipDetailRarity");
   const equipDetailName = document.getElementById("equipDetailName");
   const equipDetailLevel = document.getElementById("equipDetailLevel");
   const equipDetailCost = document.getElementById("equipDetailCost");
@@ -2301,7 +2330,7 @@
 
     const FORM_TIER_NAMES = ["1st Form", "Evolved Form", "True Form"];
     equipGridEl.innerHTML = "";
-    CATS.forEach(c => {
+    visibleCats().forEach(c => {
       const lvl = profile.catLevels[c.id] || 1;
       const plus = profile.catPlus[c.id] || 0;
       const unlocked = highestUnlockedTier(c, lvl, plus);
@@ -2309,7 +2338,7 @@
       const tier = Math.min(profile.catForm[c.id] ?? 2, unlocked);
       const el = document.createElement("div");
       const equippedSlot = profile.equip.indexOf(c.id);
-      el.className = "grid-item" + (equippedSlot !== -1 ? " equipped" : "");
+      el.className = "grid-item" + (equippedSlot !== -1 ? " equipped" : "") + (c.rarity === "special" ? " special" : "");
       el.innerHTML = `<div class="emoji">${form.emoji}</div><div class="name">${form.name}</div><div class="cost">¢${c.cost}</div>` +
         `<button class="form-btn" ${unlocked === 0 ? "disabled" : ""} title="${unlocked === 0 ? "No other forms unlocked yet" : "Switch form (now: " + FORM_TIER_NAMES[tier] + ")"}">⇄</button>`;
       el.addEventListener("click", () => {
@@ -2320,6 +2349,8 @@
           if (currentSlot !== -1) profile.equip[currentSlot] = null;
           profile.equip[selectedSlot] = c.id;
         }
+        equipDetailRarity.textContent = c.rarity === "special" ? "Special" : "Normal";
+        equipDetailRarity.classList.toggle("special", c.rarity === "special");
         equipDetailName.textContent = form.name;
         equipDetailLevel.textContent = "Level " + lvl + (plus > 0 ? " +" + plus : "") + " · " + FORM_TIER_NAMES[tier];
         equipDetailCost.textContent = "Cost ¢" + c.cost;
@@ -2486,7 +2517,9 @@
     catEnergy:    { name: "Energy Orb",        emoji: "🔋" },
   };
   const CAPSULE_POOL = [
-    ...CATS.map(c => ({ type: "cat", id: c.id })),
+    // Special Cats (currently just Flower Cat) aren't in the normal Capsule pool - they're only
+    // obtainable through their own dedicated secret/unlock.
+    ...CATS.filter(c => c.rarity !== "special").map(c => ({ type: "cat", id: c.id })),
     ...Object.keys(ORB_INFO).map(key => ({ type: "orb", key })),
   ];
 
@@ -2720,6 +2753,16 @@
     }
   }
 
+  // Freeze: an attacker with a def.freeze ({trait, chance, duration}) has a chance, on each hit
+  // that lands, to freeze a defender of the matching trait for the given duration. A frozen unit
+  // can't move or attack (see the "Units: movement + combat" loop below) - it just sits there.
+  function applyFreezeProc(attacker, defender) {
+    const fz = attacker.def.freeze;
+    if (!fz || !defender.def || defender.def.trait !== fz.trait) return;
+    if (Math.random() >= fz.chance) return;
+    defender.frozenUntil = Math.max(defender.frozenUntil || 0, G.time + fz.duration);
+  }
+
   function update(dt) {
     G.time += dt;
 
@@ -2782,6 +2825,7 @@
     for (const u of G.units) {
       if (u.hp <= 0) continue;
       if (u.flash > 0) u.flash = Math.max(0, u.flash - dt);
+      if (u.frozenUntil > G.time) continue; // frozen: can't move or attack this frame
       const dir = u.team === "player" ? -1 : 1;
       const targets = targetsInRange(u);
 
@@ -2797,6 +2841,7 @@
             t.hp -= damageAmount(u, t);
             t.flash = 0.12;
             applyKnockback(t);
+            applyFreezeProc(u, t);
           }
           G.fx.push({ x: (u.x + hits[0].x) / 2, y: 0, life: 0.25, t: u.team });
         }
@@ -4092,6 +4137,7 @@
     } catch (e) { /* Web Audio unavailable - fail silently, the click still registers */ }
   }
   const doorSecretModal = document.getElementById("doorSecretModal");
+  const doorSecretDesc = document.getElementById("doorSecretDesc");
   const doorStreak = { count: 0, lastTs: 0 };
   function onDoorHandleClick() {
     playMeow();
@@ -4101,6 +4147,13 @@
     doorStreak.lastTs = now;
     if (doorStreak.count >= 100) {
       doorStreak.count = 0;
+      if (!profile.flowerCatUnlocked) {
+        profile.flowerCatUnlocked = true;
+        saveProfile();
+        doorSecretDesc.textContent = "You found Flower Cat! 🌸 A Special Cat - check the Equip screen to add them to your roster.";
+      } else {
+        doorSecretDesc.textContent = "The doors are quiet now - you already found what was hidden here.";
+      }
       doorSecretModal.classList.remove("hidden");
     }
   }
@@ -4157,6 +4210,8 @@
     ctx.save();
     if (u.flash > 0) {
       ctx.filter = "brightness(2)";
+    } else if (u.frozenUntil > G.time) {
+      ctx.filter = "brightness(1.3) saturate(0.3) hue-rotate(150deg)";
     }
     // Sprites are authored facing left (their "front" - face leading, any side panel/detail
     // trailing). Player units move left, so they draw unflipped; enemy units move right, so
@@ -4188,7 +4243,7 @@
     ctx.save();
     ctx.translate(x, y - bodyH / 2);
     if (isPlayer) ctx.scale(-1, 1); // face left
-    ctx.fillStyle = u.flash > 0 ? "#ffffff" : (d.color || "#ddd");
+    ctx.fillStyle = u.flash > 0 ? "#ffffff" : (u.frozenUntil > G.time ? "#8fd0e8" : (d.color || "#ddd"));
     ctx.strokeStyle = isPlayer ? "rgba(30,40,70,.6)" : "rgba(60,20,20,.6)";
     ctx.lineWidth = 2;
     roundRectPath(-bodyW / 2, -bodyH / 2, bodyW, bodyH, 7);
