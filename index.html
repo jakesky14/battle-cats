@@ -1149,6 +1149,10 @@
     // storageOpenTimer). Evolves into Muscleman Cat at level 10 with the same hp/dmg, just a
     // slightly slower cycle.
     { id:"squishball", name:"Squish Ball Cat", emoji:"🎾", cost:870, hp:400, dmg:155, range:160*RANGE_SCALE, cycle:3.37, fore:1.37, tgt:"area", speed:36*SPEED_SCALE, cd:2.20, kb:5, trait:"Traitless", strongAgainst:[], rarity:"special", color:"#4a9fe0", sprite:"squishballCat" },
+    // Special Cat, found by clearing a stage with ONLY Macho Cat, Wall Cat, and Brave Cat
+    // equipped (the other 7 slots empty) - see the catTrioUnlocked check in endGame. No custom
+    // sprite yet (falls back to the emoji+color renderer) - reference art wasn't attached.
+    { id:"catTrio", name:"Cat Trio", emoji:"👥", cost:1020, hp:320, dmg:263, range:170*RANGE_SCALE, cycle:3.03, fore:1.07, tgt:"area", speed:10*SPEED_SCALE, cd:2.00, kb:4, trait:"Traitless", strongAgainst:[], rarity:"special", color:"#c9a26a" },
   ];
 
   // Enemy roster.
@@ -1201,6 +1205,7 @@
               cost: 975, range: 150 * RANGE_SCALE, kb: 1, tgt: "area", sprite: "luchadorCat" },
     toyMachine: { name: "Vendor Cat", emoji: "🥤", sprite: "vendorCat" },
     squishball: { name: "Muscleman Cat", emoji: "💪", cycle: 3.50, sprite: "musclemanCat" },
+    catTrio: { name: "Secret Base", emoji: "🕳️" },
   };
 
   // Special Cats don't get a True Form here at all. Flower Cat's real unlock condition for one is
@@ -1391,6 +1396,11 @@
              21:3900,22:7500,23:12000,24:18000,25:25500,26:34500,27:45000,28:57000,29:70500,30:85500,
              31:4550,32:8750,33:14000,34:21000,35:29750,36:40250,37:52500,38:66500,39:82250,40:99750,
              41:5200,42:10000,43:16000,44:24000,45:34000,46:46000,47:60000,48:76000,49:94000,50:114000},
+    catTrio: {2:2500,3:4000,4:6000,5:8500,6:11500,7:15000,8:19000,9:23500,10:28500,
+             11:2600,12:5000,13:8000,14:12000,15:17000,16:23000,17:30000,18:38000,19:47000,20:57000,
+             21:3900,22:7500,23:12000,24:18000,25:25500,26:34500,27:45000,28:57000,29:70500,30:85500,
+             31:4550,32:8750,33:14000,34:21000,35:29750,36:40250,37:52500,38:66500,39:82250,40:99750,
+             41:5200,42:10000,43:16000,44:24000,45:34000,46:46000,47:60000,48:76000,49:94000,50:114000},
   };
   // Secret Special Cats only show up in cat-selection lists (Upgrade, Equip) once found via
   // their own unlock condition - everything else in CATS has always just been freely available.
@@ -1401,6 +1411,7 @@
       if (c.id === "masked") return profile.maskedCatUnlocked;
       if (c.id === "toyMachine") return profile.toyMachineCatUnlocked;
       if (c.id === "squishball") return profile.squishballCatUnlocked;
+      if (c.id === "catTrio") return profile.catTrioUnlocked;
       return true;
     });
   }
@@ -1465,6 +1476,7 @@
     toyMachineCatUnlocked: false, // Special Cat found by rolling the Cat Capsule 30+ times, then clearing a stage
     capsuleRollCount: 0, // lifetime Cat Capsule rolls - Toy Machine Cat's unlock threshold is 30
     squishballCatUnlocked: false, // Special Cat found by keeping the Storage screen open 5 min straight
+    catTrioUnlocked: false, // Special Cat found by clearing a stage with only Macho/Wall/Brave Cat equipped
     items: { speedUp: 0, treasureRadar: 0, richCat: 0, sniperCat: 0, catCPU: 0, catJobs: 0, leadership: 0 },
     pendingDailyItem: null, // rolled once when a daily reward becomes available, granted on claim
     gamatoto: {
@@ -1517,6 +1529,7 @@
     if (typeof saved.toyMachineCatUnlocked === "boolean") profile.toyMachineCatUnlocked = saved.toyMachineCatUnlocked;
     if (typeof saved.capsuleRollCount === "number") profile.capsuleRollCount = saved.capsuleRollCount;
     if (typeof saved.squishballCatUnlocked === "boolean") profile.squishballCatUnlocked = saved.squishballCatUnlocked;
+    if (typeof saved.catTrioUnlocked === "boolean") profile.catTrioUnlocked = saved.catTrioUnlocked;
     if (saved.items) Object.assign(profile.items, saved.items);
     if (saved.pendingDailyItem === null || typeof saved.pendingDailyItem === "string") {
       profile.pendingDailyItem = saved.pendingDailyItem;
@@ -2847,6 +2860,19 @@
       if ((profile.capsuleRollCount || 0) >= 30 && !profile.toyMachineCatUnlocked) {
         profile.toyMachineCatUnlocked = true;
         capsuleUnlockMsg += " Toy Machine Cat joins your roster! 🎁";
+      }
+      // Cat Trio's unlock: clear a stage with ONLY Macho Cat, Wall Cat, and Brave Cat equipped
+      // (base ids cat/tank/axe, each evolved - i.e. level 10+) and the other 7 slots empty.
+      if (!profile.catTrioUnlocked) {
+        const equipped = profile.equip.filter(Boolean);
+        const trioIds = ["cat", "tank", "axe"];
+        const isTrio = equipped.length === 3
+          && trioIds.every(id => equipped.includes(id))
+          && trioIds.every(id => (profile.catLevels[id] || 1) >= EVOLVE_LEVEL);
+        if (isTrio) {
+          profile.catTrioUnlocked = true;
+          capsuleUnlockMsg += " Cat Trio joins your roster! 👥";
+        }
       }
     }
     saveProfile();
