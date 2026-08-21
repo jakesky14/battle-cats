@@ -1120,13 +1120,12 @@
     { id:"lizard", name:"Lizard Cat",emoji:"🦎", cost:1500, hp:2000, dmg:875, range:400*RANGE_SCALE, cycle:4.30, fore:0.33, tgt:"single", speed:10*SPEED_SCALE, cd:10.2, kb:3, trait:"Traitless", strongAgainst:[],      color:"#8be06a", sprite:"lizardCat" },
     { id:"titan",  name:"Titan Cat", emoji:"👹", cost:1950, hp:2500, dmg:700, range:150*RANGE_SCALE, cycle:2.23, fore:0.6,  tgt:"area",   speed:8*SPEED_SCALE,  cd:18.2, kb:1, trait:"Traitless", strongAgainst:[],      color:"#ff8c3b", sprite:"titanCat" },
     // Special Cat, found via the Cat Base door-handle secret (see doorSecretModal below) rather
-    // than the normal Cat Capsule pool - excluded from CAPSULE_POOL for that reason. No custom
-    // pixel sprite yet (falls back to the emoji+color renderer) - pending reference art. Its
+    // than the normal Cat Capsule pool - excluded from CAPSULE_POOL for that reason. Its
     // "against Black" trait is a real Freeze proc (see the freeze field + damageAmount/update
     // below), even though no enemy in ENEMIES currently has the Black trait to trigger it against -
     // matches how this file already keeps not-yet-relevant True Form procs on the books (see the
     // note above THIRD_EVOLUTIONS).
-    { id:"flower", name:"Flower Cat", emoji:"🌸", cost:510, hp:888, dmg:122, range:240*RANGE_SCALE, cycle:2.83, fore:0.40, tgt:"single", speed:16*SPEED_SCALE, cd:5.87, kb:5, trait:"Traitless", strongAgainst:[], rarity:"special", freeze:{ trait:"Black", chance:0.20, duration:2.0 }, color:"#ff9fd0" },
+    { id:"flower", name:"Flower Cat", emoji:"🌸", cost:510, hp:888, dmg:122, range:240*RANGE_SCALE, cycle:2.83, fore:0.40, tgt:"single", speed:16*SPEED_SCALE, cd:5.87, kb:5, trait:"Traitless", strongAgainst:[], rarity:"special", freeze:{ trait:"Black", chance:0.20, duration:2.0 }, color:"#ff9fd0", sprite:"flowerCat" },
   ];
 
   // Enemy roster.
@@ -1168,7 +1167,7 @@
     fish:   { name: "Whale Cat",      emoji: "🐋", sprite: "whaleCat" },
     lizard: { name: "Dragon Cat",     emoji: "🐉", cycle: 4.23, fore: 0.27, sprite: "dragonCat" },
     titan:  { name: "Mythical Titan", emoji: "🔱", sprite: "mythicalTitanCat" },
-    flower: { name: "Cooldown Cat",   emoji: "⏱️" },
+    flower: { name: "Cooldown Cat",   emoji: "⏱️", sprite: "cooldownCat" },
   };
 
   // Special Cats (currently just Flower Cat -> Cooldown Cat) don't get a True Form here at all -
@@ -2933,7 +2932,7 @@
   // fall back to the existing rounded-rect + emoji rendering below.
   // ---------------------------------------------------------------------------
   const PXW = 36, PXH = 40; // sprite grid size, in cells (2x res for finer detail)
-  const PX_PALETTE = { W: "#ffffff", K: "#20201c", G: "#b0b0b0", S: "#d8d8de", M: "#ff2ee0", Y: "#e8c34a", O: "#e8791f", R: "#e0392b" };
+  const PX_PALETTE = { W: "#ffffff", K: "#20201c", G: "#b0b0b0", S: "#d8d8de", M: "#ff2ee0", Y: "#e8c34a", O: "#e8791f", R: "#e0392b", L: "#8bc34a", B: "#4a9fe0", P: "#ffb3c8" };
 
   function makePxGrid() { return Array.from({ length: PXH }, () => Array(PXW).fill(null)); }
 
@@ -4033,6 +4032,81 @@
     return grid;
   }
 
+  // Flower Cat family: the base Cat body, narrowed and shifted right (like Macho/Mohawk's
+  // narrowed body, but only making room on one side) so there's a real gap on the left for a
+  // held prop - a potted flower here, an electric fan for Cooldown Cat. The body is outlined on
+  // its own FIRST, then the prop is added and outlined in a second pass, the same "outline,
+  // then add the next piece, outline again" sequencing Axe/Brave Cat use to get a clean seam
+  // between two adjacent white shapes instead of them fusing into one blob.
+  const FLOWER_DX = 3.5; // shift for pxFace/pxLegs, matching the body's new center
+  function buildFlowerBodyOnto(grid) {
+    pxOctagonBody(grid, 15, 29, 5.2, 27.3, 4.5, 6.3, "W");
+    pxTriangle(grid, 13.5, 2, 9.4, 1.1, "W");
+    pxTriangle(grid, 32, 2, 9.4, 1.1, "W");
+    pxOutline(grid, "K");
+  }
+  function buildFlowerCatGrid() {
+    const grid = makePxGrid();
+    buildFlowerBodyOnto(grid);
+    // pot
+    pxTaper(grid, 5, 20, 8, 5, 28, 5.5, "O");
+    pxRect(grid, 0.7, 19, 9.3, 20, "O");
+    // stem + leaves
+    pxThickLine(grid, 5, 19, 5, 7.8, 1.3, "L");
+    pxEllipse(grid, 1.8, 14, 1.9, 1.1, "L");
+    pxEllipse(grid, 8.2, 12.5, 1.9, 1.1, "L");
+    // flower head: a center disc + petals fanned around it, kept compact so it clears both the
+    // top of the grid and the cat's own head with a visible gap (no petal at the bottom, where
+    // the stem meets it)
+    pxEllipse(grid, 5, 6, 1.8, 1.8, "W");
+    pxEllipse(grid, 5, 2, 1.6, 1.9, "W");
+    pxEllipse(grid, 1.3, 6, 1.6, 1.9, "W");
+    pxEllipse(grid, 8.7, 6, 1.6, 1.9, "W");
+    pxEllipse(grid, 2.2, 3, 1.4, 1.7, "W");
+    pxEllipse(grid, 7.8, 3, 1.4, 1.7, "W");
+    pxOutline(grid, "K");
+    // petal separator strokes, so the cluster reads as petals instead of one round blob
+    pxLine(grid, 5, 6, 5, 2.3, "K");
+    pxLine(grid, 5, 6, 2, 6, "K");
+    pxLine(grid, 5, 6, 8, 6, "K");
+    // tiny face on the flower, echoing the reference art's flower-with-a-face
+    pxRect(grid, 4.2, 5.6, 4.6, 6, "K");
+    pxRect(grid, 5.4, 5.6, 5.8, 6, "K");
+    pxLine(grid, 4.3, 7, 5, 7.4, "K");
+    pxLine(grid, 5, 7.4, 5.7, 7, "K");
+    pxFace(grid, FLOWER_DX);
+    pxLegs(grid, FLOWER_DX);
+    return grid;
+  }
+
+  function buildCooldownCatGrid() {
+    const grid = makePxGrid();
+    buildFlowerBodyOnto(grid);
+    // fan head: blue rim behind a smaller silver face, so the rim reads as a ring
+    pxEllipse(grid, 6, 8.5, 5.3, 5.8, "B");
+    pxEllipse(grid, 6, 8.5, 4.3, 4.8, "S");
+    // blades: spokes radiating from the hub
+    for (const [tx, ty] of [[6, 3], [6, 14], [0.7, 8.5], [11.3, 8.5], [2.5, 4.5], [9.5, 4.5], [2.5, 12.5], [9.5, 12.5]]) {
+      pxLine(grid, 6, 8.5, tx, ty, "K");
+    }
+    pxEllipse(grid, 6, 8.5, 1.8, 1.8, "W");
+    // stand: pole + a small base with a power button
+    pxRect(grid, 5.3, 14.5, 6.7, 24, "S");
+    pxRect(grid, 1, 24, 10.5, 27, "S");
+    pxEllipse(grid, 8.5, 25.5, 0.9, 0.9, "B");
+    pxOutline(grid, "K");
+    // tiny face on the fan's hub, echoing the reference art's fan-with-a-face
+    pxRect(grid, 4.7, 7.8, 5.2, 8.3, "K");
+    pxRect(grid, 6.8, 7.8, 7.3, 8.3, "K");
+    pxLine(grid, 5.3, 9.3, 6, 9.8, "K");
+    pxLine(grid, 6, 9.8, 6.7, 9.3, "K");
+    pxFace(grid, FLOWER_DX);
+    pxLegs(grid, FLOWER_DX);
+    // blush cheek, per the reference's "warm breeze" expression
+    pxEllipse(grid, 27, 16, 1.6, 1.1, "P");
+    return grid;
+  }
+
   // heightScale: per-sprite vertical stretch, anchored at the ground, so different units can
   // be taller/shorter than the base Cat without redesigning their whole coordinate grid - the
   // "scaling tool" for keeping cats' relative sizes right when reference art has no scale bar.
@@ -4079,6 +4153,8 @@
     titanCat: { grid: buildTitanGrid(), scale: 2.2 },
     mythicalTitanCat: { grid: buildMythicalTitanGrid(), scale: 2.2 },
     jamieraCat: { grid: buildJamieraGrid(), scale: 2.2 },
+    flowerCat: { grid: buildFlowerCatGrid() },
+    cooldownCat: { grid: buildCooldownCatGrid() },
   };
 
   // Renders a pixel-sprite grid onto a small standalone <canvas> icon (its own context, not
