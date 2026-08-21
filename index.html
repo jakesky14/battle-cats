@@ -1126,6 +1126,9 @@
     // matches how this file already keeps not-yet-relevant True Form procs on the books (see the
     // note above THIRD_EVOLUTIONS).
     { id:"flower", name:"Flower Cat", emoji:"🌸", cost:510, hp:150, dmg:20, range:240*RANGE_SCALE, cycle:2.77, fore:0.40, tgt:"single", speed:16*SPEED_SCALE, cd:5.87, kb:5, trait:"Traitless", strongAgainst:[], rarity:"special", freeze:{ trait:"Dark", chance:0.20, duration:2.0 }, color:"#ff9fd0", sprite:"flowerCat" },
+    // Special Cat, found by winning any stage having deployed only 1 unit the whole battle (see
+    // deployCount + the unlock check in endGame) - also excluded from CAPSULE_POOL. No True Form.
+    { id:"capsule", name:"Capsule Cat", emoji:"🎰", cost:666, hp:1, dmg:300, range:140*RANGE_SCALE, cycle:7.40, fore:0.07, tgt:"single", speed:70*SPEED_SCALE, cd:11.20, kb:1, trait:"Traitless", strongAgainst:[], rarity:"special", color:"#f2f2f2", sprite:"capsuleCat" },
   ];
 
   // Enemy roster.
@@ -1168,12 +1171,13 @@
     lizard: { name: "Dragon Cat",     emoji: "🐉", cycle: 4.23, fore: 0.27, sprite: "dragonCat" },
     titan:  { name: "Mythical Titan", emoji: "🔱", sprite: "mythicalTitanCat" },
     flower: { name: "Cooldown Cat",   emoji: "⏱️", cycle: 2.83, hpMult: 355 / 150, dmgMult: 49 / 20, sprite: "cooldownCat" },
+    capsule: { name: "Cramped Cats",  emoji: "🎱", sprite: "crampedCats" },
   };
 
-  // Special Cats (currently just Flower Cat -> Cooldown Cat) don't get a True Form here at all -
-  // their real unlock condition is clearing a specific Legend Stage, not hitting an effective
-  // level, and Legend Stages don't exist in this game yet. Add a THIRD_EVOLUTIONS.flower entry
-  // (name/emoji/stats/sprite) once that stage exists and can gate it for real.
+  // Special Cats don't get a True Form here at all. Flower Cat's real unlock condition for one is
+  // clearing a specific Legend Stage, which doesn't exist in this game yet - add a
+  // THIRD_EVOLUTIONS.flower entry (name/emoji/stats/sprite) once that stage exists and can gate
+  // it for real. Capsule Cat has no True Form at all, by design.
   //
   // True (3rd) forms, unlocked at effective level 30 (lv20 cap + 10 catPlus). hp/dmg here are new
   // BASE values (still scaled by catLevelMult like any other cat), taken from the provided lv2 stat
@@ -1330,11 +1334,20 @@
              21:15000,22:24000,23:36600,24:53400,25:74400,26:99600,27:129000,28:162600,29:200400,30:242400,
              31:17500,32:28000,33:42700,34:62300,35:86800,36:116200,37:150500,38:189700,39:233800,40:282800,
              41:20000,42:32000,43:48800,44:71200,45:99200,46:132800,47:172000,48:216800,49:267200,50:323200},
+    capsule: {2:3000,3:3900,4:5100,5:6600,6:8400,7:10500,8:12900,9:15600,10:18600,
+             11:5000,12:6000,13:7800,14:10200,15:13200,16:16800,17:21000,18:25800,19:31200,20:37200,
+             21:7500,22:9000,23:11700,24:15300,25:19800,26:25200,27:31500,28:38700,29:46800,30:55800,
+             31:8750,32:10500,33:13650,34:17850,35:23100,36:29400,37:36750,38:45150,39:54600,40:65100,
+             41:10000,42:12000,43:15600,44:20400,45:26400,46:33600,47:42000,48:51600,49:62400,50:74400},
   };
-  // Flower Cat only shows up in cat-selection lists (Upgrade, Equip) once found via the Cat
-  // Base door-handle secret - everything else in CATS has always just been freely available.
+  // Secret Special Cats only show up in cat-selection lists (Upgrade, Equip) once found via
+  // their own unlock condition - everything else in CATS has always just been freely available.
   function visibleCats() {
-    return CATS.filter(c => c.id !== "flower" || profile.flowerCatUnlocked);
+    return CATS.filter(c => {
+      if (c.id === "flower") return profile.flowerCatUnlocked;
+      if (c.id === "capsule") return profile.capsuleCatUnlocked;
+      return true;
+    });
   }
   function catXpCost(id, lvl) {
     if (lvl >= CAT_LEVEL_MAX) return undefined;
@@ -1377,6 +1390,7 @@
     claimedRankRewards: 0, // how many rank-reward tiers have been claimed, in order
     catFood: 0,    // +10 per stage win; spendable in the Store
     flowerCatUnlocked: false, // Special Cat found via the Cat Base door-handle secret (100 clicks, <=2s apart)
+    capsuleCatUnlocked: false, // Special Cat found by clearing any stage having deployed only 1 unit
     items: { speedUp: 0, treasureRadar: 0, richCat: 0, sniperCat: 0, catCPU: 0, catJobs: 0, leadership: 0 },
     pendingDailyItem: null, // rolled once when a daily reward becomes available, granted on claim
     gamatoto: {
@@ -1423,6 +1437,7 @@
     if (typeof saved.claimedRankRewards === "number") profile.claimedRankRewards = saved.claimedRankRewards;
     if (typeof saved.catFood === "number") profile.catFood = saved.catFood;
     if (typeof saved.flowerCatUnlocked === "boolean") profile.flowerCatUnlocked = saved.flowerCatUnlocked;
+    if (typeof saved.capsuleCatUnlocked === "boolean") profile.capsuleCatUnlocked = saved.capsuleCatUnlocked;
     if (saved.items) Object.assign(profile.items, saved.items);
     if (saved.pendingDailyItem === null || typeof saved.pendingDailyItem === "string") {
       profile.pendingDailyItem = saved.pendingDailyItem;
@@ -1510,6 +1525,7 @@
       spawnTimer: 3,
       bossSpawned: false,
       fx: [],               // floating hit sparks
+      deployCount: 0,       // total deploy() calls this battle - Capsule Cat's solo-clear unlock check
     };
   }
 
@@ -1588,6 +1604,7 @@
     if (!c) return;
     if (G.cooldowns[i] > 0 || G.money < c.cost) return;
     G.money -= c.cost;
+    G.deployCount++;
     const lvl = profile.catLevels[c.id] || 1;
     const plus = profile.catPlus[c.id] || 0;
     const form = evolvedFormWithOverride(c, lvl, plus, profile.catForm[c.id]);
@@ -2697,17 +2714,23 @@
     G.running = false;
     G.won = won;
     let xpGained = 0;
+    let capsuleUnlockMsg = "";
     if (won) {
       let mult = winXpMult();
       if (G.activeItems.catJobs) mult *= 1.5; // Cat Jobs: +50% XP on the stage it's used on
       xpGained = Math.round(XP_PER_WIN * mult);
       profile.xp += xpGained;
       profile.catFood += CAT_FOOD_PER_WIN;
+      // Capsule Cat's unlock: clear any stage having sent out only a single unit the whole battle.
+      if (G.deployCount === 1 && !profile.capsuleCatUnlocked) {
+        profile.capsuleCatUnlocked = true;
+        capsuleUnlockMsg = " Cleared with just one unit sent out — Capsule Cat joins your roster! 🎰";
+      }
     }
     saveProfile();
     ovTitle.textContent = won ? "🎉 Victory!" : "💀 Defeat";
     ovText.textContent = won
-      ? `You crushed the enemy base in ${G.time.toFixed(0)}s. Well fought, general! +${xpGained} XP, +${CAT_FOOD_PER_WIN} Cat Food`
+      ? `You crushed the enemy base in ${G.time.toFixed(0)}s. Well fought, general! +${xpGained} XP, +${CAT_FOOD_PER_WIN} Cat Food` + capsuleUnlockMsg
       : "Your base was destroyed. Regroup and try again — deploy meatshields, then push with damage cats.";
     ovBtn.classList.add("hidden"); // "Play Again" removed - Main Menu is the only action here
     ovMenuBtn.classList.remove("hidden");
@@ -4136,6 +4159,52 @@
     return grid;
   }
 
+  // Capsule Cat family: a round two-tone capsule-toy ball (white top dome, red bottom half) with
+  // a cat peeking out. pxEllipse can't split a single circle into two colors, so this fills the
+  // circle by hand, one cell at a time, picking W above the center row and R below it.
+  function buildCapsuleBallOnto(grid, cx, cy, r) {
+    for (let y = 0; y < PXH; y++) {
+      for (let x = 0; x < PXW; x++) {
+        const dx = (x + 0.5 - cx) / r, dy = (y + 0.5 - cy) / r;
+        if (dx * dx + dy * dy <= 1) grid[y][x] = y < cy ? "W" : "R";
+      }
+    }
+  }
+  function buildCapsuleCatGrid() {
+    const grid = makePxGrid();
+    buildCapsuleBallOnto(grid, 18, 22, 14);
+    pxTriangle(grid, 13, 4, 8, 1.3, "W");
+    pxTriangle(grid, 23, 4, 8, 1.3, "W");
+    pxOutline(grid, "K");
+    pxEllipse(grid, 14, 17, 1.3, 1.5, "K");
+    pxEllipse(grid, 22, 17, 1.3, 1.5, "K");
+    pxLine(grid, 16, 20, 18, 21.5, "K");
+    pxLine(grid, 18, 21.5, 20, 20, "K");
+    // small "c" whisker mark on the cheek, echoing the reference art
+    pxLine(grid, 24, 18, 25.5, 17, "K");
+    pxLine(grid, 25.5, 17, 24, 16, "K");
+    return grid;
+  }
+
+  function buildCrampedCatsGrid() {
+    const grid = makePxGrid();
+    buildCapsuleBallOnto(grid, 18, 22, 14);
+    pxTriangle(grid, 13, 4, 8, 1.3, "W");
+    pxTriangle(grid, 23, 4, 8, 1.3, "W");
+    pxOutline(grid, "K");
+    // three cats squeezed into the same dome: two divider seams plus a small pair of eyes for
+    // each squeezed-in face, per the reference art
+    pxLine(grid, 18, 8, 10, 20, "K");
+    pxLine(grid, 18, 8, 26, 20, "K");
+    pxEllipse(grid, 10, 15, 1, 1.2, "K");
+    pxEllipse(grid, 13, 15, 1, 1.2, "K");
+    pxEllipse(grid, 16, 12, 1, 1.2, "K");
+    pxEllipse(grid, 20, 12, 1, 1.2, "K");
+    pxEllipse(grid, 23, 15, 1, 1.2, "K");
+    pxEllipse(grid, 26, 15, 1, 1.2, "K");
+    return grid;
+  }
+
   // heightScale: per-sprite vertical stretch, anchored at the ground, so different units can
   // be taller/shorter than the base Cat without redesigning their whole coordinate grid - the
   // "scaling tool" for keeping cats' relative sizes right when reference art has no scale bar.
@@ -4184,6 +4253,8 @@
     jamieraCat: { grid: buildJamieraGrid(), scale: 2.2 },
     flowerCat: { grid: buildFlowerCatGrid() },
     cooldownCat: { grid: buildCooldownCatGrid() },
+    capsuleCat: { grid: buildCapsuleCatGrid() },
+    crampedCats: { grid: buildCrampedCatsGrid() },
   };
 
   // Renders a pixel-sprite grid onto a small standalone <canvas> icon (its own context, not
