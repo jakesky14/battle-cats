@@ -189,12 +189,31 @@
   .gamatoto-row .menu-btn.gamatoto .sprite-icon { width: 30px; height: 30px; }
   .side-btn {
     flex: 1 1 0; height: 100%; min-height: 66px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
     background: linear-gradient(180deg,#c9a3ff,#8a5fd6); color: #fff;
-    border: none; border-radius: 14px; font-weight: 800; font-size: 16px; cursor: pointer;
+    border: none; border-radius: 14px; font-weight: 800; font-size: 14px; cursor: pointer;
     box-shadow: 0 5px 0 rgba(0,0,0,.35);
   }
   .side-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 rgba(0,0,0,.35); }
+  .side-btn .sprite-icon { width: 28px; height: 28px; }
   .catbase-title-row { display: flex; align-items: center; gap: 10px; align-self: flex-start; }
+  /* Decorative door handles on the Cat Base's wood-plank background, per reference art (a
+     paw-print-engraved metal handle on each of a pair of double doors) - purely cosmetic
+     except for the secret click-combo easter egg wired to them. */
+  .door-handle {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    width: 46px; height: 46px; border-radius: 50%; padding: 0; cursor: pointer;
+    background: radial-gradient(circle at 35% 30%, #e8e8ec, #b8b8c0 55%, #7c7c86 100%);
+    border: 3px solid #4a4a52;
+    box-shadow: 0 3px 0 rgba(0,0,0,.4), inset 0 -2px 3px rgba(0,0,0,.25);
+  }
+  .door-handle:active { transform: translateY(calc(-50% + 2px)); box-shadow: 0 1px 0 rgba(0,0,0,.4); }
+  /* Positioned in the open background area to the right of the menu-buttons column (which
+     runs to ~456px), not the screen edges - the buttons sit flush against the left edge with
+     no gap there, so an edge-anchored handle would overlap them. */
+  .door-handle.left { left: 540px; }
+  .door-handle.right { left: 760px; }
+  .door-handle canvas { width: 100%; height: 100%; opacity: .8; }
   .chapter-arrow-btn {
     background: #f4e2b8; color: #6e4527; border: 3px solid #3f2a17; border-radius: 8px;
     width: 34px; height: 34px; font-weight: 900; cursor: pointer;
@@ -339,7 +358,9 @@
     border: none; border-radius: 8px; padding: 12px 24px;
     font-weight: 800; font-size: 28px; cursor: pointer;
     box-shadow: 0 3px 0 rgba(0,0,0,.3);
+    display: flex; align-items: center; gap: 10px;
   }
+  .store-btn .sprite-icon { width: 30px; height: 30px; }
 
   .rank-row {
     align-self: flex-start;
@@ -412,7 +433,7 @@
   }
   @keyframes map-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.35); } }
   .back-corner-btn {
-    position: absolute; bottom: 16px; left: 16px;
+    position: absolute; bottom: 16px; left: 16px; z-index: 2;
     background: #f4e2b8; color: #6e4527; border: 3px solid #3f2a17; border-radius: 8px;
     padding: 10px 20px; font-weight: 800; cursor: pointer;
   }
@@ -758,19 +779,21 @@
     <button class="menu-btn yellow" id="menuUpgradeBtn"><span id="lbl-upgrade">UPGRADE</span></button>
     <button class="menu-btn yellow" id="menuEquipBtn"><span id="lbl-equip">EQUIP</span></button>
     <div class="gamatoto-row">
-      <button class="side-btn" id="menuMenuBtn">MENU</button>
+      <button class="side-btn" id="menuMenuBtn"><canvas id="menuIcon" width="34" height="34" class="sprite-icon"></canvas><span>MENU</span></button>
       <button class="menu-btn gamatoto" id="menuGamatotoBtn"><canvas id="gamatotoIcon" width="44" height="44" class="sprite-icon"></canvas><span>GAMATOTO</span></button>
-      <button class="side-btn" id="menuMissionsBtn">MISSIONS</button>
+      <button class="side-btn" id="menuMissionsBtn"><canvas id="missionsIcon" width="34" height="34" class="sprite-icon"></canvas><span>MISSIONS</span></button>
     </div>
   </div>
   <button class="back-corner-btn" id="mainMenuBackBtn">◀ Back</button>
+  <button class="door-handle left" id="doorHandleLeft" title="?"><canvas id="doorHandleLeftIcon" width="36" height="40"></canvas></button>
+  <button class="door-handle right" id="doorHandleRight" title="?"><canvas id="doorHandleRightIcon" width="36" height="40"></canvas></button>
   <div class="bottom-cluster">
     <div class="capsule-row">
       <button class="storage-btn" id="menuStorageBtn">STORAGE</button>
       <button class="capsule-btn" id="menuCapsuleBtn">CAT CAPSULE</button>
     </div>
     <div class="cat-food-row">
-      <button class="store-btn" id="storeBtn">STORE</button>
+      <button class="store-btn" id="storeBtn"><canvas id="cartIcon" width="34" height="34" class="sprite-icon"></canvas>STORE</button>
       <div class="cat-food"><canvas id="catFoodIcon" width="32" height="32" class="cat-food-icon"></canvas>Cat Food: <span id="catFoodAmt">0</span></div>
     </div>
   </div>
@@ -782,6 +805,13 @@
       <button class="daily-claim-btn" id="dailyClaimBtn">Claim</button>
     </div>
   </div>
+  <div id="doorSecretModal" class="daily-modal hidden">
+    <div class="daily-modal-inner">
+      <div class="daily-modal-title">🐾 The doors creak open...</div>
+      <div class="daily-modal-desc">You found the secret! (More to come here soon.)</div>
+      <button class="daily-claim-btn" id="doorSecretCloseBtn">Close</button>
+    </div>
+  </div>
 </div>
 
 <div id="chapterSelectScreen" class="title-bg hidden">
@@ -790,6 +820,12 @@
     <button class="giant-square-btn battlecats" id="chapterEmpireBtn">EMPIRE<br>OF CATS</button>
     <button class="giant-square-btn legendstages" id="chapterLegendBtn">LEGEND<br>STAGES</button>
   </div>
+</div>
+
+<div id="missionsScreen" class="screen hidden">
+  <div class="screen-title">Missions</div>
+  <div class="storage-empty" style="margin-top:24px;">No missions available yet - check back soon!</div>
+  <button class="back-btn" id="missionsBackBtn">Back</button>
 </div>
 
 <div id="userRankScreen" class="screen hidden">
@@ -1631,6 +1667,7 @@
   const equipScreen = document.getElementById("equipScreen");
   const capsuleScreen = document.getElementById("capsuleScreen");
   const storageScreen = document.getElementById("storageScreen");
+  const missionsScreen = document.getElementById("missionsScreen");
   const userRankScreen = document.getElementById("userRankScreen");
   const calendarScreen = document.getElementById("calendarScreen");
   const storeScreen = document.getElementById("storeScreen");
@@ -1797,7 +1834,7 @@
 
   function showScreen(el) {
     [titleScreen, modeSelectScreen, risingScreen, chapterSelectScreen, settingsScreen, mainMenu, upgradeScreen, equipScreen, capsuleScreen, storageScreen,
-     userRankScreen, calendarScreen, storeScreen, battleMenuScreen, gamatotoScreen, gamatotoAreaScreen, appEl].forEach(s => s.classList.add("hidden"));
+     missionsScreen, userRankScreen, calendarScreen, storeScreen, battleMenuScreen, gamatotoScreen, gamatotoAreaScreen, appEl].forEach(s => s.classList.add("hidden"));
     el.classList.remove("hidden");
     if (el === mainMenu) renderMainMenu();
     if (el === titleScreen) renderTitleScreen();
@@ -1816,10 +1853,14 @@
     document.getElementById("risingTreasureBox").textContent = `-TREASURE ${n}/48-`;
   }
 
+  let settingsReturnScreen = null; // titleScreen, or mainMenu if entered from the Cat Base's Menu button
   document.getElementById("titlePlayBtn").addEventListener("click", () => showScreen(modeSelectScreen));
-  document.getElementById("titleSettingsBtn").addEventListener("click", () => showScreen(settingsScreen));
+  document.getElementById("titleSettingsBtn").addEventListener("click", () => {
+    settingsReturnScreen = titleScreen;
+    showScreen(settingsScreen);
+  });
   document.getElementById("modeSelectCloseBtn").addEventListener("click", () => showScreen(titleScreen));
-  document.getElementById("settingsCloseBtn").addEventListener("click", () => showScreen(titleScreen));
+  document.getElementById("settingsCloseBtn").addEventListener("click", () => showScreen(settingsReturnScreen || titleScreen));
   document.getElementById("modeBattleCatsBtn").addEventListener("click", () => showScreen(risingScreen));
   document.getElementById("risingChapterBtn").addEventListener("click", () => showScreen(mainMenu));
   document.getElementById("risingBackBtn").addEventListener("click", () => showScreen(modeSelectScreen));
@@ -2045,6 +2086,12 @@
   document.getElementById("capsuleBackBtn").addEventListener("click", () => showScreen(mainMenu));
   document.getElementById("storageBackBtn").addEventListener("click", () => showScreen(mainMenu));
   document.getElementById("mainMenuBackBtn").addEventListener("click", () => showScreen(modeSelectScreen));
+  document.getElementById("menuMenuBtn").addEventListener("click", () => {
+    settingsReturnScreen = mainMenu;
+    showScreen(settingsScreen);
+  });
+  document.getElementById("menuMissionsBtn").addEventListener("click", () => showScreen(missionsScreen));
+  document.getElementById("missionsBackBtn").addEventListener("click", () => showScreen(mainMenu));
   document.getElementById("menuGamatotoBtn").addEventListener("click", () => showScreen(gamatotoScreen));
   document.getElementById("gamatotoBackBtn").addEventListener("click", () => showScreen(mainMenu));
   document.getElementById("gamaMapBtn").addEventListener("click", () => showScreen(gamatotoAreaScreen));
@@ -3757,6 +3804,64 @@
   }
 
   // ---------------------------------------------------------------------------
+  // Cat Base icon row: an open book (Menu), a clipboard (Missions), and a shopping cart
+  // (Store) - small pixel icons matching the Gamatoto/Cat-Food icons' style.
+  // ---------------------------------------------------------------------------
+  function buildMenuIconGrid() {
+    const grid = makePxGrid();
+    pxRect(grid, 3, 8, 17, 30, "W"); // left page
+    pxRect(grid, 19, 8, 33, 30, "W"); // right page
+    pxTriangle(grid, 3, 8, 11, 2, "S"); // slight page-curl shading at the outer corners
+    pxTriangle(grid, 33, 8, 11, 2, "S");
+    pxOutline(grid, "K");
+    pxRect(grid, 16.5, 6, 19.5, 32, "K"); // spine
+    pxEllipse(grid, 10, 16, 3, 3, "K"); // paw print on the left page
+    pxEllipse(grid, 7.3, 12.3, 1, 1.2, "K");
+    pxEllipse(grid, 9.6, 11, 1, 1.2, "K");
+    pxEllipse(grid, 12, 12, 1, 1.2, "K");
+    for (let y = 13; y <= 25; y += 6) pxRect(grid, 22, y, 30, y + 1.6, "K"); // lines on the right page
+    return grid;
+  }
+  function buildMissionsIconGrid() {
+    const grid = makePxGrid();
+    pxRect(grid, 7, 8, 29, 33, "W"); // paper
+    pxOutline(grid, "K");
+    pxRect(grid, 13, 4, 23, 9, "G"); // clip
+    pxOutline(grid, "K");
+    for (let y = 13; y <= 25; y += 6) {
+      pxLine(grid, 10, y + 2.3, 12, y + 4.3, "R"); // checkmark
+      pxLine(grid, 12, y + 4.3, 15.5, y, "R");
+      pxRect(grid, 18, y + 1.5, 26, y + 3, "K"); // text line
+    }
+    return grid;
+  }
+  function buildCartIconGrid() {
+    const grid = makePxGrid();
+    pxTaper(grid, 15, 10, 20, 15, 24, 14, "W"); // basket (wide top, narrower base)
+    pxOutline(grid, "K");
+    pxLine(grid, 8, 10, 25, 10, "K"); // basket rim
+    pxLine(grid, 12, 15, 18, 15, "K"); // grille lines
+    pxLine(grid, 11, 19, 19, 19, "K");
+    pxThickLine(grid, 25, 10, 31, 4, 1.4, "K"); // handle
+    pxEllipse(grid, 13, 30, 3, 3, "K"); // wheels
+    pxEllipse(grid, 21, 30, 3, 3, "K");
+    pxEllipse(grid, 13, 30, 1.1, 1.1, "W");
+    pxEllipse(grid, 21, 30, 1.1, 1.1, "W");
+    return grid;
+  }
+  // Paw print used on the Cat Base's decorative door handles - drawn directly in the handle's
+  // own dark outline color (K), since the handle itself supplies the metal look via CSS.
+  function buildPawIconGrid() {
+    const grid = makePxGrid();
+    pxEllipse(grid, 18, 24, 8, 6.5, "K");
+    pxEllipse(grid, 8.5, 14, 3.4, 4.2, "K");
+    pxEllipse(grid, 15.5, 9.5, 3.4, 4.2, "K");
+    pxEllipse(grid, 21.5, 9.5, 3.4, 4.2, "K");
+    pxEllipse(grid, 28, 14, 3.4, 4.2, "K");
+    return grid;
+  }
+
+  // ---------------------------------------------------------------------------
   // Titan Cat family: unlike every other cat, a humanoid figure (cat head on a long-limbed
   // body) rather than a round chibi blob with legs sticking out - per reference art. All three
   // forms share the same base pose/proportions (buildTitanoidBase), differing only in head
@@ -3948,6 +4053,60 @@
   }
   renderSpriteIcon(document.getElementById("gamatotoIcon"), buildGamatotoGrid());
   renderSpriteIcon(document.getElementById("catFoodIcon"), buildCatFoodCanGrid());
+  renderSpriteIcon(document.getElementById("menuIcon"), buildMenuIconGrid());
+  renderSpriteIcon(document.getElementById("missionsIcon"), buildMissionsIconGrid());
+  renderSpriteIcon(document.getElementById("cartIcon"), buildCartIconGrid());
+  const pawIconGrid = buildPawIconGrid();
+  renderSpriteIcon(document.getElementById("doorHandleLeftIcon"), pawIconGrid);
+  renderSpriteIcon(document.getElementById("doorHandleRightIcon"), pawIconGrid);
+
+  // ---------------------------------------------------------------------------
+  // Cat Base door handles: clicking either plays a meow, and clicking 100 times with no more
+  // than 2 seconds between consecutive clicks (streak resets otherwise) reveals a secret. The
+  // actual reward isn't wired up yet - just the detection + a placeholder reveal - pending spec.
+  // ---------------------------------------------------------------------------
+  let audioCtx = null;
+  function playMeow() {
+    try {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === "suspended") audioCtx.resume();
+      const t0 = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const filter = audioCtx.createBiquadFilter();
+      const gain = audioCtx.createGain();
+      osc.type = "sawtooth";
+      osc.frequency.setValueAtTime(340, t0);
+      osc.frequency.linearRampToValueAtTime(560, t0 + 0.09);
+      osc.frequency.linearRampToValueAtTime(300, t0 + 0.28);
+      filter.type = "lowpass";
+      filter.frequency.value = 2200;
+      gain.gain.setValueAtTime(0, t0);
+      gain.gain.linearRampToValueAtTime(0.25, t0 + 0.04);
+      gain.gain.linearRampToValueAtTime(0.18, t0 + 0.16);
+      gain.gain.linearRampToValueAtTime(0, t0 + 0.32);
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(t0);
+      osc.stop(t0 + 0.34);
+    } catch (e) { /* Web Audio unavailable - fail silently, the click still registers */ }
+  }
+  const doorSecretModal = document.getElementById("doorSecretModal");
+  const doorStreak = { count: 0, lastTs: 0 };
+  function onDoorHandleClick() {
+    playMeow();
+    const now = Date.now();
+    if (now - doorStreak.lastTs > 2000) doorStreak.count = 0;
+    doorStreak.count++;
+    doorStreak.lastTs = now;
+    if (doorStreak.count >= 100) {
+      doorStreak.count = 0;
+      doorSecretModal.classList.remove("hidden");
+    }
+  }
+  document.getElementById("doorHandleLeft").addEventListener("click", onDoorHandleClick);
+  document.getElementById("doorHandleRight").addEventListener("click", onDoorHandleClick);
+  document.getElementById("doorSecretCloseBtn").addEventListener("click", () => doorSecretModal.classList.add("hidden"));
 
   // legSplitRow/legScale let a sprite's legs be lengthened WITHOUT also stretching its head:
   // rows from legSplitRow down to the ground get spaced legScale times further apart, while
