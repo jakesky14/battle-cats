@@ -1145,6 +1145,10 @@
     // Special Cat, found by rolling the Cat Capsule 30+ times total (see capsuleRollCount) and
     // then clearing any stage. Evolves into Vendor Cat with the same lv1 stats (name/sprite only).
     { id:"toyMachine", name:"Toy Machine Cat", emoji:"🎁", cost:150, hp:450, dmg:10, range:110*RANGE_SCALE, cycle:2.27, fore:0.30, tgt:"area", speed:8*SPEED_SCALE, cd:2, kb:1, trait:"Traitless", strongAgainst:[], rarity:"special", color:"#f2f2f2", sprite:"toyMachineCat" },
+    // Special Cat, found by keeping the Storage screen open 5 minutes straight (see showScreen's
+    // storageOpenTimer). Evolves into Muscleman Cat at level 10 with the same hp/dmg, just a
+    // slightly slower cycle.
+    { id:"squishball", name:"Squish Ball Cat", emoji:"🎾", cost:870, hp:400, dmg:155, range:160*RANGE_SCALE, cycle:3.37, fore:1.37, tgt:"area", speed:36*SPEED_SCALE, cd:2.20, kb:5, trait:"Traitless", strongAgainst:[], rarity:"special", color:"#4a9fe0", sprite:"squishballCat" },
   ];
 
   // Enemy roster.
@@ -1161,10 +1165,11 @@
   const WORKER_MAX = 8;
   // Worker Cat Rate (meta upgrade) raises the base ¢/sec rate; in-battle level still adds +5%/level on top.
   const workerIncome = lv => (170 + 3 * (effMeta("workerRate") - 1)) * Math.pow(1.05, lv - 1);
-  // Worker Cat Wallet (meta upgrade) raises both the base cap and the per-in-battle-level increment.
+  // Worker Cat Wallet (meta upgrade): +100 starting wallet per level, plus a flat +50 per
+  // in-battle Worker Cat level (that +50 does NOT scale with the meta level itself).
   const workerWallet = lv => {
     const m = effMeta("workerWallet");
-    return (200 + 100 * (m - 1)) + 50 * m * (lv - 1);
+    return (200 + 100 * (m - 1)) + 50 * (lv - 1);
   };
   const workerCost = lv => 100 * lv;                    // cost to reach lv+1 (in-battle ¢, unaffected by meta)
 
@@ -1195,6 +1200,7 @@
     masked: { name: "Luchador Cat", emoji: "🤼", cycle: 2.23, fore: 0.60, hpMult: 500 / 100, dmgMult: 140 / 8,
               cost: 975, range: 150 * RANGE_SCALE, kb: 1, tgt: "area", sprite: "luchadorCat" },
     toyMachine: { name: "Vendor Cat", emoji: "🥤", sprite: "vendorCat" },
+    squishball: { name: "Muscleman Cat", emoji: "💪", cycle: 3.50, sprite: "musclemanCat" },
   };
 
   // Special Cats don't get a True Form here at all. Flower Cat's real unlock condition for one is
@@ -1380,6 +1386,11 @@
              21:3900,22:7500,23:12000,24:18000,25:25500,26:34500,27:45000,28:57000,29:70500,30:85500,
              31:4550,32:8750,33:14000,34:21000,35:29750,36:40250,37:52500,38:66500,39:82250,40:99750,
              41:5200,42:10000,43:16000,44:24000,45:34000,46:46000,47:60000,48:76000,49:94000,50:114000},
+    squishball: {2:2500,3:4000,4:6000,5:8500,6:11500,7:15000,8:19000,9:23500,10:28500,
+             11:2600,12:5000,13:8000,14:12000,15:17000,16:23000,17:30000,18:38000,19:47000,20:57000,
+             21:3900,22:7500,23:12000,24:18000,25:25500,26:34500,27:45000,28:57000,29:70500,30:85500,
+             31:4550,32:8750,33:14000,34:21000,35:29750,36:40250,37:52500,38:66500,39:82250,40:99750,
+             41:5200,42:10000,43:16000,44:24000,45:34000,46:46000,47:60000,48:76000,49:94000,50:114000},
   };
   // Secret Special Cats only show up in cat-selection lists (Upgrade, Equip) once found via
   // their own unlock condition - everything else in CATS has always just been freely available.
@@ -1389,6 +1400,7 @@
       if (c.id === "capsule") return profile.capsuleCatUnlocked;
       if (c.id === "masked") return profile.maskedCatUnlocked;
       if (c.id === "toyMachine") return profile.toyMachineCatUnlocked;
+      if (c.id === "squishball") return profile.squishballCatUnlocked;
       return true;
     });
   }
@@ -1452,6 +1464,7 @@
     maskedCatUnlocked: false, // Special Cat found by launching the game during the midnight hour, local time
     toyMachineCatUnlocked: false, // Special Cat found by rolling the Cat Capsule 30+ times, then clearing a stage
     capsuleRollCount: 0, // lifetime Cat Capsule rolls - Toy Machine Cat's unlock threshold is 30
+    squishballCatUnlocked: false, // Special Cat found by keeping the Storage screen open 5 min straight
     items: { speedUp: 0, treasureRadar: 0, richCat: 0, sniperCat: 0, catCPU: 0, catJobs: 0, leadership: 0 },
     pendingDailyItem: null, // rolled once when a daily reward becomes available, granted on claim
     gamatoto: {
@@ -1503,6 +1516,7 @@
     if (typeof saved.maskedCatUnlocked === "boolean") profile.maskedCatUnlocked = saved.maskedCatUnlocked;
     if (typeof saved.toyMachineCatUnlocked === "boolean") profile.toyMachineCatUnlocked = saved.toyMachineCatUnlocked;
     if (typeof saved.capsuleRollCount === "number") profile.capsuleRollCount = saved.capsuleRollCount;
+    if (typeof saved.squishballCatUnlocked === "boolean") profile.squishballCatUnlocked = saved.squishballCatUnlocked;
     if (saved.items) Object.assign(profile.items, saved.items);
     if (saved.pendingDailyItem === null || typeof saved.pendingDailyItem === "string") {
       profile.pendingDailyItem = saved.pendingDailyItem;
@@ -1546,19 +1560,19 @@
   function moneyDropMult() { return effMeta("accountant") >= 2 ? 1 + 0.05 * (effMeta("accountant") - 1) : 1; }
   function winXpMult() { return effMeta("study") >= 2 ? 1 + 0.05 * (effMeta("study") - 1) : 1; }
 
-  // Cat Cannon: enemy search range stays the literal real-game value (6000, +200/level) - on our
-  // 1000-wide field that means it's effectively always in range. Beam width (600) is still scaled
-  // by RANGE_SCALE to fit the field, matching every other range stat in this game. Frame-based
-  // adjustments assume the real 30fps engine.
+  // Cat Cannon: attack range starts at 3 waves (200 range each = 600) and gains 1 wave (+200)
+  // per level, scaled by RANGE_SCALE like every other range stat so it's comparable to cat units'
+  // ranges instead of dwarfing the whole field. Beam width (600) uses the same scaling. Frame-
+  // based adjustments assume the real 30fps engine.
   const CANNON_FPS = 30;
   const CANNON_BASE_GAUGE = 95;                    // seconds
   const CANNON_BASE_DMG = 50;
-  const CANNON_BASE_RANGE = 6000;
-  const CANNON_RANGE_PER_LV = 200;
+  const CANNON_BASE_RANGE = 600;                   // 3 waves x 200
+  const CANNON_RANGE_PER_LV = 200;                 // +1 wave per level
   const CANNON_BEAM_WIDTH = 600 * RANGE_SCALE;     // 240
 
   function cannonDamage() { return CANNON_BASE_DMG * effMeta("cannonPower"); }
-  function cannonRange() { return CANNON_BASE_RANGE + CANNON_RANGE_PER_LV * (effMeta("cannonRange") - 1); }
+  function cannonRange() { return (CANNON_BASE_RANGE + CANNON_RANGE_PER_LV * (effMeta("cannonRange") - 1)) * RANGE_SCALE; }
   function cannonGaugeTime() {
     const frameAdj = 50 * (effMeta("cannonPower") - 1) - 50 * (effMeta("cannonCharge") - 1);
     return Math.max(5, CANNON_BASE_GAUGE + frameAdj / CANNON_FPS);
@@ -1949,10 +1963,28 @@
     });
   }
 
+  // Squish Ball Cat's unlock: having the Storage screen open for 5 minutes straight. The timer
+  // starts the moment Storage is shown and is cancelled the instant any other screen shows -
+  // "straight" means uninterrupted, so navigating away resets it.
+  const STORAGE_UNLOCK_MS = 5 * 60 * 1000;
+  let storageOpenTimer = null;
   function showScreen(el) {
     [titleScreen, modeSelectScreen, risingScreen, chapterSelectScreen, settingsScreen, mainMenu, upgradeScreen, equipScreen, capsuleScreen, storageScreen,
      missionsScreen, userRankScreen, calendarScreen, storeScreen, battleMenuScreen, gamatotoScreen, gamatotoAreaScreen, appEl].forEach(s => s.classList.add("hidden"));
     el.classList.remove("hidden");
+    if (el === storageScreen) {
+      if (!storageOpenTimer && !profile.squishballCatUnlocked) {
+        storageOpenTimer = setTimeout(() => {
+          storageOpenTimer = null;
+          profile.squishballCatUnlocked = true;
+          saveProfile();
+          alert("🎾 5 minutes of watching Storage... Squish Ball Cat joins your roster!");
+        }, STORAGE_UNLOCK_MS);
+      }
+    } else if (storageOpenTimer) {
+      clearTimeout(storageOpenTimer);
+      storageOpenTimer = null;
+    }
     if (el === mainMenu) renderMainMenu();
     if (el === titleScreen) renderTitleScreen();
     if (el === risingScreen) renderRisingScreen();
@@ -2990,7 +3022,15 @@
         }
         if (u.swing >= u.def.cycle) u.swing = -1;
       } else {
-        u.swing = -1;
+        // No target right now, so the unit resumes walking - but if it had already started
+        // (or was mid-) an attack cycle (swing >= 0), that cycle keeps counting down instead of
+        // being wiped: killing a target mid-cycle doesn't let the unit re-engage early just
+        // because it's moving. A cycle that never started (swing < 0, never yet encountered a
+        // target) stays at -1, same as before - ready to fire immediately the first time it does.
+        if (u.swing >= 0) {
+          u.swing += dt;
+          if (u.swing >= u.def.cycle) u.swing = -1;
+        }
         u.x += dir * u.def.speed * dt;
         u.x = Math.max(E_BASE_X + 6, Math.min(P_BASE_X - 6, u.x));
       }
@@ -4255,11 +4295,12 @@
   // Capsule Cat family: a round two-tone capsule-toy ball (white top dome, red bottom half) with
   // a cat peeking out. pxEllipse can't split a single circle into two colors, so this fills the
   // circle by hand, one cell at a time, picking W above the center row and R below it.
-  function buildCapsuleBallOnto(grid, cx, cy, r) {
+  function buildCapsuleBallOnto(grid, cx, cy, r, bottomColor) {
+    bottomColor = bottomColor || "R";
     for (let y = 0; y < PXH; y++) {
       for (let x = 0; x < PXW; x++) {
         const dx = (x + 0.5 - cx) / r, dy = (y + 0.5 - cy) / r;
-        if (dx * dx + dy * dy <= 1) grid[y][x] = y < cy ? "W" : "R";
+        if (dx * dx + dy * dy <= 1) grid[y][x] = y < cy ? "W" : bottomColor;
       }
     }
   }
@@ -4380,6 +4421,40 @@
     return grid;
   }
 
+  // Squish Ball Cat family: same round two-tone ball as Capsule Cat, just blue instead of red
+  // (buildCapsuleBallOnto's bottomColor param). Muscleman Cat reuses the Titanoid humanoid body
+  // (unmasked, per the reference - no costume this time) standing in a blue basin at its feet.
+  function buildSquishBallGrid() {
+    const grid = makePxGrid();
+    buildCapsuleBallOnto(grid, 18, 22, 14, "B");
+    pxTriangle(grid, 13, 4, 8, 1.3, "W");
+    pxTriangle(grid, 23, 4, 8, 1.3, "W");
+    pxOutline(grid, "K");
+    pxEllipse(grid, 14, 17, 1.3, 1.5, "K");
+    pxEllipse(grid, 22, 17, 1.3, 1.5, "K");
+    pxLine(grid, 16, 20, 18, 21.5, "K");
+    pxLine(grid, 18, 21.5, 20, 20, "K");
+    pxLine(grid, 24, 18, 25.5, 17, "K"); // whisker mark
+    pxLine(grid, 25.5, 17, 24, 16, "K");
+    return grid;
+  }
+
+  function buildMusclemanGrid() {
+    const grid = makePxGrid();
+    buildTitanoidBase(grid, "W");
+    titanoidHead(grid, "W");
+    pxTriangle(grid, 15.3, 0.5, 3.5, 1.2, "W");
+    pxTriangle(grid, 20.7, 0.5, 3.5, 1.2, "W");
+    pxEllipse(grid, 18, 37, 9, 3, "B"); // basin at the feet
+    pxOutline(grid, "K");
+    titanoidFace(grid);
+    titanoidBodyLines(grid);
+    pxLine(grid, 8, 18, 10, 22, "K"); // bicep definition
+    pxLine(grid, 28, 18, 26, 22, "K");
+    titanoidFingerNotches(grid);
+    return grid;
+  }
+
   // heightScale: per-sprite vertical stretch, anchored at the ground, so different units can
   // be taller/shorter than the base Cat without redesigning their whole coordinate grid - the
   // "scaling tool" for keeping cats' relative sizes right when reference art has no scale bar.
@@ -4434,6 +4509,8 @@
     luchadorCat: { grid: buildLuchadorGrid() },
     toyMachineCat: { grid: buildToyMachineGrid() },
     vendorCat: { grid: buildVendorGrid(), heightScale: 1.2 },
+    squishballCat: { grid: buildSquishBallGrid() },
+    musclemanCat: { grid: buildMusclemanGrid() },
   };
 
   // Renders a pixel-sprite grid onto a small standalone <canvas> icon (its own context, not
