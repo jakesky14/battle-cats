@@ -527,34 +527,45 @@
     font-weight: 800; color: #ffe89a; font-size: 15px;
   }
 
+  /* Unit card: shared by the Upgrade screen's cat strip, the Equip screen's roster
+     grid, and (in a simplified form) the base-upgrade grid - a 258x258 box (3x3 of
+     the roster grid's old ~86x78 cell) with a name banner on top, the unit's actual
+     battle sprite centered, and level/XP info at the bottom-left. */
   .cat-strip {
-    display: flex; gap: 8px; margin-top: 60px; overflow-x: auto; padding-bottom: 6px;
+    display: flex; gap: 12px; margin-top: 60px; overflow-x: auto; padding-bottom: 10px; flex-shrink: 0;
   }
-  .cat-strip .strip-item {
-    flex: 0 0 auto; width: 56px; height: 56px; border-radius: 10px;
-    background: #3f2a17; border: 3px solid transparent;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 28px; cursor: pointer;
+  .unit-card {
+    flex: 0 0 auto; width: 258px; height: 258px; border-radius: 14px;
+    background: rgba(0,0,0,.3); border: 3px solid transparent;
+    display: flex; flex-direction: column; overflow: hidden; cursor: pointer; position: relative;
   }
-  .cat-strip .strip-item.selected { border-color: #ffd35a; }
-  .upgrade-panel {
-    margin-top: 16px; background: rgba(0,0,0,.3); border-radius: 10px;
-    padding: 14px 18px; max-width: 420px;
+  .unit-card.selected, .unit-card.equipped { border-color: #ffd35a; }
+  .unit-card.special { border-color: #ff6bc4; box-shadow: 0 0 8px rgba(255,107,196,.6); }
+  .unit-card-name {
+    background: linear-gradient(180deg,#8a5a34,#5a3a20); color: #f4e2b8;
+    font-weight: 800; font-size: 15px; text-align: center; padding: 8px 30px 8px 8px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
-  .upgrade-cat-name { font-size: 20px; font-weight: 800; color: #f4e2b8; }
-  .upgrade-cat-level { color: #cbb27e; margin-top: 4px; }
-  .upgrade-cat-need { color: #8fd1ff; font-weight: 700; margin-top: 4px; }
+  .unit-card-sprite { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 0; }
+  .unit-card-sprite canvas { max-width: 90%; max-height: 90%; image-rendering: pixelated; }
+  .unit-card-sprite .emoji-fallback { font-size: 76px; }
+  .unit-card-info { padding: 8px 12px 10px; }
+  .unit-card-info .lv { color: #ffe45a; font-weight: 800; font-size: 15px; }
+  .unit-card-info .xp { color: #8fd1ff; font-weight: 700; font-size: 13px; margin-top: 2px; }
   .levelup-btn {
-    margin-top: 14px; align-self: flex-start;
+    margin-top: 16px; align-self: flex-start; flex-shrink: 0;
     background: linear-gradient(180deg,#ffe45a,#f0a800);
     color: #4a2e00; border: none; border-radius: 10px;
     padding: 12px 24px; font-weight: 900; font-size: 16px; cursor: pointer;
     box-shadow: 0 4px 0 rgba(0,0,0,.35);
   }
   .levelup-btn:disabled { filter: grayscale(.6) brightness(.7); cursor: not-allowed; }
-  .upgrade-desc { color: #f4e2b8; opacity: .8; margin-top: 14px; max-width: 420px; font-size: 13px; }
+  .upgrade-desc, .equip-desc {
+    color: #f4e2b8; opacity: .85; margin-top: 14px; max-width: 620px; font-size: 14px; line-height: 1.5;
+    flex-shrink: 0;
+  }
 
-  .equip-slots { display: flex; gap: 6px; margin-top: 60px; flex-wrap: wrap; }
+  .equip-slots { display: flex; gap: 6px; margin-top: 60px; flex-wrap: wrap; flex-shrink: 0; }
   .equip-slot {
     width: 52px; height: 52px; border-radius: 8px;
     background: rgba(0,0,0,.35); border: 2px solid #3f2a17;
@@ -566,33 +577,22 @@
   .equip-detail {
     margin-top: 16px; display: flex; align-items: center; gap: 16px;
     background: rgba(0,0,0,.3); border-radius: 10px; padding: 12px 16px;
-    max-width: 460px;
+    max-width: 460px; flex-shrink: 0;
   }
   .equip-detail-rarity {
     background: #e8c46a; color: #5a3a10; font-weight: 800;
     padding: 3px 10px; border-radius: 6px; font-size: 12px; align-self: flex-start;
   }
   .equip-detail-rarity.special { background: #ff6bc4; color: #3a0a26; }
-  .equip-grid .grid-item.special { border-color: #ff6bc4; box-shadow: 0 0 6px rgba(255,107,196,.6); }
   .equip-detail-name { font-size: 18px; font-weight: 800; color: #f4e2b8; }
   .equip-detail-level, .equip-detail-cost { color: #cbb27e; font-size: 13px; }
   .equip-grid {
-    margin-top: 14px; display: grid; grid-template-columns: repeat(5, 1fr);
-    gap: 8px; max-width: 460px;
+    margin-top: 14px; display: flex; flex-wrap: wrap; gap: 12px; flex-shrink: 0;
   }
-  .equip-grid .grid-item {
-    position: relative;
-    background: rgba(0,0,0,.3); border-radius: 8px; padding: 8px 4px;
-    text-align: center; cursor: pointer; border: 2px solid transparent;
-  }
-  .equip-grid .grid-item.equipped { border-color: #6fd08a; }
-  .equip-grid .grid-item .emoji { font-size: 24px; }
-  .equip-grid .grid-item .name { font-size: 10px; color: #f4e2b8; margin-top: 2px; }
-  .equip-grid .grid-item .cost { font-size: 10px; color: #ffe45a; font-weight: 700; }
   .form-btn {
-    position: absolute; top: 2px; right: 2px; width: 18px; height: 18px; padding: 0;
+    position: absolute; top: 5px; right: 5px; width: 24px; height: 24px; padding: 0;
     border-radius: 50%; background: rgba(0,0,0,.55); border: 1px solid #6fd08a;
-    color: #f4e2b8; font-size: 10px; line-height: 16px; cursor: pointer;
+    color: #f4e2b8; font-size: 13px; line-height: 22px; cursor: pointer; z-index: 1;
   }
   .form-btn:disabled { border-color: #555; color: #888; cursor: not-allowed; }
 
@@ -637,18 +637,11 @@
   }
 
   .meta-grid {
-    margin-top: 18px; display: grid; grid-template-columns: repeat(2, 1fr);
-    gap: 8px; max-width: 460px;
+    margin-top: 18px; display: flex; flex-wrap: wrap; gap: 12px; flex-shrink: 0;
   }
-  .meta-btn {
-    background: rgba(0,0,0,.3); border-radius: 8px; padding: 8px 12px;
-    cursor: pointer; border: 2px solid transparent;
-  }
-  .meta-btn.disabled { opacity: .5; cursor: not-allowed; }
-  .meta-btn.maxed { cursor: default; border-color: #6fd08a; }
-  .meta-btn .meta-name { font-size: 12px; font-weight: 800; color: #f4e2b8; }
-  .meta-btn .meta-lv { font-size: 11px; color: #cbb27e; margin-top: 2px; }
-  .meta-btn .meta-cost { font-size: 11px; color: #8fd1ff; font-weight: 700; margin-top: 2px; }
+  .unit-card.meta-btn { cursor: pointer; }
+  .unit-card.meta-btn.disabled { opacity: .5; cursor: not-allowed; }
+  .unit-card.meta-btn.maxed { cursor: default; border-color: #6fd08a; }
 
   #cannon { text-align: center; }
   #cannonBtn {
@@ -911,11 +904,6 @@
     <button class="test-btn restart-btn" id="restartGameBtn">RESTART GAME</button>
   </div>
   <div class="cat-strip" id="catStrip"></div>
-  <div class="upgrade-panel">
-    <div class="upgrade-cat-name" id="upgradeCatName"></div>
-    <div class="upgrade-cat-level" id="upgradeCatLevel"></div>
-    <div class="upgrade-cat-need" id="upgradeCatNeed"></div>
-  </div>
   <button class="levelup-btn" id="levelUpBtn">LEVEL UP!!</button>
   <div class="upgrade-desc" id="upgradeDesc"></div>
   <div class="meta-grid" id="metaGrid"></div>
@@ -935,6 +923,7 @@
     </div>
   </div>
   <div class="equip-grid" id="equipGrid"></div>
+  <div class="equip-desc" id="equipDesc"></div>
   <button class="back-btn" id="equipBackBtn">Back</button>
 </div>
 
@@ -1433,6 +1422,85 @@
     if (lvl >= CAT_LEVEL_MAX) return undefined;
     const table = CAT_XP_TABLE[id];
     return table ? table[lvl + 1] : undefined;
+  }
+
+  // Flavor text per form tier [1st, evolved, true]. Special Cats only have 2 entries (no True
+  // Form yet - see the note above THIRD_EVOLUTIONS), so catDescriptionAt clamps to the array.
+  const CAT_DESCRIPTIONS = {
+    cat: [
+      "Basic Cat at a very reasonable price.",
+      "Charm point: muscle definition. Otherwise just a Basic Cat.",
+      "Charm point: muscle definition. Added charm point: stellar hairdo.",
+    ],
+    tank: [
+      "Acts as a shield with the great health. Their Area attacks are strong enough to move a pebble.",
+      "Rigid defense, now with corners. Their Area attacks are strong enough to move a small rock.",
+      "Can take a beating thanks to elasticity. Really Good™ Defense. Their Area attacks are strong enough to move two small rocks.",
+    ],
+    axe: [
+      "Feisty Cat built purely for combat. Strong vs. Red enemies.",
+      "Brave hero wannabe, built purely for combat. Strong vs. Red enemies.",
+      "Edgy anti-hero wannabe, built purely for combat. Strong vs. Red enemies.",
+    ],
+    gross: [
+      "Far-reaching fighter that attacks from a distance. Delivers heavy single-hit blows.",
+      "Far-reaching fighter taking pride in their overly beautiful legs. Delivers heavy single-hit blows.",
+      "Far-reaching fighter for whom everyday is Leg Day. Delivers deadly single-hit blows! Strong vs. Aliens.",
+    ],
+    cow: [
+      "Super swift and highly mobile. Uses the head to dish out a flurry of rapid attacks.",
+      "Super swift and highly mobile. A closet metalhead, headbanging all day long.",
+      "The super swift and mobile King of Beasts. Also a fantastic duster for spring cleaning.",
+    ],
+    bird: [
+      "Health of a pea, but boasts explosive power to wipe out crowds in one swoop. (Area Attack)",
+      "Cyborg cat defying gravity all battle long. Drops punishing payloads on groups of foes. (Area Attack)",
+      "It is said they destroyed a city once with the beams of light. Might weaken Angels with Area attack.",
+    ],
+    fish: [
+      "Top-class brawler with a taste for battle. Strong vs. Red enemies.",
+      "Evolved into a stout, meat-eating whale. Strong vs. Red enemies.",
+      "Morphed into a tropical getaway for Cats. Strong vs. Red enemies with a chance of Critical attacks.",
+    ],
+    lizard: [
+      "Able to attack an enemy from a distance. Delivers unrivaled power with single-hit blows.",
+      "Summoned from a fantasy novel to spit hot fire. Delivers a unrivaled blow for a single hit.",
+      "Bullied their way to the dragon throne. Attacks from a distance to deliver dominant single-hit strikes.",
+    ],
+    titan: [
+      "Heavyweight champ with a huge health pool and merciless fists. (Area attack)",
+      "Divine deity of demolition with a huge health pool and merciless fists. (Area attack)",
+      "Titan of demolition with a chance to Knockback enemies, and a perfect example of how to ruin a perfectly good shirt.",
+    ],
+    flower: [
+      "Fascinated by pretty petals. Never forgets to water every day. Might Freeze Dark enemies.",
+      "Hogs the fan after getting out of a hot bath. Attack style shows his aggressive selfishness. Might Freeze Dark enemies.",
+    ],
+    capsule: [
+      "An experimental weapon: one speedy Cat, protected by state-of-the-art capsule plastic. Packs a punch, definitely can't take one.",
+      "Capsule Cat felt lonely and posted an ad for roommates. Overestimated the space in his flat. It's always cuddle time, whether they like it or not!",
+    ],
+    masked: [
+      "Wears the mask which he borrowed without permission from the adventurer Gamatoto who found the mask. His only capability is wearing the mask though.",
+      "Finally became a wrestler. Due to his class change, his talents have increased considerably. (Area)",
+    ],
+    toyMachine: [
+      "Plastic capsule toy machine. A Cat that got into a tank (Area attack). Shielded, so a bit more sturdy than Tank Cat.",
+      "Plastic capsule toy machine. Longer Cat that got into a tank (Area attack). Shielded, so a bit more sturdy than Tank Cat.",
+    ],
+    squishball: [
+      "Got hooked on new capsule material somehow managed to transform itself into something similar (Area Attack)",
+      "See the truth inside. Macho Cat's trainer. Everyone is facsinated by its rippling triceps. Distant relative of the Titan Cat. (Area attack)",
+    ],
+    catTrio: [
+      "Living happily in a plastic bubble. No need for the outside world!!!(Don't make them a role model, kids…)",
+      "A homemade fortress as resilient as the $0.75 budget allows. Tough against various attacks, except moisture… a bit weak against that.",
+    ],
+  };
+  function catDescriptionAt(c, tier) {
+    const arr = CAT_DESCRIPTIONS[c.id];
+    if (!arr) return "";
+    return arr[Math.min(tier, arr.length - 1)];
   }
 
   // Persistent meta-progression: survives between battles, and across reloads via localStorage.
@@ -2337,13 +2405,27 @@
   // ---------------------------------------------------------------------------
   const catStrip = document.getElementById("catStrip");
   const upgradeXpAmt = document.getElementById("upgradeXpAmt");
-  const upgradeCatName = document.getElementById("upgradeCatName");
-  const upgradeCatLevel = document.getElementById("upgradeCatLevel");
-  const upgradeCatNeed = document.getElementById("upgradeCatNeed");
   const upgradeDesc = document.getElementById("upgradeDesc");
   const levelUpBtn = document.getElementById("levelUpBtn");
   const metaGridEl = document.getElementById("metaGrid");
   let selectedUpgradeCat = CATS[0].id;
+
+  const FORM_TIER_NAMES = ["1st Form", "Evolved Form", "True Form"];
+  // Shared 258x258 card: name banner on top, the unit's actual battle sprite (falling back to
+  // its emoji if it has no PIXEL_SPRITES entry) centered, and a form-switch button in the
+  // corner - used by both the Upgrade screen's cat strip and the Equip screen's roster grid.
+  function buildUnitCard(c, form, tier, unlocked, extraClass) {
+    const el = document.createElement("div");
+    el.className = "unit-card" + (extraClass ? " " + extraClass : "") + (c.rarity === "special" ? " special" : "");
+    const grid = PIXEL_SPRITES[form.sprite] && PIXEL_SPRITES[form.sprite].grid;
+    el.innerHTML =
+      `<div class="unit-card-name">${form.name}</div>` +
+      `<div class="unit-card-sprite">${grid ? '<canvas width="180" height="200"></canvas>' : `<div class="emoji-fallback">${form.emoji}</div>`}</div>` +
+      `<div class="unit-card-info"></div>` +
+      `<button class="form-btn" ${unlocked === 0 ? "disabled" : ""} title="${unlocked === 0 ? "No other forms unlocked yet" : "Switch form (now: " + FORM_TIER_NAMES[tier] + ")"}">⇄</button>`;
+    if (grid) renderSpriteIcon(el.querySelector("canvas"), grid);
+    return el;
+  }
 
   function renderMetaGrid() {
     metaGridEl.innerHTML = "";
@@ -2352,14 +2434,18 @@
       const plus = profile.metaPlus[m.key] || 0;
       const plusTag = plus > 0 ? " +" + plus : "";
       const max = metaMax(m.key);
+      const emoji = (ORB_INFO[m.key] && ORB_INFO[m.key].emoji) || "🎯"; // Cat Cannon Range has no orb
       const el = document.createElement("div");
-      if (lv >= max) {
-        el.className = "meta-btn maxed";
-        el.innerHTML = `<div class="meta-name">${m.label}</div><div class="meta-lv">MAX (Lv ${max}${plusTag})</div>`;
-      } else {
+      const infoHtml = lv >= max
+        ? `<div class="lv">MAX (Lv ${max}${plusTag})</div>`
+        : `<div class="lv">Lv ${lv} → ${lv + 1}${plusTag}</div><div class="xp">${metaCost(lv)} XP</div>`;
+      el.className = "unit-card meta-btn" + (lv >= max ? " maxed" : (profile.xp < metaCost(lv) ? " disabled" : ""));
+      el.innerHTML =
+        `<div class="unit-card-name">${m.label}</div>` +
+        `<div class="unit-card-sprite"><div class="emoji-fallback">${emoji}</div></div>` +
+        `<div class="unit-card-info">${infoHtml}</div>`;
+      if (lv < max) {
         const cost = metaCost(lv);
-        el.className = "meta-btn" + (profile.xp < cost ? " disabled" : "");
-        el.innerHTML = `<div class="meta-name">${m.label}</div><div class="meta-lv">Lv ${lv} → ${lv + 1}${plusTag}</div><div class="meta-cost">${cost} XP</div>`;
         el.addEventListener("click", () => {
           if (profile.xp < cost) return;
           profile.xp -= cost;
@@ -2412,31 +2498,37 @@
     testRowEl.classList.toggle("hidden", !profile.testMode);
     catStrip.innerHTML = "";
     visibleCats().forEach(c => {
-      const form = evolvedFormWithOverride(c, profile.catLevels[c.id] || 1, profile.catPlus[c.id] || 0, profile.catForm[c.id]);
-      const el = document.createElement("div");
-      el.className = "strip-item" + (c.id === selectedUpgradeCat ? " selected" : "");
-      el.textContent = form.emoji;
+      const lvl = profile.catLevels[c.id] || 1;
+      const plus = profile.catPlus[c.id] || 0;
+      const unlocked = highestUnlockedTier(c, lvl, plus);
+      const form = evolvedFormWithOverride(c, lvl, plus, profile.catForm[c.id]);
+      const tier = Math.min(profile.catForm[c.id] ?? 2, unlocked);
+      const need = catXpCost(c.id, lvl);
+      const el = buildUnitCard(c, form, tier, unlocked, c.id === selectedUpgradeCat ? "selected" : "");
+      el.querySelector(".unit-card-info").innerHTML =
+        `<div class="lv">Lv ${lvl}${plus > 0 ? " +" + plus : ""}</div>` +
+        `<div class="xp">${need === undefined ? "MAX LEVEL" : "Req XP " + need}</div>`;
       el.addEventListener("click", () => { selectedUpgradeCat = c.id; renderUpgradeScreen(); });
+      el.querySelector(".form-btn").addEventListener("click", (ev) => {
+        ev.stopPropagation();
+        if (unlocked === 0) return;
+        const current = Math.min(profile.catForm[c.id] ?? 2, unlocked);
+        profile.catForm[c.id] = (current + 1) % (unlocked + 1);
+        saveProfile();
+        renderUpgradeScreen();
+      });
       catStrip.appendChild(el);
     });
 
     const base = CATS.find(c => c.id === selectedUpgradeCat);
     const lvl = profile.catLevels[base.id];
     const plus = profile.catPlus[base.id] || 0;
-    const c = evolvedFormWithOverride(base, lvl, plus, profile.catForm[base.id]);
+    const unlocked = highestUnlockedTier(base, lvl, plus);
+    const tier = Math.min(profile.catForm[base.id] ?? 2, unlocked);
     const need = catXpCost(base.id, lvl);
-    const mult = catLevelMult(lvl + plus);
     upgradeXpAmt.textContent = Math.floor(profile.xp);
-    upgradeCatName.textContent = c.name;
-    upgradeCatLevel.textContent = "Level " + lvl + " / " + CAT_LEVEL_MAX + (plus > 0 ? " +" + plus : "");
-    upgradeDesc.textContent = `HP ${Math.round(c.hp * mult)} · DMG ${Math.round(c.dmg * mult)} · Cost ¢${c.cost}`;
-    if (need === undefined) {
-      upgradeCatNeed.textContent = "MAX LEVEL";
-      levelUpBtn.disabled = true;
-    } else {
-      upgradeCatNeed.textContent = "NEED XP " + need;
-      levelUpBtn.disabled = profile.xp < need;
-    }
+    upgradeDesc.textContent = catDescriptionAt(base, tier);
+    levelUpBtn.disabled = need === undefined || profile.xp < need;
     renderMetaGrid();
   }
 
@@ -2462,6 +2554,7 @@
   const equipDetailLevel = document.getElementById("equipDetailLevel");
   const equipDetailCost = document.getElementById("equipDetailCost");
   const equipXpAmt = document.getElementById("equipXpAmt");
+  const equipDesc = document.getElementById("equipDesc");
   let selectedSlot = 0;
 
   function renderEquipScreen() {
@@ -2478,7 +2571,6 @@
       equipSlotsEl.appendChild(el);
     });
 
-    const FORM_TIER_NAMES = ["1st Form", "Evolved Form", "True Form"];
     equipGridEl.innerHTML = "";
     visibleCats().forEach(c => {
       const lvl = profile.catLevels[c.id] || 1;
@@ -2486,11 +2578,12 @@
       const unlocked = highestUnlockedTier(c, lvl, plus);
       const form = evolvedFormWithOverride(c, lvl, plus, profile.catForm[c.id]);
       const tier = Math.min(profile.catForm[c.id] ?? 2, unlocked);
-      const el = document.createElement("div");
+      const need = catXpCost(c.id, lvl);
       const equippedSlot = profile.equip.indexOf(c.id);
-      el.className = "grid-item" + (equippedSlot !== -1 ? " equipped" : "") + (c.rarity === "special" ? " special" : "");
-      el.innerHTML = `<div class="emoji">${form.emoji}</div><div class="name">${form.name}</div><div class="cost">¢${form.cost}</div>` +
-        `<button class="form-btn" ${unlocked === 0 ? "disabled" : ""} title="${unlocked === 0 ? "No other forms unlocked yet" : "Switch form (now: " + FORM_TIER_NAMES[tier] + ")"}">⇄</button>`;
+      const el = buildUnitCard(c, form, tier, unlocked, equippedSlot !== -1 ? "equipped" : "");
+      el.querySelector(".unit-card-info").innerHTML =
+        `<div class="lv">Lv ${lvl}${plus > 0 ? " +" + plus : ""}</div>` +
+        `<div class="xp">${need === undefined ? "MAX LEVEL" : "Req XP " + need}</div>`;
       el.addEventListener("click", () => {
         const currentSlot = profile.equip.indexOf(c.id);
         if (currentSlot === selectedSlot) {
@@ -2504,6 +2597,7 @@
         equipDetailName.textContent = form.name;
         equipDetailLevel.textContent = "Level " + lvl + (plus > 0 ? " +" + plus : "") + " · " + FORM_TIER_NAMES[tier];
         equipDetailCost.textContent = "Cost ¢" + form.cost;
+        equipDesc.textContent = catDescriptionAt(c, tier);
         saveProfile();
         renderEquipScreen();
       });
