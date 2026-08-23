@@ -40,23 +40,14 @@
     padding: 8px 12px;
     flex-wrap: wrap;
   }
-  .money-wrap { flex: 1 1 220px; min-width: 200px; }
-  .money-line { display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; }
+  .hud-right { margin-left: auto; display: flex; align-items: center; gap: 18px; }
+  .money-wrap { min-width: 170px; }
+  .money-line { display: flex; justify-content: flex-end; align-items: baseline; gap: 8px; font-size: 13px; }
   #moneyText { font-size: 20px; font-weight: 800; color: var(--gold); }
   .bar { height: 10px; background: #0d1018; border-radius: 6px; overflow: hidden; margin-top: 4px; border: 1px solid var(--edge); }
   #walletFill { height: 100%; width: 0%; background: linear-gradient(90deg,#ffcf3f,#ffe89a); transition: width .08s linear; }
 
-  #worker { text-align: center; }
-  #workerBtn {
-    background: linear-gradient(180deg,#3a7bd5,#2a5db0);
-    color: #fff; border: none; border-radius: 10px;
-    padding: 8px 14px; font-weight: 700; cursor: pointer;
-    font-size: 13px; line-height: 1.2;
-  }
-  #workerBtn:disabled { filter: grayscale(.6) brightness(.7); cursor: not-allowed; }
-  #workerBtn small { display:block; font-weight:500; opacity:.85; font-size:11px; }
-
-  .basehp { text-align: center; min-width: 120px; }
+  .basehp { text-align: center; min-width: 110px; }
   .basehp .label { font-size: 11px; color: var(--muted); }
   .basehp .num { font-weight: 800; font-size: 15px; }
   .basehp.enemy .num { color: var(--bad); }
@@ -72,11 +63,57 @@
   }
   #activeItemsBar .active-item-badge {
     background: rgba(0,0,0,.55); border: 2px solid var(--gold);
-    border-radius: 8px; padding: 4px 6px; font-size: 18px; line-height: 1;
+    border-radius: 8px; padding: 3px 5px; line-height: 1;
+    display: flex; align-items: center; justify-content: center;
   }
+  #activeItemsBar .active-item-badge canvas { width: 26px; height: 29px; display: block; }
   #activeItemsBar .active-item-badge.toggleable { cursor: pointer; }
   #activeItemsBar .active-item-badge.toggleable:active { transform: translateY(1px); }
   #activeItemsBar .active-item-badge.off { opacity: .35; filter: grayscale(1); border-color: var(--muted); }
+
+  /* ---- Bottom battle bar: Worker Cat (left) · unit dock (center) · Cat Cannon (right) ---- */
+  #battleBottom { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+
+  #worker { text-align: center; flex-shrink: 0; }
+  .worker-lv-label { font-size: 11px; font-weight: 700; color: var(--muted); margin-bottom: 3px; }
+  #workerBtn {
+    position: relative;
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #fdfdfd, #cfd3da 65%, #9fa5b1 100%);
+    border: 3px solid #7d838f;
+    padding: 0; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,.4), inset 0 -3px 6px rgba(0,0,0,.15);
+  }
+  #workerBtn canvas { width: 42px; height: 46px; display: block; }
+  #workerBtn:disabled { filter: grayscale(.6) brightness(.75); cursor: not-allowed; }
+  .worker-cost-badge {
+    position: absolute; left: 50%; bottom: -9px; transform: translateX(-50%);
+    background: #1c1406; color: var(--gold); font-weight: 800; font-size: 10px;
+    border: 1px solid var(--gold); border-radius: 8px; padding: 1px 7px; white-space: nowrap;
+  }
+
+  #cannon { text-align: center; flex-shrink: 0; margin-left: auto; }
+  #cannonBtn {
+    position: relative;
+    width: 78px; height: 78px;
+    border-radius: 50%;
+    border: 3px solid #55596a;
+    padding: 0; color: #fff; font-weight: 800;
+    background: conic-gradient(#ff7fe0 calc(var(--pct, 0) * 1%), #454a5a 0);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,.4);
+    cursor: not-allowed;
+  }
+  #cannonBtn .cannon-label { font-size: 12px; text-shadow: 0 1px 3px rgba(0,0,0,.7); }
+  #cannonBtn.ready {
+    background: #ff2ee0;
+    border-color: #ffe3fb;
+    cursor: pointer;
+    box-shadow: 0 0 16px 3px rgba(255,46,224,.75);
+  }
+  #cannonBtn.ready .cannon-label { font-size: 15px; font-weight: 900; color: #fff86b; }
 
   #overlay {
     position: absolute; inset: 0;
@@ -99,10 +136,12 @@
     border: 2px solid var(--edge);
   }
 
-  /* ---- Unit dock ---- */
+  /* ---- Unit dock: fixed 5 columns x 2 rows (up to 10 slots) ---- */
   #dock {
+    flex: 1 1 auto;
     display: grid;
-    grid-template-columns: repeat(9, 1fr);
+    grid-template-columns: repeat(5, 1fr);
+    grid-auto-rows: 1fr;
     gap: 6px;
   }
   .unit {
@@ -467,7 +506,8 @@
     padding: 10px 4px; color: #fff; text-align: center; cursor: pointer; font-size: 11px; font-weight: 700;
   }
   .battle-menu-item.selected { border-color: #ffd35a; background: rgba(255,211,90,.3); }
-  .battle-menu-item .bmi-emoji { font-size: 24px; }
+  .battle-menu-item .bmi-icon { width: 32px; height: 36px; display: block; margin: 0 auto; }
+  .battle-menu-item .bmi-label { margin-top: 3px; line-height: 1.25; }
   .battle-menu-item .bmi-count { color: #ffd35a; font-weight: 800; }
 
   /* ---- Gamatoto ---- */
@@ -682,17 +722,6 @@
   .unit-card.meta-btn { cursor: pointer; }
   .unit-card.meta-btn.disabled { opacity: .5; cursor: not-allowed; }
   .unit-card.meta-btn.maxed { cursor: default; border-color: #6fd08a; }
-
-  #cannon { text-align: center; }
-  #cannonBtn {
-    background: linear-gradient(180deg,#ff8a4c,#d85a1f);
-    color: #fff; border: none; border-radius: 10px;
-    padding: 8px 14px; font-weight: 800; cursor: pointer;
-    font-size: 13px; line-height: 1.2; min-width: 130px;
-  }
-  #cannonBtn:disabled { filter: grayscale(.5) brightness(.8); cursor: not-allowed; }
-  .cannon-bar { height: 8px; background: #0d1018; border-radius: 6px; overflow: hidden; margin-top: 4px; border: 1px solid var(--edge); width: 130px; }
-  #cannonFill { height: 100%; width: 0%; background: linear-gradient(90deg,#ff8a4c,#ffd35a); transition: width .08s linear; }
 
   #quitBtn {
     background: transparent; color: var(--bad); border: 2px solid var(--bad);
@@ -1002,23 +1031,18 @@
 
 <div id="app" class="hidden">
   <div id="hud">
-    <div class="money-wrap">
-      <div class="money-line">
-        <span id="moneyText">¢0</span>
-        <span id="incomeText" style="color:var(--muted)"></span>
-      </div>
-      <div class="bar"><div id="walletFill"></div></div>
-    </div>
-    <div id="worker">
-      <button id="workerBtn">Upgrade Income<small id="workerSub"></small></button>
-    </div>
-    <div id="cannon">
-      <button id="cannonBtn" disabled>CHARGING 0%</button>
-      <div class="cannon-bar"><div id="cannonFill"></div></div>
-    </div>
-    <div class="basehp player"><div class="label">🏠 Your Base</div><div class="num" id="pBaseHp"></div></div>
-    <div class="basehp enemy"><div class="label">🏰 Enemy Base</div><div class="num" id="eBaseHp"></div></div>
     <button id="quitBtn">Quit</button>
+    <div class="hud-right">
+      <div class="basehp player"><div class="label">🏠 Your Base</div><div class="num" id="pBaseHp"></div></div>
+      <div class="basehp enemy"><div class="label">🏰 Enemy Base</div><div class="num" id="eBaseHp"></div></div>
+      <div class="money-wrap">
+        <div class="money-line">
+          <span id="moneyText">¢0</span>
+          <span id="incomeText" style="color:var(--muted)"></span>
+        </div>
+        <div class="bar"><div id="walletFill"></div></div>
+      </div>
+    </div>
   </div>
 
   <div id="field">
@@ -1034,7 +1058,21 @@
     </div>
   </div>
 
-  <div id="dock"></div>
+  <div id="battleBottom">
+    <div id="worker">
+      <div class="worker-lv-label" id="workerLvLabel">Lv 1</div>
+      <button id="workerBtn">
+        <canvas id="workerCatIcon" width="42" height="46"></canvas>
+        <span class="worker-cost-badge" id="workerCostBadge"></span>
+      </button>
+    </div>
+    <div id="dock"></div>
+    <div id="cannon">
+      <button id="cannonBtn" disabled>
+        <span class="cannon-label" id="cannonLabel">0%</span>
+      </button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -1625,6 +1663,8 @@
     catTrioUnlocked: false, // Special Cat found by clearing a stage with only Macho/Wall/Brave Cat equipped
     items: { speedUp: 0, treasureRadar: 0, richCat: 0, sniperCat: 0, catCPU: 0, catJobs: 0, leadership: 0 },
     catamin: { a: 0, b: 0, c: 0 }, // Catamin isn't a real system yet (like Catseyes) - display-only zeros
+    stageCleared: false,     // set true after the first win - gates Golden Cat CPU's stage-skip
+    goldenCpuUsesLeft: 10,   // lifetime cap on Golden Cat CPU stage-skips (normal Cat CPU has no cap)
     pendingDailyItem: null, // rolled once when a daily reward becomes available, granted on claim
     gamatoto: {
       level: 1,
@@ -1679,6 +1719,8 @@
     if (typeof saved.catTrioUnlocked === "boolean") profile.catTrioUnlocked = saved.catTrioUnlocked;
     if (saved.items) Object.assign(profile.items, saved.items);
     if (saved.catamin) Object.assign(profile.catamin, saved.catamin);
+    if (typeof saved.stageCleared === "boolean") profile.stageCleared = saved.stageCleared;
+    if (typeof saved.goldenCpuUsesLeft === "number") profile.goldenCpuUsesLeft = saved.goldenCpuUsesLeft;
     if (saved.pendingDailyItem === null || typeof saved.pendingDailyItem === "string") {
       profile.pendingDailyItem = saved.pendingDailyItem;
     }
@@ -1721,15 +1763,16 @@
   function moneyDropMult() { return effMeta("accountant") >= 2 ? 1 + 0.05 * (effMeta("accountant") - 1) : 1; }
   function winXpMult() { return effMeta("study") >= 2 ? 1 + 0.05 * (effMeta("study") - 1) : 1; }
 
-  // Cat Cannon: attack range starts at 3 waves (200 range each = 600) and gains 1 wave (+200)
-  // per level, scaled by RANGE_SCALE like every other range stat so it's comparable to cat units'
-  // ranges instead of dwarfing the whole field. Beam width (600) uses the same scaling. Frame-
-  // based adjustments assume the real 30fps engine.
+  // Cat Cannon: no separate enemy-search range - fireCannon() below just checks the closest
+  // enemy unit against this same damaging range. Base (lv1) range is 1200, +600 per upgrade
+  // over the 9 available upgrades (lv1 -> lv10, matching metaMax("cannonRange") = 10), scaled
+  // by RANGE_SCALE like every other range stat so it's comparable to cat units' ranges instead
+  // of dwarfing the whole field. Frame-based adjustments assume the real 30fps engine.
   const CANNON_FPS = 30;
   const CANNON_BASE_GAUGE = 95;                    // seconds
   const CANNON_BASE_DMG = 50;
-  const CANNON_BASE_RANGE = 600;                   // 3 waves x 200
-  const CANNON_RANGE_PER_LV = 200;                 // +1 wave per level
+  const CANNON_BASE_RANGE = 1200;                  // lv1 range
+  const CANNON_RANGE_PER_LV = 600;                 // +600 per upgrade, 9 upgrades total
   const CANNON_BEAM_WIDTH = 600 * RANGE_SCALE;     // 240
 
   function cannonDamage() { return CANNON_BASE_DMG * effMeta("cannonPower"); }
@@ -1746,7 +1789,9 @@
   function newGame() {
     const pHp = playerBaseMaxHp();
     const activeItems = pendingActiveItems;
+    const speedUpBoosted = pendingSpeedUpBoosted;
     pendingActiveItems = {};
+    pendingSpeedUpBoosted = false;
     G = {
       running: false,
       over: false,
@@ -1757,6 +1802,7 @@
       cannonGauge: 0,
       activeItems,             // current on/off state (toggleable mid-battle for some items)
       equippedItems: { ...activeItems }, // fixed record of what was brought in, for the HUD bar
+      speedUpBoosted,          // Speed Up was equipped at the "x2 items, 3x speed" state
       sniperTimer: 0,
       units: [],            // player + enemy units
       pBase: { x:P_BASE_X, hp:pHp, max:pHp, team:"player", isBase:true },
@@ -1780,9 +1826,10 @@
   const incomeText = document.getElementById("incomeText");
   const walletFill = document.getElementById("walletFill");
   const workerBtn = document.getElementById("workerBtn");
-  const workerSub = document.getElementById("workerSub");
+  const workerLvLabel = document.getElementById("workerLvLabel");
+  const workerCostBadge = document.getElementById("workerCostBadge");
   const cannonBtn = document.getElementById("cannonBtn");
-  const cannonFill = document.getElementById("cannonFill");
+  const cannonLabel = document.getElementById("cannonLabel");
   const activeItemsBarEl = document.getElementById("activeItemsBar");
   const TOGGLEABLE_ITEMS = ["speedUp", "catCPU", "sniperCat"];
 
@@ -1793,8 +1840,11 @@
       const toggleable = TOGGLEABLE_ITEMS.includes(key);
       const isOn = !!G.activeItems[key];
       el.className = "active-item-badge" + (toggleable ? " toggleable" : "") + (isOn ? "" : " off");
-      el.textContent = ITEM_INFO[key].emoji;
-      el.title = ITEM_INFO[key].name + (toggleable ? (isOn ? " (click to turn off)" : " (click to turn back on)") : "");
+      const iconKey = (key === "speedUp" && G.speedUpBoosted) ? "speedUp3x" : key;
+      el.innerHTML = '<canvas width="36" height="40"></canvas>';
+      renderSpriteIcon(el.querySelector("canvas"), ITEM_ICON_GRIDS[iconKey]);
+      let title = ITEM_INFO[key].name + (key === "speedUp" && G.speedUpBoosted ? " (3x)" : "");
+      el.title = title + (toggleable ? (isOn ? " (click to turn off)" : " (click to turn back on)") : "");
       if (toggleable) {
         el.addEventListener("click", () => {
           G.activeItems[key] = !G.activeItems[key];
@@ -1818,7 +1868,6 @@
   function buildDock() {
     roster = profile.equip.filter(Boolean).map(id => CATS.find(c => c.id === id));
     dock.innerHTML = "";
-    dock.style.gridTemplateColumns = `repeat(${Math.max(roster.length, 1)}, 1fr)`;
     unitEls = roster.map((c, i) => {
       const form = evolvedFormWithOverride(c, profile.catLevels[c.id] || 1, profile.catPlus[c.id] || 0, profile.catForm[c.id]);
       const el = document.createElement("div");
@@ -2473,8 +2522,26 @@
   // Battle Menu: pick items to bring before a stage. Selected items are consumed and
   // applied when Attack is pressed (see pendingActiveItems, read once in newGame()).
   // ---------------------------------------------------------------------------
+  // selectedBattleItems[key] is a state number, not just a boolean: 0 = not equipped. Most
+  // items only ever reach state 1 (equipped, 1 consumed). Speed Up and Cat CPU cycle through
+  // a 3rd state on a 2nd click (2 consumed, stronger effect), then unequip on a 3rd click.
   let selectedBattleItems = {};
   let pendingActiveItems = {};
+  let pendingSpeedUpBoosted = false;
+  const MULTI_CLICK_MAX = { speedUp: 2, catCPU: 2 };
+  function goldenCpuEligible() {
+    return !!profile.stageCleared && (profile.goldenCpuUsesLeft || 0) > 0 && (profile.items.catCPU || 0) >= 2;
+  }
+  function battleMenuIconKey(key, state) {
+    if (key === "speedUp" && state === 2) return "speedUp3x";
+    if (key === "catCPU" && state === 2) return "catCPUGolden";
+    return key;
+  }
+  function battleMenuStateLabel(key, state, info) {
+    if (key === "speedUp" && state === 2) return "Speed Up ×3 (uses 2)";
+    if (key === "catCPU" && state === 2) return "Golden CPU (uses 2, " + (profile.goldenCpuUsesLeft || 0) + " left)";
+    return info.name;
+  }
   const battleMenuItemsEl = document.getElementById("battleMenuItems");
   const leadershipBtn = document.getElementById("leadershipBtn");
   const leadershipCountEl = document.getElementById("leadershipCount");
@@ -2504,14 +2571,26 @@
       const count = profile.items[key] || 0;
       const el = document.createElement("div");
       el.className = "battle-menu-item";
-      el.innerHTML = `<div class="bmi-emoji">${info.emoji}</div><div>${info.name}</div><div class="bmi-count">x${count}</div>`;
+      el.innerHTML = `<canvas class="bmi-icon" width="36" height="40"></canvas><div class="bmi-label"></div><div class="bmi-count">x${count}</div>`;
+      const iconEl = el.querySelector(".bmi-icon");
+      const labelEl = el.querySelector(".bmi-label");
+      const paint = state => {
+        renderSpriteIcon(iconEl, ITEM_ICON_GRIDS[battleMenuIconKey(key, state)]);
+        labelEl.textContent = battleMenuStateLabel(key, state, info);
+        el.classList.toggle("selected", state > 0);
+      };
+      paint(0);
       if (count <= 0) {
         el.style.opacity = ".4";
         el.style.cursor = "not-allowed";
       } else {
         el.addEventListener("click", () => {
-          selectedBattleItems[key] = !selectedBattleItems[key];
-          el.classList.toggle("selected", selectedBattleItems[key]);
+          const maxState = MULTI_CLICK_MAX[key] || 1;
+          let next = ((selectedBattleItems[key] || 0) + 1) % (maxState + 1);
+          if (key === "speedUp" && next === 2 && count < 2) next = 0;
+          if (key === "catCPU" && next === 2 && !goldenCpuEligible()) next = 0;
+          selectedBattleItems[key] = next;
+          paint(next);
         });
       }
       battleMenuItemsEl.appendChild(el);
@@ -2527,11 +2606,46 @@
   document.getElementById("battleMenuAttackBtn").addEventListener("click", () => {
     regenEnergy();
     if (profile.energy < ENERGY_PER_BATTLE) return;
+
+    // Golden Cat CPU: skip the battle entirely and instantly grant this stage's clear
+    // rewards - only reachable (see goldenCpuEligible) on a stage already cleared for real,
+    // and capped at profile.goldenCpuUsesLeft uses total (normal Cat CPU has no such cap).
+    if (selectedBattleItems.catCPU === 2 && goldenCpuEligible()) {
+      profile.energy -= ENERGY_PER_BATTLE;
+      profile.items.catCPU -= 2;
+      profile.goldenCpuUsesLeft--;
+      let mult = winXpMult();
+      if (selectedBattleItems.catJobs > 0 && (profile.items.catJobs || 0) > 0) {
+        profile.items.catJobs--;
+        mult *= 1.5;
+      }
+      const xpGained = Math.round(XP_PER_WIN * mult);
+      profile.xp += xpGained;
+      profile.catFood += CAT_FOOD_PER_WIN;
+      saveProfile();
+      pendingActiveItems = {};
+      buildDock();
+      showScreen(appEl);
+      resize();
+      newGame();
+      G.over = true;
+      ovTitle.textContent = "⚡ Golden Cat CPU";
+      ovText.textContent = `Auto-cleared the stage without a fight. +${xpGained} XP, +${CAT_FOOD_PER_WIN} Cat Food. Golden Cat CPU uses left: ${profile.goldenCpuUsesLeft}.`;
+      ovBtn.classList.add("hidden");
+      ovMenuBtn.classList.remove("hidden");
+      overlay.classList.remove("hidden");
+      return;
+    }
+
     profile.energy -= ENERGY_PER_BATTLE;
     pendingActiveItems = {};
+    pendingSpeedUpBoosted = selectedBattleItems.speedUp === 2;
     Object.keys(selectedBattleItems).forEach(key => {
-      if (selectedBattleItems[key] && (profile.items[key] || 0) > 0) {
-        profile.items[key]--;
+      const state = selectedBattleItems[key];
+      if (state <= 0) return;
+      const cost = (key === "speedUp" && state === 2) ? 2 : 1;
+      if ((profile.items[key] || 0) >= cost) {
+        profile.items[key] -= cost;
         pendingActiveItems[key] = true;
       }
     });
@@ -3093,6 +3207,7 @@
       xpGained = Math.round(XP_PER_WIN * mult);
       profile.xp += xpGained;
       profile.catFood += CAT_FOOD_PER_WIN;
+      profile.stageCleared = true; // gates Golden Cat CPU's stage-skip - only usable once cleared for real
       // Capsule Cat's unlock: clear any stage having sent out only a single unit the whole battle.
       if (G.deployCount === 1 && !profile.capsuleCatUnlocked) {
         profile.capsuleCatUnlocked = true;
@@ -3369,12 +3484,6 @@
     // flag / icon
     ctx.font = "26px serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
     ctx.fillText(isEnemy ? "🏰" : "🏠", bx + bw / 2, by + bh / 2);
-    // hp bar
-    const ratio = Math.max(0, base.hp / base.max);
-    ctx.fillStyle = "rgba(0,0,0,.5)";
-    ctx.fillRect(bx, by - 12, bw, 7);
-    ctx.fillStyle = isEnemy ? "#ff6b6b" : "#6ee7a0";
-    ctx.fillRect(bx, by - 12, bw * ratio, 7);
   }
 
   // ---------------------------------------------------------------------------
@@ -3384,7 +3493,7 @@
   // fall back to the existing rounded-rect + emoji rendering below.
   // ---------------------------------------------------------------------------
   const PXW = 36, PXH = 40; // sprite grid size, in cells (2x res for finer detail)
-  const PX_PALETTE = { W: "#ffffff", K: "#20201c", G: "#b0b0b0", S: "#d8d8de", M: "#ff2ee0", Y: "#e8c34a", O: "#e8791f", R: "#e0392b", L: "#8bc34a", B: "#4a9fe0", P: "#ffb3c8" };
+  const PX_PALETTE = { W: "#ffffff", K: "#20201c", G: "#b0b0b0", S: "#d8d8de", M: "#ff2ee0", Y: "#e8c34a", O: "#e8791f", R: "#e0392b", L: "#8bc34a", B: "#4a9fe0", P: "#ffb3c8", N: "#33e07a", V: "#8a3fd8" };
 
   function makePxGrid() { return Array.from({ length: PXH }, () => Array(PXW).fill(null)); }
 
@@ -4382,6 +4491,96 @@
   }
 
   // ---------------------------------------------------------------------------
+  // Battle-item badge icons: small circular pixel-art badges for the 6 battle items (plus a
+  // 3x Speed Up and Golden Cat CPU variant), shown in the pre-battle Battle Menu and the
+  // in-battle active-items HUD bar, replacing the plain emoji used there before.
+  // ---------------------------------------------------------------------------
+  function buildUpArrowBadge(bgColor) {
+    const grid = makePxGrid();
+    pxEllipse(grid, 18, 20, 16, 16, bgColor);
+    pxTriangle(grid, 18, 8, 20, 7, "W");
+    pxRect(grid, 15, 19, 21, 27, "W");
+    pxRect(grid, 9, 30, 27, 32.5, "W"); // suggests a word beneath the arrow (text unreadable at this res)
+    pxOutline(grid, "K");
+    return grid;
+  }
+  function buildSpeedUpGrid() { return buildUpArrowBadge("L"); }
+  function buildCatJobsGrid() { return buildUpArrowBadge("B"); }
+  // 3x Speed Up: brighter neon-green bg, a gold ring, and a tripled chevron stack instead of a
+  // single solid arrow, to read as "faster" at a glance next to the normal Speed Up badge.
+  function buildSpeedUp3xGrid() {
+    const grid = makePxGrid();
+    pxEllipse(grid, 18, 20, 16, 16, "N");
+    for (const yOff of [6, 13, 20]) {
+      pxLine(grid, 10, yOff + 8, 18, yOff, "W");
+      pxLine(grid, 18, yOff, 26, yOff + 8, "W");
+      pxLine(grid, 10, yOff + 9, 18, yOff + 1, "W");
+      pxLine(grid, 18, yOff + 1, 26, yOff + 9, "W");
+    }
+    pxOutline(grid, "K");
+    return grid;
+  }
+  function buildTreasureRadarGrid() {
+    const grid = makePxGrid();
+    pxEllipse(grid, 18, 11, 12, 6, "O"); // domed lid
+    pxRect(grid, 6, 11, 30, 32, "O"); // chest body
+    pxOutline(grid, "K");
+    pxRect(grid, 6, 16, 30, 19, "Y"); // gold band
+    pxRect(grid, 14, 20, 22, 27, "Y"); // lock plate
+    pxEllipse(grid, 18, 23, 1.6, 1.6, "K"); // keyhole
+    pxOutline(grid, "K");
+    return grid;
+  }
+  function buildRichCatGrid() {
+    const grid = makePxGrid();
+    pxEllipse(grid, 18, 31, 15, 6.5, "Y"); // gold coin plate
+    pxOutline(grid, "K");
+    pxTriangle(grid, 9, 4, 11, 3.6, "W"); // left ear
+    pxTriangle(grid, 27, 4, 11, 3.6, "W"); // right ear
+    pxEllipse(grid, 18, 16, 11, 10, "W"); // face
+    pxOutline(grid, "K");
+    pxEllipse(grid, 14, 15, 1.4, 1.8, "K"); // eyes
+    pxEllipse(grid, 22, 15, 1.4, 1.8, "K");
+    pxTriangle(grid, 18, 18, 20, 1.6, "R"); // nose
+    return grid;
+  }
+  function buildCatCpuFace(headColor) {
+    const grid = makePxGrid();
+    pxTriangle(grid, 9, 4, 12, 4, headColor); // left ear
+    pxTriangle(grid, 27, 4, 12, 4, headColor); // right ear
+    pxRect(grid, 6, 10, 30, 30, headColor); // monitor body/head
+    pxOutline(grid, "K");
+    const screenColors = ["R", "O", "Y", "L", "B", "M"];
+    let ci = 0;
+    for (let y = 14; y <= 24; y += 6) {
+      for (let x = 10; x <= 24; x += 6) {
+        pxRect(grid, x, y, x + 5, y + 5, screenColors[ci % screenColors.length]);
+        ci++;
+      }
+    }
+    pxOutline(grid, "K");
+    pxRect(grid, 14, 30, 22, 34, headColor === "W" ? "G" : "Y"); // stand
+    pxOutline(grid, "K");
+    return grid;
+  }
+  function buildCatCpuGrid() { return buildCatCpuFace("W"); }
+  function buildCatCpuGoldenGrid() { return buildCatCpuFace("Y"); }
+  function buildSniperCatGrid() {
+    const grid = makePxGrid();
+    pxEllipse(grid, 18, 20, 16, 16, "V"); // purple bg
+    pxEllipse(grid, 18, 20, 11, 11, "S"); // outer scope ring
+    pxEllipse(grid, 18, 20, 9, 9, "V"); // punch back to bg -> ring
+    pxRect(grid, 16.5, 5, 19.5, 15, "S"); // crosshair top
+    pxRect(grid, 16.5, 25, 19.5, 35, "S"); // crosshair bottom
+    pxRect(grid, 3, 18.5, 13, 21.5, "S"); // crosshair left
+    pxRect(grid, 23, 18.5, 33, 21.5, "S"); // crosshair right
+    pxEllipse(grid, 18, 20, 3, 3, "S"); // center ring
+    pxEllipse(grid, 18, 20, 1.3, 1.3, "K"); // center dot
+    pxOutline(grid, "K");
+    return grid;
+  }
+
+  // ---------------------------------------------------------------------------
   // Titan Cat family: unlike every other cat, a humanoid figure (cat head on a long-limbed
   // body) rather than a round chibi blob with legs sticking out - per reference art. All three
   // forms share the same base pose/proportions (buildTitanoidBase), differing only in head
@@ -4923,6 +5122,17 @@
   const pawIconGrid = buildPawIconGrid();
   renderSpriteIcon(document.getElementById("doorHandleLeftIcon"), pawIconGrid);
   renderSpriteIcon(document.getElementById("doorHandleRightIcon"), pawIconGrid);
+  renderSpriteIconCropped(document.getElementById("workerCatIcon"), PIXEL_SPRITES.cat.grid, "cat");
+  const ITEM_ICON_GRIDS = {
+    speedUp: buildSpeedUpGrid(),
+    speedUp3x: buildSpeedUp3xGrid(),
+    treasureRadar: buildTreasureRadarGrid(),
+    richCat: buildRichCatGrid(),
+    catCPU: buildCatCpuGrid(),
+    catCPUGolden: buildCatCpuGoldenGrid(),
+    catJobs: buildCatJobsGrid(),
+    sniperCat: buildSniperCatGrid(),
+  };
 
   // ---------------------------------------------------------------------------
   // Cat Base door handles: clicking either plays a meow, and clicking 100 times with no more
@@ -5155,11 +5365,13 @@
 
     if (G.workerLv >= WORKER_MAX) {
       workerBtn.disabled = true;
-      workerBtn.innerHTML = "Income MAX<small>Lv " + G.workerLv + "</small>";
+      workerLvLabel.textContent = "Lv " + G.workerLv + " MAX";
+      workerCostBadge.textContent = "MAX";
     } else {
       const cost = workerCost(G.workerLv);
       workerBtn.disabled = !G.running || G.money < cost;
-      workerBtn.innerHTML = "Upgrade Income<small>Lv " + G.workerLv + " → " + (G.workerLv + 1) + "  ·  ¢" + cost + "</small>";
+      workerLvLabel.textContent = "Lv " + G.workerLv;
+      workerCostBadge.textContent = "¢" + cost;
     }
 
     pBaseHpEl.textContent = Math.max(0, Math.ceil(G.pBase.hp)) + " / " + G.pBase.max;
@@ -5167,10 +5379,11 @@
 
     const gaugeTime = cannonGaugeTime();
     const gaugeRatio = Math.min(1, G.cannonGauge / gaugeTime);
-    cannonFill.style.width = (gaugeRatio * 100) + "%";
+    cannonBtn.style.setProperty("--pct", gaugeRatio * 100);
     const ready = gaugeRatio >= 1;
     cannonBtn.disabled = !ready || !G.running;
-    cannonBtn.textContent = ready ? "FIRE" : "CHARGING " + Math.floor(gaugeRatio * 100) + "%";
+    cannonBtn.classList.toggle("ready", ready);
+    cannonLabel.textContent = ready ? "Fire!!" : Math.floor(gaugeRatio * 100) + "%";
 
     for (let i = 0; i < roster.length; i++) {
       const el = unitEls[i];
@@ -5201,7 +5414,7 @@
     }
     // Speed Up item: everything in battle (enemies, cats, attacks, cooldowns, income, etc.)
     // runs at 2x by simply advancing the simulation twice as fast.
-    if (G.running && !G.over) update(G.activeItems.speedUp ? dt * 2 : dt);
+    if (G.running && !G.over) update(G.activeItems.speedUp ? dt * (G.speedUpBoosted ? 3 : 2) : dt);
     render();
     syncHud();
     requestAnimationFrame(frame);
