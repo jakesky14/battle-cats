@@ -1369,7 +1369,12 @@
     // Catfruit, which isn't obtainable anywhere yet (Legend Stages don't exist) - Jiangshi Cat.
     // Same "data's on the books, content that grants it doesn't exist yet" treatment as every
     // other not-yet-reachable True Form in this file; see AUTO EVOLVE (test mode) to preview it.
-    { id:"pogo", name:"Pogo Cat", emoji:"🐱", cost:360, hp:300, dmg:65, range:150*RANGE_SCALE, cycle:1.63, fore:0.53, tgt:"single", speed:10*SPEED_SCALE, cd:2.00, kb:3, trait:"Traitless", strongAgainst:[], rarity:"rare", color:"#f4f4f4", sprite:"pogoCat" },
+    { id:"pogo", name:"Pogo Cat", emoji:"🐱", cost:360, hp:300, dmg:65, range:150*RANGE_SCALE, cycle:1.63, fore:0.53, tgt:"single", speed:10*SPEED_SCALE, cd:2.00, kb:3, trait:"Traitless", strongAgainst:[], rarity:"rare", survive: { chance: 0.5 }, color:"#f4f4f4", sprite:"pogoCat" },
+    // Second Rare Cat. Evolves into Solar Cat, then - True Form, needs Catfruit like Jiangshi
+    // Cat, same not-obtainable-yet treatment - Chill Cat. Massive Damage (massiveAgainst): a
+    // flat 3x dealt to the given trait, kept even through both evolutions since neither
+    // EVOLUTIONS.wheel nor THIRD_EVOLUTIONS.wheel overrides it (see damageAmount()).
+    { id:"wheel", name:"Wheel Cat", emoji:"🐱", cost:1050, hp:600, dmg:220, range:170*RANGE_SCALE, cycle:2.27, fore:0.97, tgt:"area", speed:9*SPEED_SCALE, cd:11.20, kb:2, trait:"Traitless", strongAgainst:[], massiveAgainst:["Alien"], rarity:"rare", color:"#f4f4f4", sprite:"wheelCat" },
   ];
 
   // Enemy roster.
@@ -1424,6 +1429,7 @@
     squishball: { name: "Muscleman Cat", emoji: "💪", cycle: 3.50, sprite: "musclemanCat" },
     catTrio: { name: "Secret Base", emoji: "🕳️", sprite: "secretBase" },
     pogo: { name: "Masai Cat", emoji: "🐱", hpMult: 400 / 300, dmgMult: 75 / 65, sprite: "masaiCat" },
+    wheel: { name: "Solar Cat", emoji: "🐱", hpMult: 800 / 600, dmgMult: 320 / 220, sprite: "solarCat" },
   };
 
   // Special Cats don't get a True Form here at all. Flower Cat's real unlock condition for one is
@@ -1453,10 +1459,12 @@
               strongAgainst: ["Red","Floating","Dark","Traitless","Angel","Alien","Zombie","Relic","Aku"],
               knockbackProc: { chance: 0.30 },
               sprite: "jamieraCat" },
-    // Speed changes 10 -> 20 here, unlike every other True Form so far - see the `speed`
-    // override added to evolvedForm()'s merge blocks below to support it.
-    pogo:   { name: "Jiangshi Cat",   emoji: "🐱", hp: 480,  dmg: 126, cost: 240, speed: 20 * SPEED_SCALE,
-              sprite: "jiangshiCat" },
+    // Survive: 100% chance (Pogo/Masai Cat's base is 50% - see the `survive` field on the CATS
+    // entry, and its override support added to this merge block below).
+    pogo:   { name: "Jiangshi Cat",   emoji: "🐱", hp: 400,  dmg: 105, cost: 240,
+              survive: { chance: 1.0 }, sprite: "jiangshiCat" },
+    wheel:  { name: "Chill Cat",      emoji: "🐱", hp: 800,  dmg: 420, cd: 4.53, range: 200 * RANGE_SCALE,
+              sprite: "chillCat" },
   };
   // Not implemented (needs mechanics this game doesn't have yet): The Flying Cat's Angel-Weaken
   // proc - no Angel trait or weaken status exists in this game.
@@ -1497,6 +1505,7 @@
         tgt: evo3.tgt !== undefined ? evo3.tgt : form.tgt,
         speed: evo3.speed !== undefined ? evo3.speed : form.speed,
         strongAgainst: evo3.strongAgainst !== undefined ? evo3.strongAgainst : form.strongAgainst,
+        survive: evo3.survive !== undefined ? evo3.survive : form.survive,
         crit: evo3.crit !== undefined ? evo3.crit : form.crit,
         knockbackProc: evo3.knockbackProc !== undefined ? evo3.knockbackProc : form.knockbackProc,
         sprite: evo3.sprite !== undefined ? evo3.sprite : form.sprite,
@@ -1635,6 +1644,11 @@
              21:15000,22:24000,23:36600,24:53400,25:74400,26:99600,27:129000,28:162600,29:200400,30:242400,
              31:17500,32:28000,33:42700,34:62300,35:86800,36:116200,37:150500,38:189700,39:233800,40:282800,
              41:20000,42:32000,43:48800,44:71200,45:99200,46:132800,47:172000,48:216800,49:267200,50:323200},
+    wheel:  {2:8000,3:12200,4:17800,5:24800,6:33200,7:43000,8:54200,9:66800,10:80800,
+             11:10000,12:16000,13:24400,14:35600,15:49600,16:66400,17:86000,18:108400,19:133600,20:161600,
+             21:15000,22:24000,23:36600,24:53400,25:74400,26:99600,27:129000,28:162600,29:200400,30:242400,
+             31:17500,32:28000,33:42700,34:62300,35:86800,36:116200,37:150500,38:189700,39:233800,40:282800,
+             41:20000,42:32000,43:48800,44:71200,45:99200,46:132800,47:172000,48:216800,49:267200,50:323200},
   };
   // Secret Special Cats only show up in cat-selection lists (Upgrade, Equip) once found via
   // their own unlock condition - everything else in CATS has always just been freely available.
@@ -1743,9 +1757,14 @@
       "A homemade fortress as resilient as the $0.75 budget allows. Tough against various attacks, except moisture… a bit weak against that.",
     ],
     pogo: [
-      "Bouncing into battle on a trusty spring. All the fun of a pogo stick, none of the falling off (yet).",
-      "Traded the spring for a spear. A Masai warrior at heart, even if the heart is still shaped like a cat.",
-      "Has crossed over to the other side and back, robes and talisman included. A True Form earned the hard way - with Catfruit nobody's found yet.",
+      "Sucked in to the recent (?) trend of toys. Still, looks pretty fun. Cheap to produce, might survive being broken.",
+      "Volunteered overseas and experienced cultural exchange. Took home a costume. Cheap to produce, might survive lethal strikes.",
+      "Horror movie maniac, or real g-g-ghost? Mystic seal is just this month's gas bill… Cheap to produce, 100% survives once!",
+    ],
+    wheel: [
+      "Got tired of changing wheels of vehicles so became one instead. Spins so fast it burns. Massive damage against Aliens (Area Attack)",
+      "Got tired of moving around so decided to become a galaxy instead. Massive damage against Aliens (Area Attack)",
+      "An evolved Cat who is always calm and collected at the office. Massive area damage to Aliens.",
     ],
   };
   function catDescriptionAt(c, tier) {
@@ -3694,11 +3713,16 @@
 
   function damageAmount(attacker, defender) {
     // "Strong Against" trait: 1.5x damage dealt to that trait, 0.5x damage taken from it.
+    // "Massive Damage" (def.massiveAgainst) is a separate, stronger ability - a flat 3x dealt,
+    // with no matching damage-taken discount - and stacks multiplicatively with Strong Against
+    // if a unit somehow has both against the same trait.
     let dmg = attacker.def.dmg;
     const atkStrong = attacker.def.strongAgainst || [];
+    const atkMassive = attacker.def.massiveAgainst || [];
     const defStrong = (defender.def && defender.def.strongAgainst) || [];
     const defTrait = defender.def ? defender.def.trait : null;
     if (defTrait && atkStrong.includes(defTrait)) dmg *= 1.5;
+    if (defTrait && atkMassive.includes(defTrait)) dmg *= 3;
     if (defStrong.includes(attacker.def.trait)) dmg *= 0.5;
     return dmg;
   }
@@ -3751,6 +3775,16 @@
     const strong = attacker.def.strongAgainst || [];
     if (!strong.includes(defender.def.trait)) return;
     if (Math.random() < kp.chance) knockbackPush(defender);
+  }
+
+  // Survive: a defender with a def.survive ({chance}) has a chance, on a hit that would
+  // otherwise kill it, to instead survive with 1 HP and get knocked back - Pogo/Masai Cat's
+  // ability (50% each), maxed out to a flat 100% on Jiangshi Cat's True Form.
+  function applySurviveProc(defender) {
+    if (defender.hp > 0 || !defender.def || !defender.def.survive) return;
+    if (Math.random() >= defender.def.survive.chance) return;
+    defender.hp = 1;
+    knockbackPush(defender);
   }
 
   function update(dt) {
@@ -3833,6 +3867,7 @@
             let dmg = damageAmount(u, t);
             if (rollCrit(u)) { dmg *= u.def.crit.mult; playClang(); }
             t.hp -= dmg;
+            applySurviveProc(t);
             t.flash = 0.12;
             applyKnockback(t);
             applyFreezeProc(u, t);
@@ -5503,6 +5538,73 @@
     return grid;
   }
 
+  // ---------------------------------------------------------------------------
+  // Wheel Cat family: the second Rare Cat. Unlike every other cat so far, these are drawn as
+  // a floating face medallion inside a bigger elemental symbol (wheel ring, sun corona,
+  // snowflake) rather than a body with legs, per reference art - each shape built from
+  // primitives radiating out from a shared center point via basic trig, since none of the
+  // pxLine/pxEllipse helpers do angled shapes on their own.
+  // ---------------------------------------------------------------------------
+  function buildFaceMedallionOnto(grid, cx, cy, r) {
+    pxEllipse(grid, cx, cy, r, r, "W");
+    pxOutline(grid, "K");
+    pxFace(grid, 0);
+  }
+  function buildWheelGrid() {
+    const grid = makePxGrid();
+    const cx = 18, cy = 18;
+    pxEllipse(grid, cx, cy, 16, 16, "S");
+    pxEllipse(grid, cx, cy, 13, 13, null);
+    pxOutline(grid, "K");
+    // flame spokes around the rim
+    [0, 60, 120, 180, 240, 300].forEach(deg => {
+      const rad = deg * Math.PI / 180;
+      const fx = cx + Math.cos(rad) * 16, fy = cy + Math.sin(rad) * 16;
+      pxEllipse(grid, fx, fy, 2.6, 3.2, "P");
+      pxEllipse(grid, fx + Math.cos(rad) * 1.6, fy + Math.sin(rad) * 1.6, 1.6, 2, "O");
+    });
+    pxOutline(grid, "K");
+    buildFaceMedallionOnto(grid, cx, cy, 8);
+    return grid;
+  }
+  function buildSolarGrid() {
+    const grid = makePxGrid();
+    const cx = 18, cy = 18;
+    // corona flames right around the face
+    [0, 45, 90, 135, 180, 225, 270, 315].forEach(deg => {
+      const rad = deg * Math.PI / 180;
+      const fx = cx + Math.cos(rad) * 11, fy = cy + Math.sin(rad) * 11;
+      pxEllipse(grid, fx, fy, 3, 3.6, "P");
+      pxEllipse(grid, fx + Math.cos(rad) * 1.6, fy + Math.sin(rad) * 1.6, 1.8, 2.2, "O");
+    });
+    pxOutline(grid, "K");
+    buildFaceMedallionOnto(grid, cx, cy, 8);
+    // orbiting planets and stars
+    pxEllipse(grid, 5, 8, 2, 2, "G");
+    pxEllipse(grid, 31, 9, 1.6, 1.6, "S");
+    pxEllipse(grid, 4, 29, 1.8, 1.8, "S");
+    pxEllipse(grid, 32, 28, 1.4, 1.4, "G");
+    pxOutline(grid, "K");
+    return grid;
+  }
+  function buildChillGrid() {
+    const grid = makePxGrid();
+    const cx = 18, cy = 18;
+    [90, 150, 210, 270, 330, 30].forEach(deg => {
+      const rad = deg * Math.PI / 180;
+      const x1 = cx + Math.cos(rad) * 7, y1 = cy + Math.sin(rad) * 7;
+      const x2 = cx + Math.cos(rad) * 17, y2 = cy + Math.sin(rad) * 17;
+      pxThickLine(grid, x1, y1, x2, y2, 1.6, "B");
+      const mx = cx + Math.cos(rad) * 12, my = cy + Math.sin(rad) * 12;
+      [rad + 0.6, rad - 0.6].forEach(branchRad => {
+        pxLine(grid, mx, my, mx + Math.cos(branchRad) * 3, my + Math.sin(branchRad) * 3, "B");
+      });
+    });
+    pxOutline(grid, "K");
+    buildFaceMedallionOnto(grid, cx, cy, 8);
+    return grid;
+  }
+
   // heightScale: per-sprite vertical stretch, anchored at the ground, so different units can
   // be taller/shorter than the base Cat without redesigning their whole coordinate grid - the
   // "scaling tool" for keeping cats' relative sizes right when reference art has no scale bar.
@@ -5564,6 +5666,9 @@
     pogoCat: { grid: buildPogoGrid() },
     masaiCat: { grid: buildMasaiGrid() },
     jiangshiCat: { grid: buildJiangshiGrid() },
+    wheelCat: { grid: buildWheelGrid() },
+    solarCat: { grid: buildSolarGrid() },
+    chillCat: { grid: buildChillGrid() },
   };
 
   // Renders a pixel-sprite grid onto a small standalone <canvas> icon (its own context, not
