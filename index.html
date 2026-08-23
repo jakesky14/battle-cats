@@ -1375,6 +1375,11 @@
     // flat 3x dealt to the given trait, kept even through both evolutions since neither
     // EVOLUTIONS.wheel nor THIRD_EVOLUTIONS.wheel overrides it (see damageAmount()).
     { id:"wheel", name:"Wheel Cat", emoji:"🐱", cost:1050, hp:600, dmg:220, range:170*RANGE_SCALE, cycle:2.27, fore:0.97, tgt:"area", speed:9*SPEED_SCALE, cd:11.20, kb:2, trait:"Traitless", strongAgainst:[], massiveAgainst:["Alien"], rarity:"rare", color:"#f4f4f4", sprite:"wheelCat" },
+    // Fourth Rare Cat. Evolves into Paris Cat, then - True Form, needs Catfruit like every
+    // other Rare Cat's - Cyborg Cat. Cyborg Cat's real ability (immune to Weaken) isn't
+    // implemented: same "not implemented, needs mechanics this game doesn't have yet" case as
+    // Flying Cat's Angel-Weaken proc - no Weaken status of any kind exists here to be immune to.
+    { id:"salon", name:"Salon Cat", emoji:"🐱", cost:900, hp:480, dmg:180, range:350*RANGE_SCALE, cycle:4.20, fore:0.23, tgt:"area", speed:10*SPEED_SCALE, cd:2.20, kb:3, trait:"Traitless", strongAgainst:[], rarity:"rare", color:"#f4f4f4", sprite:"salonCat" },
   ];
 
   // Enemy roster.
@@ -1430,6 +1435,7 @@
     catTrio: { name: "Secret Base", emoji: "🕳️", sprite: "secretBase" },
     pogo: { name: "Masai Cat", emoji: "🐱", hpMult: 400 / 300, dmgMult: 75 / 65, sprite: "masaiCat" },
     wheel: { name: "Solar Cat", emoji: "🐱", hpMult: 800 / 600, dmgMult: 320 / 220, sprite: "solarCat" },
+    salon: { name: "Paris Cat", emoji: "🐱", hpMult: 580 / 480, dmgMult: 250 / 180, sprite: "parisCat" },
   };
 
   // Special Cats don't get a True Form here at all. Flower Cat's real unlock condition for one is
@@ -1465,6 +1471,7 @@
               survive: { chance: 1.0 }, sprite: "jiangshiCat" },
     wheel:  { name: "Chill Cat",      emoji: "🐱", hp: 800,  dmg: 420, cd: 4.53, range: 200 * RANGE_SCALE,
               sprite: "chillCat" },
+    salon:  { name: "Cyborg Cat",     emoji: "🐱", hp: 580,  dmg: 320, sprite: "cyborgCat" },
   };
   // Not implemented (needs mechanics this game doesn't have yet): The Flying Cat's Angel-Weaken
   // proc - no Angel trait or weaken status exists in this game.
@@ -1649,6 +1656,11 @@
              21:15000,22:24000,23:36600,24:53400,25:74400,26:99600,27:129000,28:162600,29:200400,30:242400,
              31:17500,32:28000,33:42700,34:62300,35:86800,36:116200,37:150500,38:189700,39:233800,40:282800,
              41:20000,42:32000,43:48800,44:71200,45:99200,46:132800,47:172000,48:216800,49:267200,50:323200},
+    salon:  {2:8000,3:12200,4:17800,5:24800,6:33200,7:43000,8:54200,9:66800,10:80800,
+             11:10000,12:16000,13:24400,14:35600,15:49600,16:66400,17:86000,18:108400,19:133600,20:161600,
+             21:15000,22:24000,23:36600,24:53400,25:74400,26:99600,27:129000,28:162600,29:200400,30:242400,
+             31:17500,32:28000,33:42700,34:62300,35:86800,36:116200,37:150500,38:189700,39:233800,40:282800,
+             41:20000,42:32000,43:48800,44:71200,45:99200,46:132800,47:172000,48:216800,49:267200,50:323200},
   };
   // Secret Special Cats only show up in cat-selection lists (Upgrade, Equip) once found via
   // their own unlock condition - everything else in CATS has always just been freely available.
@@ -1765,6 +1777,11 @@
       "Got tired of changing wheels of vehicles so became one instead. Spins so fast it burns. Massive damage against Aliens (Area Attack)",
       "Got tired of moving around so decided to become a galaxy instead. Massive damage against Aliens (Area Attack)",
       "An evolved Cat who is always calm and collected at the office. Massive area damage to Aliens.",
+    ],
+    salon: [
+      "Has no limit when it comes to beauty care. Works very well with Sexy Legs Cat. Exceptional Range Attack (Area Attack)",
+      "A very stylish cat that earned the name Jeanne. Might be French, not sure. Exceptional Range Attack (Area Attack)",
+      "The ultimate bionic battle angel. Perfect both aesthetically and technically. Long distance Area Attack specialist.",
     ],
   };
   function catDescriptionAt(c, tier) {
@@ -5605,6 +5622,74 @@
     return grid;
   }
 
+  // ---------------------------------------------------------------------------
+  // Salon Cat family: the fourth Rare Cat. A floating humanoid silhouette (head, tapered
+  // dress, dangling arms), per reference art - unlike Wheel Cat's medallion-in-a-symbol
+  // style, this family keeps a normal cat head on top of a body, just a slender human one
+  // instead of the usual round chibi blob.
+  // ---------------------------------------------------------------------------
+  function buildSalonBodyOnto(grid) {
+    pxOctagonBody(grid, 8.5, 28.5, 5.2, 27.3, 6.3, 6.3, "W");
+    pxTriangle(grid, 5.4, 2, 9.4, 1.1, "W");
+    pxTriangle(grid, 30.6, 2, 9.4, 1.1, "W");
+    pxOutline(grid, "K");
+    pxFace(grid, 0);
+    // tapered dress/robe below the head, and thin dangling arms at each side (floating pose,
+    // no legs - per reference). Drawn in a slightly different shade (S) than the head's pure
+    // white (W), plus an explicit dark neckline stroke - the light-gray/white shade difference
+    // alone reads as barely-there at small icon size, so a hard outline does the real work of
+    // separating "head" from "dress" instead of one undifferentiated pale blob.
+    pxTaper(grid, 18, 27, 20, 18, 39, 14, "S");
+    pxOutline(grid, "K");
+    pxThickLine(grid, 9, 29, 7, 37, 1.6, "S");
+    pxThickLine(grid, 27, 29, 29, 37, 1.6, "S");
+    pxOutline(grid, "K");
+    pxThickLine(grid, 9, 27, 27, 27, 1.2, "K");
+  }
+  function buildSalonGrid() {
+    const grid = makePxGrid();
+    buildSalonBodyOnto(grid);
+    // towel turban wrapped on top of the head, with a twisted point
+    pxEllipse(grid, 18, 3, 9, 4, "S");
+    pxTriangle(grid, 23, -3, 5, 2, "S");
+    pxOutline(grid, "K");
+    return grid;
+  }
+  function buildParisGrid() {
+    const grid = makePxGrid();
+    buildSalonBodyOnto(grid);
+    // flowing hair past the shoulders
+    pxTaper(grid, 6, 8, 3, 4, 30, 2, "S");
+    pxTaper(grid, 30, 8, 3, 32, 30, 2, "S");
+    pxOutline(grid, "K");
+    // diagonal sash across the chest
+    pxLine(grid, 11, 26, 25, 32, "R");
+    pxOutline(grid, "K");
+    // rose held in the right hand
+    pxLine(grid, 29.5, 33, 29.5, 37, "L");
+    pxEllipse(grid, 29.5, 38, 1.6, 1.6, "R");
+    pxOutline(grid, "K");
+    return grid;
+  }
+  function buildCyborgGrid() {
+    const grid = makePxGrid();
+    buildSalonBodyOnto(grid);
+    // metal-plate armor over the robe, a shade darker (G) than it (S) for a two-tone metallic look
+    pxTaper(grid, 18, 27, 20, 18, 39, 14, "G");
+    pxOutline(grid, "K");
+    pxEllipse(grid, 12, 29, 3, 3, "S");
+    pxEllipse(grid, 24, 29, 3, 3, "S");
+    pxOutline(grid, "K");
+    // flowing hair
+    pxTaper(grid, 6, 8, 3, 4, 30, 2, "S");
+    pxTaper(grid, 30, 8, 3, 32, 30, 2, "S");
+    pxOutline(grid, "K");
+    // small tiara/ear-armor band
+    pxLine(grid, 13, 4, 23, 4, "G");
+    pxOutline(grid, "K");
+    return grid;
+  }
+
   // heightScale: per-sprite vertical stretch, anchored at the ground, so different units can
   // be taller/shorter than the base Cat without redesigning their whole coordinate grid - the
   // "scaling tool" for keeping cats' relative sizes right when reference art has no scale bar.
@@ -5669,6 +5754,9 @@
     wheelCat: { grid: buildWheelGrid() },
     solarCat: { grid: buildSolarGrid() },
     chillCat: { grid: buildChillGrid() },
+    salonCat: { grid: buildSalonGrid() },
+    parisCat: { grid: buildParisGrid() },
+    cyborgCat: { grid: buildCyborgGrid() },
   };
 
   // Renders a pixel-sprite grid onto a small standalone <canvas> icon (its own context, not
@@ -5710,6 +5798,11 @@
   // size (e.g. the mascot) the natural gap between its round body and thin stick legs reads as
   // visually disconnected unless cropped to just the head/body like every other forced entry.
   const FORCE_FACE_CROP = new Set(["cat", "luchadorCat", "titanCat", "mythicalTitanCat", "jamieraCat", "dragonCat", "kingDragonCat"]);
+  // Salon Cat family: floating humanoid silhouettes whose whole-body details (dress, sash,
+  // rose, armor) are the point - unlike Titan/Luchador's tall-humanoid case above, cropping
+  // these to just the head/face would hide exactly what makes each form distinct, so they're
+  // exempted from the auto height-crop below despite naturally being tall.
+  const FULL_BODY_CROP = new Set(["salonCat", "parisCat", "cyborgCat"]);
   // Like renderSpriteIcon, but crops to the sprite's actual silhouette (no dead space around a
   // small unit) and, for sprites much taller than wide (Titan/Luchador-style humanoids, the
   // boxy vending machines) or forced above, crops further to just the head/upper-body - or, for
@@ -5721,9 +5814,10 @@
     let { minX, maxX, minY, maxY } = spriteBoundingBox(grid);
     const bw = maxX - minX + 1, bh = maxY - minY + 1;
     const forceFace = spriteKey && FORCE_FACE_CROP.has(spriteKey);
-    if (bh / bw > 1.3 || (forceFace && bh >= bw)) {
+    const fullBody = spriteKey && FULL_BODY_CROP.has(spriteKey);
+    if (!fullBody && (bh / bw > 1.3 || (forceFace && bh >= bw))) {
       maxY = minY + Math.round(bh * 0.62) - 1;
-    } else if (forceFace && bw > bh) {
+    } else if (!fullBody && forceFace && bw > bh) {
       maxX = minX + Math.round(bw * 0.62) - 1;
     }
     const cropW = maxX - minX + 1, cropH = maxY - minY + 1;
