@@ -678,6 +678,25 @@
   .unit-card-info { padding: 8px 12px 10px; }
   .unit-card-info .lv { color: #ffe45a; font-weight: 800; font-size: 15px; }
   .unit-card-info .xp { color: #8fd1ff; font-weight: 700; font-size: 13px; margin-top: 2px; }
+
+  /* ---- Upgrade screen rarity-filter buttons: plain-yellow boxes at the front of the cat
+     strip, each word individually colored per rarity-tier convention. ---- */
+  .rarity-filter-btn {
+    flex: 0 0 auto; width: 130px; height: 258px; border-radius: 14px;
+    background: #f5c518; border: 3px solid #3f2a17;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+    cursor: pointer; font-weight: 900; font-size: 17px; letter-spacing: .5px; text-align: center;
+    box-shadow: 0 4px 0 rgba(0,0,0,.3);
+  }
+  .rarity-filter-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(0,0,0,.3); }
+  .rf-orange { color: #ff5a1f; }
+  .rf-red { color: #e0392b; }
+  .rf-yellow { color: #e8c34a; }
+  .rf-white { color: #fff; }
+  .rf-rainbow {
+    background: linear-gradient(90deg,#ff3b3b,#ff9d3b,#ffe93b,#3bff5e,#3bb0ff,#a13bff);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
   .levelup-btn {
     margin-top: 16px; align-self: flex-start; flex-shrink: 0;
     background: linear-gradient(180deg,#ffe45a,#f0a800);
@@ -785,6 +804,23 @@
   }
   .capsule-btn { background: linear-gradient(180deg,#ffcf3f,#f0a800); color: #201800; }
   .storage-btn { background: linear-gradient(180deg,#8fb8ff,#4d78d0); color: #fff; }
+  .rare-capsule-btn { background: linear-gradient(180deg,#ff8fe0,#a83bd6); color: #fff; }
+
+  /* ---- Rare Cat Capsule ---- */
+  .rare-banner-row { display: flex; gap: 14px; margin-top: 20px; flex-wrap: wrap; }
+  .rare-banner-box {
+    flex: 1 1 220px; min-width: 200px;
+    background: linear-gradient(160deg,#3a2c5e,#241a3d);
+    border: 3px solid #ffd35a;
+    border-radius: 14px;
+    padding: 16px;
+    text-align: center;
+    color: #fff;
+  }
+  .rare-banner-name { font-weight: 800; font-size: 17px; line-height: 1.3; min-height: 44px; display: flex; align-items: center; justify-content: center; }
+  .rare-banner-timer { margin-top: 10px; font-size: 12px; color: #cbb8ff; font-weight: 600; }
+  .rare-rate-legend { margin-top: 16px; font-size: 13px; color: var(--muted); }
+  .rare-rate-legend b { color: var(--text); }
 
   .capsule-main { display: flex; flex-direction: column; align-items: center; margin-top: 50px; gap: 14px; }
   .capsule-icon { font-size: 100px; }
@@ -907,6 +943,7 @@
     <div class="capsule-row">
       <button class="storage-btn" id="menuStorageBtn">STORAGE</button>
       <button class="capsule-btn" id="menuCapsuleBtn">CAT CAPSULE</button>
+      <button class="capsule-btn rare-capsule-btn" id="menuRareCapsuleBtn">RARE CAT CAPSULE</button>
     </div>
     <div class="cat-food-row">
       <button class="store-btn" id="storeBtn"><canvas id="cartIcon" width="34" height="34" class="sprite-icon"></canvas>STORE</button>
@@ -1072,6 +1109,24 @@
       <button id="revealOkBtn">OK</button>
     </div>
   </div>
+</div>
+
+<div id="rareCapsuleScreen" class="screen hidden">
+  <div class="screen-title">Rare Cat Capsule</div>
+  <div class="xp-display">XP <span id="rareCapsuleXpAmt">0</span></div>
+  <div class="test-row hidden" id="rareTestRow">
+    <button class="test-btn" id="shuffleBannerBtn">SHUFFLE BANNER</button>
+  </div>
+  <div class="rare-banner-row" id="rareBannerRow"></div>
+  <div class="rare-rate-legend">
+    Rare <b>69.7%</b> &nbsp;·&nbsp; Super Rare <b>25%</b> &nbsp;·&nbsp; Uber Rare <b>5%</b> &nbsp;·&nbsp; Legend Rare <b>0.3%</b>
+  </div>
+  <div class="capsule-main">
+    <div class="capsule-icon">🎟️</div>
+    <div class="capsule-tickets">Rare Tickets: <span id="rareCapsuleTicketAmt">0</span></div>
+    <button class="capsule-roll-btn" id="rareCapsuleRollBtn" disabled>COMING SOON</button>
+  </div>
+  <button class="back-btn" id="rareCapsuleBackBtn">Back</button>
 </div>
 
 <div id="storageScreen" class="screen hidden">
@@ -1697,6 +1752,8 @@
     energy: 100,
     lastEnergyTs: Date.now(),
     tickets: 3,       // starting tickets; no earn mechanism exists yet, this is just to make testing possible
+    rareTickets: 3,   // Rare Cat Capsule currency - separate from `tickets`, same "no earn mechanism yet" treatment
+    rareBanners: null, // lazily initialized by ensureRareBanners(): [{name, startTs}, ...] x3
     storage: [],      // capsule rewards banked via "OK", each {type:"cat", id} or {type:"orb"}
     testMode: false,  // when on, XP/tickets are kept topped up so testers never run dry
     nextDailyRewardTs: 0, // 0 = already available; based on real Date.now(), survives tab/computer closing
@@ -1733,6 +1790,7 @@
     profile.xp = TEST_RESOURCE_AMOUNT;
     TEST_INFINITE_ITEMS.forEach(key => { profile.items[key] = TEST_RESOURCE_AMOUNT; });
     profile.tickets = Math.max(profile.tickets, 10); // always enough for a 10x Cat Capsule roll
+    profile.rareTickets = Math.max(profile.rareTickets, 10);
   }
 
   const SAVE_KEY = "battleCatsProfile";
@@ -1753,6 +1811,8 @@
     if (typeof saved.energy === "number") profile.energy = saved.energy;
     if (typeof saved.lastEnergyTs === "number") profile.lastEnergyTs = saved.lastEnergyTs;
     if (typeof saved.tickets === "number") profile.tickets = saved.tickets;
+    if (typeof saved.rareTickets === "number") profile.rareTickets = saved.rareTickets;
+    if (Array.isArray(saved.rareBanners)) profile.rareBanners = saved.rareBanners;
     if (Array.isArray(saved.storage)) profile.storage = saved.storage;
     if (typeof saved.testMode === "boolean") profile.testMode = saved.testMode;
     if (typeof saved.nextDailyRewardTs === "number") profile.nextDailyRewardTs = saved.nextDailyRewardTs;
@@ -2055,6 +2115,7 @@
   const upgradeScreen = document.getElementById("upgradeScreen");
   const equipScreen = document.getElementById("equipScreen");
   const capsuleScreen = document.getElementById("capsuleScreen");
+  const rareCapsuleScreen = document.getElementById("rareCapsuleScreen");
   const storageScreen = document.getElementById("storageScreen");
   const missionsScreen = document.getElementById("missionsScreen");
   const userRankScreen = document.getElementById("userRankScreen");
@@ -2423,7 +2484,7 @@
   const STORAGE_UNLOCK_MS = 5 * 60 * 1000;
   let storageOpenTimer = null;
   function showScreen(el) {
-    [titleScreen, modeSelectScreen, risingScreen, chapterSelectScreen, settingsScreen, mainMenu, upgradeScreen, equipScreen, capsuleScreen, storageScreen,
+    [titleScreen, modeSelectScreen, risingScreen, chapterSelectScreen, settingsScreen, mainMenu, upgradeScreen, equipScreen, capsuleScreen, rareCapsuleScreen, storageScreen,
      missionsScreen, userRankScreen, calendarScreen, storeScreen, battleMenuScreen, gamatotoScreen, gamatotoAreaScreen, appEl].forEach(s => s.classList.add("hidden"));
     el.classList.remove("hidden");
     if (el === storageScreen) {
@@ -2446,6 +2507,7 @@
     if (el === userRankScreen) renderUserRankScreen();
     if (el === calendarScreen) renderCalendarScreen();
     if (el === storeScreen) renderStoreScreen();
+    if (el === rareCapsuleScreen) renderRareCapsuleScreen();
     if (el === battleMenuScreen) renderBattleMenu();
     if (el === gamatotoScreen) renderGamatotoScreen();
     if (el === gamatotoAreaScreen) renderGamatotoAreaScreen();
@@ -2932,32 +2994,73 @@
 
   const testRowEl = document.getElementById("testRow");
 
+  // Rarity-filter buttons shown at the front of the default (unfiltered) cat strip - clicking
+  // one switches to a filtered strip (upgradeRarityFilter set, see below) showing only that
+  // tier's cats plus a Back button. match: null means "every cat" (the ALL CATS button).
+  const RARITY_FILTERS = [
+    { key: "all",     match: null,
+      html: '<div class="rf-orange">ALL</div><div class="rf-orange">CATS</div>' },
+    { key: "legend",  match: "legend",
+      html: '<div class="rf-rainbow">LEGEND</div><div class="rf-white">RARE</div>' },
+    { key: "uber",    match: "uber",
+      html: '<div class="rf-red">UBER</div><div class="rf-yellow">SUPER</div><div class="rf-white">RARE</div>' },
+    { key: "super",   match: "super",
+      html: '<div class="rf-yellow">SUPER</div><div class="rf-white">RARE</div>' },
+    { key: "rare",    match: "rare",
+      html: '<div class="rf-white">RARE</div><div class="rf-white">CATS</div>' },
+    { key: "special", match: "special",
+      html: '<div class="rf-white">SPECIAL</div><div class="rf-white">CATS</div>' },
+  ];
+  // null = default view (6 filter buttons + every cat); otherwise a RARITY_FILTERS key.
+  let upgradeRarityFilter = null;
+
+  function appendCatCard(c) {
+    const lvl = profile.catLevels[c.id] || 1;
+    const plus = profile.catPlus[c.id] || 0;
+    const unlocked = highestUnlockedTier(c, lvl, plus);
+    const form = evolvedFormWithOverride(c, lvl, plus, profile.catForm[c.id]);
+    const tier = Math.min(profile.catForm[c.id] ?? 2, unlocked);
+    const need = catXpCost(c.id, lvl);
+    const el = buildUnitCard(c, form, tier, unlocked, c.id === selectedUpgradeCat ? "selected" : "");
+    el.querySelector(".unit-card-info").innerHTML =
+      `<div class="lv">Lv ${lvl}${plus > 0 ? " +" + plus : ""}</div>` +
+      `<div class="xp">${need === undefined ? "MAX LEVEL" : "Req XP " + need}</div>`;
+    el.addEventListener("click", () => { selectedUpgradeCat = c.id; renderUpgradeScreen(); });
+    el.querySelector(".form-btn").addEventListener("click", (ev) => {
+      ev.stopPropagation();
+      if (unlocked === 0) return;
+      const current = Math.min(profile.catForm[c.id] ?? 2, unlocked);
+      profile.catForm[c.id] = (current + 1) % (unlocked + 1);
+      saveProfile();
+      renderUpgradeScreen();
+    });
+    catStrip.appendChild(el);
+  }
+
   function renderUpgradeScreen() {
     enforceTestMode();
     testRowEl.classList.toggle("hidden", !profile.testMode);
     catStrip.innerHTML = "";
-    visibleCats().forEach(c => {
-      const lvl = profile.catLevels[c.id] || 1;
-      const plus = profile.catPlus[c.id] || 0;
-      const unlocked = highestUnlockedTier(c, lvl, plus);
-      const form = evolvedFormWithOverride(c, lvl, plus, profile.catForm[c.id]);
-      const tier = Math.min(profile.catForm[c.id] ?? 2, unlocked);
-      const need = catXpCost(c.id, lvl);
-      const el = buildUnitCard(c, form, tier, unlocked, c.id === selectedUpgradeCat ? "selected" : "");
-      el.querySelector(".unit-card-info").innerHTML =
-        `<div class="lv">Lv ${lvl}${plus > 0 ? " +" + plus : ""}</div>` +
-        `<div class="xp">${need === undefined ? "MAX LEVEL" : "Req XP " + need}</div>`;
-      el.addEventListener("click", () => { selectedUpgradeCat = c.id; renderUpgradeScreen(); });
-      el.querySelector(".form-btn").addEventListener("click", (ev) => {
-        ev.stopPropagation();
-        if (unlocked === 0) return;
-        const current = Math.min(profile.catForm[c.id] ?? 2, unlocked);
-        profile.catForm[c.id] = (current + 1) % (unlocked + 1);
-        saveProfile();
-        renderUpgradeScreen();
+    if (upgradeRarityFilter === null) {
+      RARITY_FILTERS.forEach(f => {
+        const btn = document.createElement("div");
+        btn.className = "rarity-filter-btn";
+        btn.innerHTML = f.html;
+        btn.addEventListener("click", () => { upgradeRarityFilter = f.key; renderUpgradeScreen(); });
+        catStrip.appendChild(btn);
       });
-      catStrip.appendChild(el);
-    });
+      visibleCats().forEach(appendCatCard);
+    } else {
+      const backBtn = document.createElement("div");
+      backBtn.className = "rarity-filter-btn";
+      backBtn.innerHTML = '<div class="rf-white">◀</div><div class="rf-white">BACK</div>';
+      backBtn.addEventListener("click", () => { upgradeRarityFilter = null; renderUpgradeScreen(); });
+      catStrip.appendChild(backBtn);
+      const filterDef = RARITY_FILTERS.find(f => f.key === upgradeRarityFilter);
+      visibleCats()
+        .filter(c => filterDef.match === null || (c.rarity || "normal") === filterDef.match)
+        .forEach(appendCatCard);
+    }
 
     const base = CATS.find(c => c.id === selectedUpgradeCat);
     const lvl = profile.catLevels[base.id];
@@ -3251,6 +3354,102 @@
     profile.xp += xpTradeValue(reward);
     saveProfile();
   }
+
+  // ---------------------------------------------------------------------------
+  // Rare Cat Capsule: a separate gacha from the plain Cat Capsule above, spending
+  // Rare Tickets instead of Tickets. 3 banner slots are "live" at once, each drawn from
+  // the 11-name pool below and independently rotating to a new name every 3 real days
+  // (survives tab/computer closing, same real-timestamp pattern as Gamatoto's expedition
+  // timer). Drop rates (Rare/Super Rare/Uber Rare/Legend Rare) are fixed across every
+  // banner - no banner-specific rate-ups yet. The actual roll is disabled for now: none
+  // of the 185 Rare/Super Rare/Uber Rare/Legend Rare units exist yet, only the banner
+  // rotation + screen scaffolding do. In test mode, a SHUFFLE BANNER button force-advances
+  // all 3 slots immediately instead of waiting 3 real days.
+  // ---------------------------------------------------------------------------
+  const RARE_BANNER_NAMES = [
+    "The Dynamites",
+    "Tales of the Nekoluga",
+    "Sengoku Wargods Vajiras",
+    "Cyber Academy Galaxy Gals",
+    "Lords of Destruction Dragon Emperors",
+    "Ancient Heroes Ultra Souls",
+    "Dark Heroes",
+    "The Almighties",
+    "Frontline Assault Iron Legion",
+    "Girls & Monsters: Angels of Terror",
+    "Nature's Guardians Elemental Pixies",
+  ];
+  const RARE_BANNER_SLOTS = 3;
+  const RARE_BANNER_DURATION_MS = 3 * 24 * 60 * 60 * 1000;
+  // Rare/Super Rare/Uber Rare percentages sum with Legend Rare's flat 0.3% to exactly 100%.
+  const RARE_DROP_RATES = { rare: 69.7, super: 25, uber: 5, legend: 0.3 };
+
+  function pickBannerName(excludeNames) {
+    const pool = RARE_BANNER_NAMES.filter(n => !excludeNames.includes(n));
+    const from = pool.length > 0 ? pool : RARE_BANNER_NAMES;
+    return from[Math.floor(Math.random() * from.length)];
+  }
+  function ensureRareBanners() {
+    if (Array.isArray(profile.rareBanners) && profile.rareBanners.length === RARE_BANNER_SLOTS) return;
+    const names = [];
+    for (let i = 0; i < RARE_BANNER_SLOTS; i++) names.push(pickBannerName(names));
+    profile.rareBanners = names.map(name => ({ name, startTs: Date.now() }));
+    saveProfile();
+  }
+  // Replaces any banner slot whose 3-day window has elapsed with a fresh name (never a name
+  // currently live in one of the other slots) - checked on every render, same "roll the
+  // instant real time has elapsed" pattern as checkGamatotoExpedition().
+  function checkRareBannerShuffle() {
+    ensureRareBanners();
+    const now = Date.now();
+    let changed = false;
+    profile.rareBanners.forEach((banner, i) => {
+      if (now - banner.startTs >= RARE_BANNER_DURATION_MS) {
+        const others = profile.rareBanners.filter((_, j) => j !== i).map(b => b.name);
+        profile.rareBanners[i] = { name: pickBannerName(others), startTs: now };
+        changed = true;
+      }
+    });
+    if (changed) saveProfile();
+  }
+  function shuffleAllRareBanners() {
+    if (!profile.testMode) return;
+    const names = [];
+    for (let i = 0; i < RARE_BANNER_SLOTS; i++) names.push(pickBannerName(names));
+    profile.rareBanners = names.map(name => ({ name, startTs: Date.now() }));
+    saveProfile();
+    renderRareCapsuleScreen();
+  }
+
+  const rareCapsuleXpAmt = document.getElementById("rareCapsuleXpAmt");
+  const rareCapsuleTicketAmt = document.getElementById("rareCapsuleTicketAmt");
+  const rareBannerRowEl = document.getElementById("rareBannerRow");
+  const rareTestRowEl = document.getElementById("rareTestRow");
+  function formatBannerTimeLeft(ms) {
+    const s = Math.max(0, Math.floor(ms / 1000));
+    const d = Math.floor(s / 86400), h = Math.floor((s % 86400) / 3600), m = Math.floor((s % 3600) / 60);
+    return `${d}d ${h}h ${m}m`;
+  }
+  function renderRareCapsuleScreen() {
+    enforceTestMode();
+    checkRareBannerShuffle();
+    rareCapsuleXpAmt.textContent = Math.floor(profile.xp);
+    rareCapsuleTicketAmt.textContent = profile.rareTickets;
+    rareTestRowEl.classList.toggle("hidden", !profile.testMode);
+    rareBannerRowEl.innerHTML = "";
+    profile.rareBanners.forEach(banner => {
+      const el = document.createElement("div");
+      el.className = "rare-banner-box";
+      const left = RARE_BANNER_DURATION_MS - (Date.now() - banner.startTs);
+      el.innerHTML =
+        `<div class="rare-banner-name">${banner.name}</div>` +
+        `<div class="rare-banner-timer">Shuffles in ${formatBannerTimeLeft(left)}</div>`;
+      rareBannerRowEl.appendChild(el);
+    });
+  }
+  document.getElementById("menuRareCapsuleBtn").addEventListener("click", () => showScreen(rareCapsuleScreen));
+  document.getElementById("rareCapsuleBackBtn").addEventListener("click", () => showScreen(mainMenu));
+  document.getElementById("shuffleBannerBtn").addEventListener("click", shuffleAllRareBanners);
 
   const capsuleXpAmt = document.getElementById("capsuleXpAmt");
   const capsuleIcon = document.getElementById("capsuleIcon");
