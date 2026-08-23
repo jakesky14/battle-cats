@@ -1059,6 +1059,7 @@
   <div class="xp-display">XP <span id="upgradeXpAmt">0</span></div>
   <div class="test-row hidden" id="testRow">
     <button class="test-btn" id="testPlusBtn">TEST: +1 PLUS LEVEL</button>
+    <button class="test-btn" id="autoEvolveBtn">AUTO EVOLVE</button>
     <span class="test-hour-group">
       <input type="number" class="test-hour-input" id="testHourInput" min="1" max="24" value="24" title="1:00 - 24:00, 24:00 = midnight">
       <button class="test-btn" id="testMidnightBtn">TEST: CHECK MIDNIGHT UNLOCK</button>
@@ -1363,6 +1364,12 @@
     // Special Cat, found by clearing a stage with ONLY Macho Cat, Wall Cat, and Brave Cat
     // equipped (the other 7 slots empty) - see the catTrioUnlocked check in endGame.
     { id:"catTrio", name:"Cat Bros", emoji:"👥", cost:1020, hp:320, dmg:263, range:170*RANGE_SCALE, cycle:3.03, fore:1.07, tgt:"area", speed:10*SPEED_SCALE, cd:2.00, kb:4, trait:"Traitless", strongAgainst:[], rarity:"special", color:"#c9a26a", sprite:"catBros" },
+    // First Rare Cat (from the new Rare Cat Capsule's "rare" pool - see RARITY_FILTERS/rarity
+    // filtering in the Upgrade screen). Evolves into Masai Cat, then - True Form, needs
+    // Catfruit, which isn't obtainable anywhere yet (Legend Stages don't exist) - Jiangshi Cat.
+    // Same "data's on the books, content that grants it doesn't exist yet" treatment as every
+    // other not-yet-reachable True Form in this file; see AUTO EVOLVE (test mode) to preview it.
+    { id:"pogo", name:"Pogo Cat", emoji:"🐱", cost:360, hp:300, dmg:65, range:150*RANGE_SCALE, cycle:1.63, fore:0.53, tgt:"single", speed:10*SPEED_SCALE, cd:2.00, kb:3, trait:"Traitless", strongAgainst:[], rarity:"rare", color:"#f4f4f4", sprite:"pogoCat" },
   ];
 
   // Enemy roster.
@@ -1416,6 +1423,7 @@
     toyMachine: { name: "Vendor Cat", emoji: "🥤", sprite: "vendorCat" },
     squishball: { name: "Muscleman Cat", emoji: "💪", cycle: 3.50, sprite: "musclemanCat" },
     catTrio: { name: "Secret Base", emoji: "🕳️", sprite: "secretBase" },
+    pogo: { name: "Masai Cat", emoji: "🐱", hpMult: 400 / 300, dmgMult: 75 / 65, sprite: "masaiCat" },
   };
 
   // Special Cats don't get a True Form here at all. Flower Cat's real unlock condition for one is
@@ -1445,6 +1453,10 @@
               strongAgainst: ["Red","Floating","Dark","Traitless","Angel","Alien","Zombie","Relic","Aku"],
               knockbackProc: { chance: 0.30 },
               sprite: "jamieraCat" },
+    // Speed changes 10 -> 20 here, unlike every other True Form so far - see the `speed`
+    // override added to evolvedForm()'s merge blocks below to support it.
+    pogo:   { name: "Jiangshi Cat",   emoji: "🐱", hp: 480,  dmg: 126, cost: 240, speed: 20 * SPEED_SCALE,
+              sprite: "jiangshiCat" },
   };
   // Not implemented (needs mechanics this game doesn't have yet): The Flying Cat's Angel-Weaken
   // proc - no Angel trait or weaken status exists in this game.
@@ -1466,6 +1478,7 @@
         range: evo.range !== undefined ? evo.range : form.range,
         kb: evo.kb !== undefined ? evo.kb : form.kb,
         tgt: evo.tgt !== undefined ? evo.tgt : form.tgt,
+        speed: evo.speed !== undefined ? evo.speed : form.speed,
         sprite: evo.sprite !== undefined ? evo.sprite : form.sprite,
       };
     }
@@ -1482,6 +1495,7 @@
         range: evo3.range !== undefined ? evo3.range : form.range,
         kb: evo3.kb !== undefined ? evo3.kb : form.kb,
         tgt: evo3.tgt !== undefined ? evo3.tgt : form.tgt,
+        speed: evo3.speed !== undefined ? evo3.speed : form.speed,
         strongAgainst: evo3.strongAgainst !== undefined ? evo3.strongAgainst : form.strongAgainst,
         crit: evo3.crit !== undefined ? evo3.crit : form.crit,
         knockbackProc: evo3.knockbackProc !== undefined ? evo3.knockbackProc : form.knockbackProc,
@@ -1497,6 +1511,11 @@
     let tier = 0;
     if (lvl >= EVOLVE_LEVEL && EVOLUTIONS[c.id]) tier = 1;
     if (lvl + plus >= EVOLVE3_LEVEL && THIRD_EVOLUTIONS[c.id]) tier = 2;
+    // AUTO EVOLVE (test mode only): force-unlocks a Rare Cat's forms without needing Catfruit,
+    // levels, or XP - see profile.catForceTier, set by the Upgrade screen's test-only button.
+    if (profile.testMode && profile.catForceTier && profile.catForceTier[c.id] != null) {
+      tier = Math.max(tier, profile.catForceTier[c.id]);
+    }
     return tier;
   }
 
@@ -1611,6 +1630,11 @@
              21:3900,22:7500,23:12000,24:18000,25:25500,26:34500,27:45000,28:57000,29:70500,30:85500,
              31:4550,32:8750,33:14000,34:21000,35:29750,36:40250,37:52500,38:66500,39:82250,40:99750,
              41:5200,42:10000,43:16000,44:24000,45:34000,46:46000,47:60000,48:76000,49:94000,50:114000},
+    pogo:   {2:8000,3:12200,4:17800,5:24800,6:33200,7:43000,8:54200,9:66800,10:80800,
+             11:10000,12:16000,13:24400,14:35600,15:49600,16:66400,17:86000,18:108400,19:133600,20:161600,
+             21:15000,22:24000,23:36600,24:53400,25:74400,26:99600,27:129000,28:162600,29:200400,30:242400,
+             31:17500,32:28000,33:42700,34:62300,35:86800,36:116200,37:150500,38:189700,39:233800,40:282800,
+             41:20000,42:32000,43:48800,44:71200,45:99200,46:132800,47:172000,48:216800,49:267200,50:323200},
   };
   // Secret Special Cats only show up in cat-selection lists (Upgrade, Equip) once found via
   // their own unlock condition - everything else in CATS has always just been freely available.
@@ -1718,6 +1742,11 @@
       "Living happily in a plastic bubble. No need for the outside world!!!(Don't make them a role model, kids…)",
       "A homemade fortress as resilient as the $0.75 budget allows. Tough against various attacks, except moisture… a bit weak against that.",
     ],
+    pogo: [
+      "Bouncing into battle on a trusty spring. All the fun of a pogo stick, none of the falling off (yet).",
+      "Traded the spring for a spear. A Masai warrior at heart, even if the heart is still shaped like a cat.",
+      "Has crossed over to the other side and back, robes and talisman included. A True Form earned the hard way - with Catfruit nobody's found yet.",
+    ],
   };
   function catDescriptionAt(c, tier) {
     const arr = CAT_DESCRIPTIONS[c.id];
@@ -1772,6 +1801,7 @@
     catamin: { a: 0, b: 0, c: 0 }, // Catamin isn't a real system yet (like Catseyes) - display-only zeros
     stageCleared: false,     // set true after the first win - gates Golden Cat CPU's stage-skip
     goldenCpuUsesLeft: 10,   // lifetime cap on Golden Cat CPU stage-skips (normal Cat CPU has no cap)
+    catForceTier: {},        // AUTO EVOLVE (test mode): id -> force-unlocked tier, bypassing Catfruit/level/XP
     pendingDailyItem: null, // rolled once when a daily reward becomes available, granted on claim
     gamatoto: {
       level: 1,
@@ -1831,6 +1861,7 @@
     if (saved.catamin) Object.assign(profile.catamin, saved.catamin);
     if (typeof saved.stageCleared === "boolean") profile.stageCleared = saved.stageCleared;
     if (typeof saved.goldenCpuUsesLeft === "number") profile.goldenCpuUsesLeft = saved.goldenCpuUsesLeft;
+    if (saved.catForceTier) Object.assign(profile.catForceTier, saved.catForceTier);
     if (saved.pendingDailyItem === null || typeof saved.pendingDailyItem === "string") {
       profile.pendingDailyItem = saved.pendingDailyItem;
     }
@@ -2971,6 +3002,21 @@
     renderUpgradeScreen();
   });
 
+  // AUTO EVOLVE (test mode): force-unlocks the selected Rare Cat's next form tier without
+  // needing Catfruit, levels, or XP - see profile.catForceTier, read by highestUnlockedTier().
+  const autoEvolveBtn = document.getElementById("autoEvolveBtn");
+  autoEvolveBtn.addEventListener("click", () => {
+    if (!profile.testMode) return;
+    const c = CATS.find(c => c.id === selectedUpgradeCat);
+    if (!c || c.rarity !== "rare") return;
+    const maxTier = THIRD_EVOLUTIONS[c.id] ? 2 : (EVOLUTIONS[c.id] ? 1 : 0);
+    const current = profile.catForceTier[c.id] || 0;
+    if (current >= maxTier) return;
+    profile.catForceTier[c.id] = current + 1;
+    saveProfile();
+    renderUpgradeScreen();
+  });
+
   const testHourInput = document.getElementById("testHourInput");
   document.getElementById("testMidnightBtn").addEventListener("click", () => {
     if (!profile.testMode) return;
@@ -3040,6 +3086,16 @@
   function renderUpgradeScreen() {
     enforceTestMode();
     testRowEl.classList.toggle("hidden", !profile.testMode);
+    {
+      const c = CATS.find(c => c.id === selectedUpgradeCat);
+      const maxTier = c && (THIRD_EVOLUTIONS[c.id] ? 2 : (EVOLUTIONS[c.id] ? 1 : 0));
+      const current = c ? (profile.catForceTier[c.id] || 0) : 0;
+      const eligible = !!c && c.rarity === "rare" && current < maxTier;
+      autoEvolveBtn.disabled = !eligible;
+      autoEvolveBtn.textContent = c && c.rarity === "rare"
+        ? (current >= maxTier ? "AUTO EVOLVE (MAX)" : "AUTO EVOLVE " + FORM_TIER_NAMES[current] + " → " + FORM_TIER_NAMES[current + 1])
+        : "AUTO EVOLVE";
+    }
     catStrip.innerHTML = "";
     if (upgradeRarityFilter === null) {
       RARITY_FILTERS.forEach(f => {
@@ -5372,6 +5428,81 @@
     return grid;
   }
 
+  // ---------------------------------------------------------------------------
+  // Pogo Cat family: the first Rare Cat. Base body/face/ears match the standard Cat
+  // proportions throughout all 3 forms (per reference art, none of them are a different
+  // size or shape of blob) - only the props and, for Jiangshi Cat, a chest overlay change.
+  // ---------------------------------------------------------------------------
+  function buildPogoGrid() {
+    const grid = makePxGrid();
+    pxOctagonBody(grid, 8.5, 28.5, 5.2, 27.3, 6.3, 6.3, "W");
+    pxTriangle(grid, 5.4, 2, 9.4, 1.1, "W");
+    pxTriangle(grid, 30.6, 2, 9.4, 1.1, "W");
+    pxOutline(grid, "K");
+    pxFace(grid, 0);
+    // handlebar gripped in front of the chest, paws at each end
+    pxThickLine(grid, 11, 25.5, 26, 25.5, 1.8, "G");
+    pxEllipse(grid, 11, 25.5, 1.8, 1.8, "W");
+    pxEllipse(grid, 26, 25.5, 1.8, 1.8, "W");
+    pxOutline(grid, "K");
+    // pogo-stick spring: a zigzag coil down to a footplate, replacing the usual stick legs
+    for (let i = 0; i < 5; i++) {
+      const y0 = 27 + i * 2, y1 = y0 + 2;
+      const [xa, xb] = i % 2 === 0 ? [14, 23] : [23, 14];
+      pxThickLine(grid, xa, y0, xb, y1, 1.6, "S");
+    }
+    pxRect(grid, 12, 37, 25, 39, "G"); // footplate
+    pxOutline(grid, "K");
+    return grid;
+  }
+  function buildMasaiGrid() {
+    const grid = makePxGrid();
+    pxOctagonBody(grid, 8.5, 28.5, 5.2, 27.3, 6.3, 6.3, "W");
+    pxTriangle(grid, 5.4, 2, 9.4, 1.1, "W");
+    pxTriangle(grid, 30.6, 2, 9.4, 1.1, "W");
+    pxOutline(grid, "K");
+    pxFace(grid, 0);
+    // tribal chest band, per reference art
+    pxRect(grid, 10, 23.5, 27, 25.5, "O");
+    pxOutline(grid, "K");
+    // floating pose: short dangling paws instead of the usual stick legs (feet don't reach the
+    // ground, per reference)
+    pxEllipse(grid, 13, 32, 2, 2.6, "W");
+    pxEllipse(grid, 24, 32, 2, 2.6, "W");
+    pxOutline(grid, "K");
+    // spear: long pole beside the body with a leaf-shaped head, gripped by a small paw partway up
+    pxRect(grid, 30.5, 7, 32, 35, "S");
+    pxTriangle(grid, 31.25, 0, 7, 2.4, "S");
+    pxEllipse(grid, 28.5, 15, 1.8, 1.8, "W"); // gripping paw
+    pxOutline(grid, "K");
+    return grid;
+  }
+  function buildJiangshiGrid() {
+    const grid = makePxGrid();
+    pxOctagonBody(grid, 8.5, 28.5, 5.2, 27.3, 6.3, 6.3, "W");
+    pxTriangle(grid, 5.4, 2, 9.4, 1.1, "W");
+    pxTriangle(grid, 30.6, 2, 9.4, 1.1, "W");
+    pxOutline(grid, "K");
+    pxFace(grid, 0);
+    // dark robe/vest over the lower body, with white sleeve cuffs peeking out each side
+    pxRect(grid, 10, 23, 27, 27, "K");
+    pxEllipse(grid, 10, 23, 2, 2, "W");
+    pxEllipse(grid, 27, 23, 2, 2, "W");
+    pxOutline(grid, "K");
+    // pearl necklace
+    for (let x = 12; x <= 25; x += 3) pxEllipse(grid, x, 20.5, 1, 1, "Y");
+    pxOutline(grid, "K");
+    // official's hat, sitting over the ears - a flat band plus a wider brim
+    pxRect(grid, 10, 0, 27, 3, "K");
+    pxRect(grid, 8, 3, 29, 5.5, "K");
+    pxOutline(grid, "K");
+    // paper talisman (ofuda) hanging off the hat's side, with a red seal mark
+    pxRect(grid, 27.5, 1, 30.5, 9, "W");
+    pxLine(grid, 28, 4.5, 30, 4.5, "R");
+    pxOutline(grid, "K");
+    return grid;
+  }
+
   // heightScale: per-sprite vertical stretch, anchored at the ground, so different units can
   // be taller/shorter than the base Cat without redesigning their whole coordinate grid - the
   // "scaling tool" for keeping cats' relative sizes right when reference art has no scale bar.
@@ -5430,6 +5561,9 @@
     musclemanCat: { grid: buildMusclemanGrid() },
     catBros: { grid: buildCatBrosGrid() },
     secretBase: { grid: buildSecretBaseGrid() },
+    pogoCat: { grid: buildPogoGrid() },
+    masaiCat: { grid: buildMasaiGrid() },
+    jiangshiCat: { grid: buildJiangshiGrid() },
   };
 
   // Renders a pixel-sprite grid onto a small standalone <canvas> icon (its own context, not
