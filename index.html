@@ -1380,6 +1380,16 @@
     // implemented: same "not implemented, needs mechanics this game doesn't have yet" case as
     // Flying Cat's Angel-Weaken proc - no Weaken status of any kind exists here to be immune to.
     { id:"salon", name:"Salon Cat", emoji:"🐱", cost:900, hp:480, dmg:180, range:350*RANGE_SCALE, cycle:4.20, fore:0.23, tgt:"area", speed:10*SPEED_SCALE, cd:2.20, kb:3, trait:"Traitless", strongAgainst:[], rarity:"rare", color:"#f4f4f4", sprite:"salonCat" },
+    // Sixth Rare Cat. Evolves into Jurassic Cat Sitter, then - True Form, needs Catfruit like
+    // every other Rare Cat's - Catasaurus. crit: like Island Cat, a chance for a landed hit to
+    // deal mult x damage with a "clang" sound cue (see rollCrit/playClang) - 5% for the first two
+    // forms, bumped to 7% on Catasaurus (see the override in THIRD_EVOLUTIONS.jurassic).
+    { id:"jurassic", name:"Jurassic Cat", emoji:"🐱", cost:525, hp:570, dmg:77, range:150*RANGE_SCALE, cycle:1.03, fore:0.53, tgt:"single", speed:12*SPEED_SCALE, cd:7.20, kb:3, trait:"Traitless", strongAgainst:[], crit:{ chance: 0.05, mult: 2 }, rarity:"rare", color:"#f4f4f4", sprite:"jurassicCat" },
+    // Seventh Rare Cat. Evolves into Thor Cat, then - True Form, needs Catfruit like every
+    // other Rare Cat's - Maximum the Fighter, whose True Form is unusual: HP doubles and it
+    // switches from a Single to an Area attack, but damage doesn't increase at all (matches
+    // the given data exactly, not a typo).
+    { id:"viking", name:"Viking Cat", emoji:"🐱", cost:525, hp:665, dmg:80, range:140*RANGE_SCALE, cycle:0.83, fore:0.53, tgt:"single", speed:11*SPEED_SCALE, cd:3.87, kb:3, trait:"Traitless", strongAgainst:["Red"], rarity:"rare", color:"#f4f4f4", sprite:"vikingCat" },
   ];
 
   // Enemy roster.
@@ -1436,6 +1446,8 @@
     pogo: { name: "Masai Cat", emoji: "🐱", hpMult: 400 / 300, dmgMult: 75 / 65, sprite: "masaiCat" },
     wheel: { name: "Solar Cat", emoji: "🐱", hpMult: 800 / 600, dmgMult: 320 / 220, sprite: "solarCat" },
     salon: { name: "Paris Cat", emoji: "🐱", hpMult: 580 / 480, dmgMult: 250 / 180, sprite: "parisCat" },
+    jurassic: { name: "Jurassic Cat Sitter", emoji: "🐱", hpMult: 670 / 570, dmgMult: 87 / 77, sprite: "jurassicCatSitter" },
+    viking: { name: "Thor Cat", emoji: "🐱", hpMult: 765 / 665, dmgMult: 90 / 80, sprite: "thorCat" },
   };
 
   // Special Cats don't get a True Form here at all. Flower Cat's real unlock condition for one is
@@ -1472,6 +1484,11 @@
     wheel:  { name: "Chill Cat",      emoji: "🐱", hp: 800,  dmg: 420, cd: 4.53, range: 200 * RANGE_SCALE,
               sprite: "chillCat" },
     salon:  { name: "Cyborg Cat",     emoji: "🐱", hp: 580,  dmg: 320, sprite: "cyborgCat" },
+    jurassic: { name: "Catasaurus",   emoji: "🐱", hp: 970,  dmg: 116, range: 180 * RANGE_SCALE,
+                crit: { chance: 0.07, mult: 2 }, sprite: "catasaurus" },
+    // Damage stays 90, matching the given data exactly - only HP and attack type change here.
+    viking: { name: "Maximum the Fighter", emoji: "🐱", hp: 1530, dmg: 90, tgt: "area",
+              sprite: "maximumFighter" },
   };
   // Not implemented (needs mechanics this game doesn't have yet): The Flying Cat's Angel-Weaken
   // proc - no Angel trait or weaken status exists in this game.
@@ -1661,6 +1678,16 @@
              21:15000,22:24000,23:36600,24:53400,25:74400,26:99600,27:129000,28:162600,29:200400,30:242400,
              31:17500,32:28000,33:42700,34:62300,35:86800,36:116200,37:150500,38:189700,39:233800,40:282800,
              41:20000,42:32000,43:48800,44:71200,45:99200,46:132800,47:172000,48:216800,49:267200,50:323200},
+    jurassic: {2:8000,3:12200,4:17800,5:24800,6:33200,7:43000,8:54200,9:66800,10:80800,
+             11:10000,12:16000,13:24400,14:35600,15:49600,16:66400,17:86000,18:108400,19:133600,20:161600,
+             21:15000,22:24000,23:36600,24:53400,25:74400,26:99600,27:129000,28:162600,29:200400,30:242400,
+             31:17500,32:28000,33:42700,34:62300,35:86800,36:116200,37:150500,38:189700,39:233800,40:282800,
+             41:20000,42:32000,43:48800,44:71200,45:99200,46:132800,47:172000,48:216800,49:267200,50:323200},
+    viking: {2:8000,3:12200,4:17800,5:24800,6:33200,7:43000,8:54200,9:66800,10:80800,
+             11:10000,12:16000,13:24400,14:35600,15:49600,16:66400,17:86000,18:108400,19:133600,20:161600,
+             21:15000,22:24000,23:36600,24:53400,25:74400,26:99600,27:129000,28:162600,29:200400,30:242400,
+             31:17500,32:28000,33:42700,34:62300,35:86800,36:116200,37:150500,38:189700,39:233800,40:282800,
+             41:20000,42:32000,43:48800,44:71200,45:99200,46:132800,47:172000,48:216800,49:267200,50:323200},
   };
   // Secret Special Cats only show up in cat-selection lists (Upgrade, Equip) once found via
   // their own unlock condition - everything else in CATS has always just been freely available.
@@ -1782,6 +1809,16 @@
       "Has no limit when it comes to beauty care. Works very well with Sexy Legs Cat. Exceptional Range Attack (Area Attack)",
       "A very stylish cat that earned the name Jeanne. Might be French, not sure. Exceptional Range Attack (Area Attack)",
       "The ultimate bionic battle angel. Perfect both aesthetically and technically. Long distance Area Attack specialist.",
+    ],
+    jurassic: [
+      "Descendant of an Ancient Cat Race that existed during the Jurassic Age. Might perform Critical attacks",
+      "Descendant of an Ancient Cat Race that takes care of the young during the Jurassic Era. Might perform Critical attacks",
+      "Discovered a cute dinosaur in a magical land of fungi. Features extra seating for the kids! Might perform Critical attacks.",
+    ],
+    viking: [
+      "A combat-class Cat that has read too many fantasy novels. Strong against Red enemies.",
+      "Having found the internet, this Cat had its armour and weapon order made. Strong against Red enemies.",
+      "Turns out his \"order made\" armor is a knockoff brand. Even the cheap stuff is still enough to hit Red for massive Area dmg.",
     ],
   };
   function catDescriptionAt(c, tier) {
@@ -5690,6 +5727,141 @@
     return grid;
   }
 
+  // ---------------------------------------------------------------------------
+  // Jurassic Cat family: the sixth Rare Cat. Standard round-cat body (head/face/legs, like
+  // buildCatGrid), plus a spiky mohawk crest and a spiky "quill skirt" around the waist shared
+  // by all 3 forms, each holding a different prop per reference art.
+  // ---------------------------------------------------------------------------
+  function buildJurassicBodyOnto(grid) {
+    pxOctagonBody(grid, 8.5, 28.5, 5.2, 27.3, 6.3, 6.3, "W");
+    pxTriangle(grid, 5.4, 2, 9.4, 1.1, "W");
+    pxTriangle(grid, 30.6, 2, 9.4, 1.1, "W");
+    pxOutline(grid, "K");
+    pxFace(grid, 0);
+    pxLegs(grid, 0);
+    // spiky mohawk crest along the top of the head
+    pxTriangle(grid, 13, -3, 5, 1.8, "W");
+    pxTriangle(grid, 18, -5, 6, 2, "W");
+    pxTriangle(grid, 23, -3, 5, 1.8, "W");
+    pxOutline(grid, "K");
+    // spiky quill skirt around the waist
+    for (let x = 9; x <= 28; x += 3.2) pxTriangle(grid, x, 32, 26, 1.5, "W");
+    pxOutline(grid, "K");
+  }
+  function buildJurassicGrid() {
+    const grid = makePxGrid();
+    buildJurassicBodyOnto(grid);
+    // bone club held up
+    pxThickLine(grid, 2, 14, 10, 22, 2.2, "S");
+    pxEllipse(grid, 2, 12, 2, 2.4, "S");
+    pxEllipse(grid, 10, 22, 2, 2, "S");
+    pxOutline(grid, "K");
+    return grid;
+  }
+  function buildJurassicSitterGrid() {
+    const grid = makePxGrid();
+    buildJurassicBodyOnto(grid);
+    // turkey leg held up
+    pxEllipse(grid, 3, 13, 4, 4.6, "S");
+    pxThickLine(grid, 5, 17, 9, 22, 1.8, "W");
+    pxOutline(grid, "K");
+    // woven basket on the back with a frond poking out
+    pxTaper(grid, 30, 20, 4, 33, 30, 6, "O");
+    pxOutline(grid, "K");
+    pxTriangle(grid, 32, 10, 20, 2, "L");
+    pxOutline(grid, "K");
+    return grid;
+  }
+  function buildCatasaurusGrid() {
+    const grid = makePxGrid();
+    // dino mount: round body, stubby legs, long neck+head, tail fin
+    pxEllipse(grid, 17, 30, 14, 8, "W");
+    pxOutline(grid, "K");
+    pxRect(grid, 9, 36, 13, 39, "W");
+    pxRect(grid, 21, 36, 25, 39, "W");
+    pxOutline(grid, "K");
+    pxTaper(grid, 6, 27, 5, 3, 15, 4, "W");
+    pxEllipse(grid, 2.5, 12, 4, 3.6, "W");
+    pxOutline(grid, "K");
+    pxEllipse(grid, 1.5, 11, 1, 1, "K");
+    pxTriangle(grid, 32, 24, 28, 3.5, "L");
+    pxOutline(grid, "K");
+    // small cat rider perched on the dino's back, with its own tiny crest and hand-drawn face
+    // (too small here for the standard pxFace, which assumes a bigger head)
+    pxEllipse(grid, 22, 16, 7, 7, "W");
+    pxTriangle(grid, 17, 6, 12, 1.4, "W");
+    pxTriangle(grid, 27, 6, 12, 1.4, "W");
+    pxOutline(grid, "K");
+    pxEllipse(grid, 19.5, 15, 1, 1.2, "K");
+    pxEllipse(grid, 24.5, 15, 1, 1.2, "K");
+    pxLine(grid, 20, 18, 22, 20, "K");
+    pxLine(grid, 22, 20, 24, 18, "K");
+    pxTriangle(grid, 20, 3, 9, 1.4, "W");
+    pxTriangle(grid, 24, 1, 11, 1.6, "W");
+    pxTriangle(grid, 28, 3, 9, 1.4, "W");
+    pxOutline(grid, "K");
+    return grid;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Viking Cat family: the seventh Rare Cat. Standard round-cat body wearing a horned helmet
+  // (covering the usual ear triangles) and wielding a stone hammer, escalating in size/
+  // ornamentation across the 3 forms per reference art.
+  // ---------------------------------------------------------------------------
+  function buildVikingBodyOnto(grid) {
+    pxOctagonBody(grid, 8.5, 28.5, 5.2, 27.3, 6.3, 6.3, "W");
+    pxOutline(grid, "K");
+    pxFace(grid, 0);
+    pxLegs(grid, 0);
+  }
+  function buildVikingGrid() {
+    const grid = makePxGrid();
+    buildVikingBodyOnto(grid);
+    pxRect(grid, 9, 2, 27, 6, "S");
+    pxOutline(grid, "K");
+    pxTaper(grid, 8, 5, 2.4, 3, -2, 1, "W");
+    pxTaper(grid, 28, 5, 2.4, 33, -2, 1, "W");
+    pxOutline(grid, "K");
+    // stone-cube hammer held up
+    pxRect(grid, 1, 8, 8, 15, "S");
+    pxThickLine(grid, 8, 15, 12, 21, 1.8, "S");
+    pxOutline(grid, "K");
+    return grid;
+  }
+  function buildThorGrid() {
+    const grid = makePxGrid();
+    buildVikingBodyOnto(grid);
+    pxRect(grid, 8, 1, 28, 6, "S");
+    pxOutline(grid, "K");
+    pxTaper(grid, 7, 4, 3, 1, -4, 1.2, "W");
+    pxTaper(grid, 29, 4, 3, 35, -4, 1.2, "W");
+    pxOutline(grid, "K");
+    pxRect(grid, -1, 6, 9, 16, "S");
+    pxThickLine(grid, 8, 16, 13, 22, 2.2, "S");
+    pxOutline(grid, "K");
+    return grid;
+  }
+  function buildMaximumGrid() {
+    const grid = makePxGrid();
+    buildVikingBodyOnto(grid);
+    // shoulder pauldrons
+    pxEllipse(grid, 8, 22, 4, 4, "G");
+    pxEllipse(grid, 29, 22, 4, 4, "G");
+    pxOutline(grid, "K");
+    // ornate crown-helmet
+    pxRect(grid, 7, 0, 29, 6, "G");
+    pxOutline(grid, "K");
+    pxTaper(grid, 6, 3, 3.4, -2, -6, 1.4, "W");
+    pxTaper(grid, 30, 3, 3.4, 38, -6, 1.4, "W");
+    pxOutline(grid, "K");
+    // big ornate warhammer
+    pxRect(grid, -3, 6, 10, 18, "S");
+    pxOutline(grid, "K");
+    pxThickLine(grid, 8, 18, 14, 25, 2.6, "S");
+    pxOutline(grid, "K");
+    return grid;
+  }
+
   // heightScale: per-sprite vertical stretch, anchored at the ground, so different units can
   // be taller/shorter than the base Cat without redesigning their whole coordinate grid - the
   // "scaling tool" for keeping cats' relative sizes right when reference art has no scale bar.
@@ -5757,6 +5929,12 @@
     salonCat: { grid: buildSalonGrid() },
     parisCat: { grid: buildParisGrid() },
     cyborgCat: { grid: buildCyborgGrid() },
+    jurassicCat: { grid: buildJurassicGrid() },
+    jurassicCatSitter: { grid: buildJurassicSitterGrid() },
+    catasaurus: { grid: buildCatasaurusGrid() },
+    vikingCat: { grid: buildVikingGrid() },
+    thorCat: { grid: buildThorGrid() },
+    maximumFighter: { grid: buildMaximumGrid() },
   };
 
   // Renders a pixel-sprite grid onto a small standalone <canvas> icon (its own context, not
@@ -5887,8 +6065,10 @@
       osc.stop(t0 + 0.34);
     } catch (e) { /* Web Audio unavailable - fail silently, the click still registers */ }
   }
-  // Metallic "clang" cue for critical hits (Island Cat's crit proc) - two detuned square waves
-  // through a highpass filter for a tinny/metal impact, with a very short percussive decay.
+  // Metallic "clang" cue for critical hits (Island Cat's, Jurassic Cat family's crit proc) -
+  // two detuned square waves, each with a quick downward pitch bend (like a struck pot lid
+  // ringing down in pitch) through a bandpass filter for a hollow, resonant pot-and-pan bang
+  // rather than a flat electronic tone, with a short percussive decay.
   function playClang() {
     try {
       if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -5899,21 +6079,24 @@
       const filter = audioCtx.createBiquadFilter();
       const gain = audioCtx.createGain();
       osc1.type = "square";
-      osc1.frequency.setValueAtTime(1400, t0);
+      osc1.frequency.setValueAtTime(900, t0);
+      osc1.frequency.exponentialRampToValueAtTime(620, t0 + 0.18);
       osc2.type = "square";
-      osc2.frequency.setValueAtTime(1850, t0);
-      filter.type = "highpass";
-      filter.frequency.value = 900;
-      gain.gain.setValueAtTime(0.22, t0);
-      gain.gain.exponentialRampToValueAtTime(0.001, t0 + 0.22);
+      osc2.frequency.setValueAtTime(1180, t0);
+      osc2.frequency.exponentialRampToValueAtTime(760, t0 + 0.18);
+      filter.type = "bandpass";
+      filter.frequency.value = 950;
+      filter.Q.value = 1.4;
+      gain.gain.setValueAtTime(0.24, t0);
+      gain.gain.exponentialRampToValueAtTime(0.001, t0 + 0.26);
       osc1.connect(filter);
       osc2.connect(filter);
       filter.connect(gain);
       gain.connect(audioCtx.destination);
       osc1.start(t0);
       osc2.start(t0);
-      osc1.stop(t0 + 0.22);
-      osc2.stop(t0 + 0.22);
+      osc1.stop(t0 + 0.26);
+      osc2.stop(t0 + 0.26);
     } catch (e) { /* Web Audio unavailable - fail silently */ }
   }
   const doorSecretModal = document.getElementById("doorSecretModal");
