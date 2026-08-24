@@ -1411,6 +1411,14 @@
     // every other Rare Cat's - Doctor Cat. knockbackAgainst (not strongAgainst), same pattern
     // as Pirate Cat: a chance to knock back Floating enemies with no damage bonus.
     { id:"fortune", name:"Fortune Teller Cat", emoji:"🐱", cost:510, hp:325, dmg:36, range:240*RANGE_SCALE, cycle:1.33, fore:0.37, tgt:"single", speed:9*SPEED_SCALE, cd:5.20, kb:3, trait:"Traitless", strongAgainst:[], knockbackAgainst:["Floating"], knockbackProc:{ chance: 0.3 }, rarity:"rare", color:"#f4f4f4", sprite:"fortuneCat" },
+    // Twelfth Rare Cat. Evolves into Necromancer Cat, then - True Form, needs Catfruit like
+    // every other Rare Cat's - Necro-Dancer Cat. freeze: 20% chance vs Floating, 2s on the
+    // first two forms, extended to 3s on Necro-Dancer Cat (see the override in
+    // THIRD_EVOLUTIONS.shaman + the new freeze pass-through added to that merge block).
+    // Re-triggering freeze on an already-frozen target restarts the timer at the new duration
+    // (Math.max(frozenUntil, G.time+duration) in applyFreezeProc) - already exactly the
+    // "resets to a full N seconds" behavior described, no logic changes needed for that part.
+    { id:"shaman", name:"Shaman Cat", emoji:"🐱", cost:510, hp:316, dmg:45, range:250*RANGE_SCALE, cycle:1.80, fore:0.77, tgt:"single", speed:10*SPEED_SCALE, cd:5.87, kb:3, trait:"Traitless", strongAgainst:[], freeze:{ trait:"Floating", chance:0.2, duration:2 }, rarity:"rare", color:"#f4f4f4", sprite:"shamanCat" },
   ];
 
   // Enemy roster.
@@ -1473,6 +1481,7 @@
     thief: { name: "Phantom Thief Cat", emoji: "🐱", hpMult: 540 / 462, dmgMult: 64 / 54, sprite: "phantomThiefCat" },
     bishop: { name: "Monk Cat", emoji: "🐱", hpMult: 440 / 380, dmgMult: 47 / 37, sprite: "monkCat" },
     fortune: { name: "Fisherman Cat", emoji: "🐱", hpMult: 378 / 325, dmgMult: 46 / 36, sprite: "fishermanCat" },
+    shaman: { name: "Necromancer Cat", emoji: "🐱", hpMult: 370 / 316, dmgMult: 55 / 45, sprite: "necromancerCat" },
   };
 
   // Special Cats don't get a True Form here at all. Flower Cat's real unlock condition for one is
@@ -1522,6 +1531,8 @@
               sprite: "sanzoCat" },
     fortune: { name: "Doctor Cat", emoji: "🐱", hp: 907, dmg: 55,
                knockbackProc: { chance: 0.4 }, sprite: "doctorCat" },
+    shaman: { name: "Necro-Dancer Cat", emoji: "🐱", hp: 370, dmg: 75, range: 300 * RANGE_SCALE,
+              freeze: { trait: "Floating", chance: 0.2, duration: 3 }, sprite: "necroDancerCat" },
   };
   // Not implemented (needs mechanics this game doesn't have yet): The Flying Cat's Angel-Weaken
   // proc - no Angel trait or weaken status exists in this game.
@@ -1563,6 +1574,7 @@
         speed: evo3.speed !== undefined ? evo3.speed : form.speed,
         strongAgainst: evo3.strongAgainst !== undefined ? evo3.strongAgainst : form.strongAgainst,
         survive: evo3.survive !== undefined ? evo3.survive : form.survive,
+        freeze: evo3.freeze !== undefined ? evo3.freeze : form.freeze,
         crit: evo3.crit !== undefined ? evo3.crit : form.crit,
         knockbackProc: evo3.knockbackProc !== undefined ? evo3.knockbackProc : form.knockbackProc,
         sprite: evo3.sprite !== undefined ? evo3.sprite : form.sprite,
@@ -1741,6 +1753,11 @@
              21:15000,22:24000,23:36600,24:53400,25:74400,26:99600,27:129000,28:162600,29:200400,30:242400,
              31:17500,32:28000,33:42700,34:62300,35:86800,36:116200,37:150500,38:189700,39:233800,40:282800,
              41:20000,42:32000,43:48800,44:71200,45:99200,46:132800,47:172000,48:216800,49:267200,50:323200},
+    shaman: {2:8000,3:12200,4:17800,5:24800,6:33200,7:43000,8:54200,9:66800,10:80800,
+             11:10000,12:16000,13:24400,14:35600,15:49600,16:66400,17:86000,18:108400,19:133600,20:161600,
+             21:15000,22:24000,23:36600,24:53400,25:74400,26:99600,27:129000,28:162600,29:200400,30:242400,
+             31:17500,32:28000,33:42700,34:62300,35:86800,36:116200,37:150500,38:189700,39:233800,40:282800,
+             41:20000,42:32000,43:48800,44:71200,45:99200,46:132800,47:172000,48:216800,49:267200,50:323200},
   };
   // Secret Special Cats only show up in cat-selection lists (Upgrade, Equip) once found via
   // their own unlock condition - everything else in CATS has always just been freely available.
@@ -1892,6 +1909,11 @@
       "A Cat that loves the idea of fortune telling. Has read one too many astrology books. Might knockback Floating enemies.",
       "Eldest son of a prominent Tuna fisherman. Gets seasick. Might knockback Floating enemies.",
       "His medical philosophy is \"Hair of the Dog\". If it doesn't kill ya, it must be working, right?! Might knockback Floating enemies.",
+    ],
+    shaman: [
+      "Able to communicate with the supernatural. … is what it says on the Wiki. Might freeze Floating enemies.",
+      "Turns out it was the supernatural that was controlling this Cat in the end. Might freeze Floating enemies.",
+      "His bewitching dance is fueled by dark powers. Can you resist his devilish groove? Might freeze Floating enemies for longer.",
     ],
   };
   function catDescriptionAt(c, tier) {
@@ -6191,6 +6213,93 @@
     return grid;
   }
 
+  // ---------------------------------------------------------------------------
+  // Shaman Cat family: the twelfth Rare Cat. A skull-faced cat (dark eye sockets, a cracked
+  // grin instead of the usual face) in a pointed hood with a spiky fur collar, per reference
+  // art. Necromancer Cat adds a small ghost; Necro-Dancer Cat swaps the hood for curved horns
+  // and adds the two cat-shaped shadow ghosts (staff-bearer, drummer) flanking a drum, per the
+  // user's explicit request to include them.
+  // ---------------------------------------------------------------------------
+  function buildShamanSkullFaceOnto(grid) {
+    pxEllipse(grid, 14, 15, 2.2, 2.6, "K");
+    pxEllipse(grid, 22, 15, 2.2, 2.6, "K");
+    pxLine(grid, 13, 20, 15, 23, "K");
+    pxLine(grid, 15, 23, 18, 20, "K");
+    pxLine(grid, 18, 20, 21, 23, "K");
+    pxLine(grid, 21, 23, 23, 20, "K");
+    pxOutline(grid, "K");
+  }
+  function buildShamanBodyOnto(grid) {
+    pxOctagonBody(grid, 8.5, 28.5, 8, 27.3, 6.3, 5, "W");
+    pxOutline(grid, "K");
+    buildShamanSkullFaceOnto(grid);
+    // pointed hood
+    pxTriangle(grid, 18, -6, 8, 7, "W");
+    pxOutline(grid, "K");
+    // spiky fur collar
+    for (let x = 8; x <= 29; x += 3.2) pxTriangle(grid, x, 30, 25, 1.4, "W");
+    pxOutline(grid, "K");
+    pxLegs(grid, 0);
+  }
+  function buildShamanStaffOnto(grid) {
+    pxThickLine(grid, 3, 8, 3, 30, 1.6, "K");
+    pxEllipse(grid, 3, 6, 2, 2, "W");
+    pxOutline(grid, "K");
+    pxTriangle(grid, 1.5, 3, 5.5, 1.2, "W");
+    pxTriangle(grid, 4.5, 3, 5.5, 1.2, "W");
+    pxOutline(grid, "K");
+  }
+  function buildShamanGrid() {
+    const grid = makePxGrid();
+    buildShamanBodyOnto(grid);
+    buildShamanStaffOnto(grid);
+    return grid;
+  }
+  function buildNecromancerGrid() {
+    const grid = makePxGrid();
+    buildShamanBodyOnto(grid);
+    buildShamanStaffOnto(grid);
+    // small ghost floating beside, per the user's explicit request
+    pxEllipse(grid, 30, 33, 3.5, 4, "W");
+    pxTriangle(grid, 27.5, 35, 3, 1, "W");
+    pxTriangle(grid, 30, 37, 3, 1, "W");
+    pxTriangle(grid, 32.5, 35, 3, 1, "W");
+    pxOutline(grid, "K");
+    pxEllipse(grid, 29, 32, 0.6, 0.8, "K");
+    pxEllipse(grid, 31, 32, 0.6, 0.8, "K");
+    return grid;
+  }
+  function buildCatShadowGhostOnto(grid, cx, cy) {
+    pxEllipse(grid, cx, cy, 2.6, 3.2, "K");
+    pxTriangle(grid, cx - 1.5, cy + 2, 2.5, 0.9, "K");
+    pxTriangle(grid, cx, cy + 3.5, 2.5, 0.9, "K");
+    pxTriangle(grid, cx + 1.5, cy + 2, 2.5, 0.9, "K");
+    pxOutline(grid, "K");
+  }
+  function buildNecroDancerGrid() {
+    const grid = makePxGrid();
+    // drum beneath
+    pxRect(grid, 12, 33, 24, 39, "S");
+    pxEllipse(grid, 18, 33, 6, 2, "G");
+    pxOutline(grid, "K");
+    // cat body on top, with curved horns instead of the hood
+    pxOctagonBody(grid, 8.5, 28.5, 8, 27.3, 6.3, 5, "W");
+    pxOutline(grid, "K");
+    buildShamanSkullFaceOnto(grid);
+    pxTaper(grid, 8, 5, 2.4, 2, -4, 1, "W");
+    pxTaper(grid, 28, 5, 2.4, 34, -4, 1, "W");
+    pxOutline(grid, "K");
+    // left ghost holding a staff, right ghost banging the drum - per the user's explicit request
+    buildCatShadowGhostOnto(grid, 3, 24);
+    pxLine(grid, 3, 15, 3, 24, "S");
+    pxEllipse(grid, 3, 13, 1.6, 1.6, "W");
+    pxOutline(grid, "K");
+    buildCatShadowGhostOnto(grid, 33, 26);
+    pxLine(grid, 30, 24, 33, 21, "S");
+    pxOutline(grid, "K");
+    return grid;
+  }
+
   // heightScale: per-sprite vertical stretch, anchored at the ground, so different units can
   // be taller/shorter than the base Cat without redesigning their whole coordinate grid - the
   // "scaling tool" for keeping cats' relative sizes right when reference art has no scale bar.
@@ -6276,6 +6385,9 @@
     fortuneCat: { grid: buildFortuneGrid() },
     fishermanCat: { grid: buildFishermanGrid() },
     doctorCat: { grid: buildDoctorGrid() },
+    shamanCat: { grid: buildShamanGrid() },
+    necromancerCat: { grid: buildNecromancerGrid() },
+    necroDancerCat: { grid: buildNecroDancerGrid() },
   };
 
   // Renders a pixel-sprite grid onto a small standalone <canvas> icon (its own context, not
