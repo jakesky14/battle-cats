@@ -1407,6 +1407,10 @@
     // "data's on the books, content that triggers it doesn't exist yet" treatment as Flower
     // Cat's Freeze (no Dark-trait enemy either).
     { id:"bishop", name:"Bishop Cat", emoji:"🐱", cost:495, hp:380, dmg:37, range:200*RANGE_SCALE, cycle:0.97, fore:0.27, tgt:"single", speed:10*SPEED_SCALE, cd:3.87, kb:3, trait:"Traitless", strongAgainst:[], slow:{ trait:"Floating", chance:0.2 }, rarity:"rare", color:"#f4f4f4", sprite:"bishopCat" },
+    // Eleventh Rare Cat. Evolves into Fisherman Cat, then - True Form, needs Catfruit like
+    // every other Rare Cat's - Doctor Cat. knockbackAgainst (not strongAgainst), same pattern
+    // as Pirate Cat: a chance to knock back Floating enemies with no damage bonus.
+    { id:"fortune", name:"Fortune Teller Cat", emoji:"🐱", cost:510, hp:325, dmg:36, range:240*RANGE_SCALE, cycle:1.33, fore:0.37, tgt:"single", speed:9*SPEED_SCALE, cd:5.20, kb:3, trait:"Traitless", strongAgainst:[], knockbackAgainst:["Floating"], knockbackProc:{ chance: 0.3 }, rarity:"rare", color:"#f4f4f4", sprite:"fortuneCat" },
   ];
 
   // Enemy roster.
@@ -1468,6 +1472,7 @@
     pirate: { name: "Captain Cat", emoji: "🐱", hpMult: 350 / 305, dmgMult: 43 / 33, sprite: "captainCat" },
     thief: { name: "Phantom Thief Cat", emoji: "🐱", hpMult: 540 / 462, dmgMult: 64 / 54, sprite: "phantomThiefCat" },
     bishop: { name: "Monk Cat", emoji: "🐱", hpMult: 440 / 380, dmgMult: 47 / 37, sprite: "monkCat" },
+    fortune: { name: "Fisherman Cat", emoji: "🐱", hpMult: 378 / 325, dmgMult: 46 / 36, sprite: "fishermanCat" },
   };
 
   // Special Cats don't get a True Form here at all. Flower Cat's real unlock condition for one is
@@ -1515,6 +1520,8 @@
               sprite: "goemonCat" },
     bishop: { name: "Sanzo Cat", emoji: "🐱", hp: 660, dmg: 57, range: 250 * RANGE_SCALE, tgt: "area",
               sprite: "sanzoCat" },
+    fortune: { name: "Doctor Cat", emoji: "🐱", hp: 907, dmg: 55,
+               knockbackProc: { chance: 0.4 }, sprite: "doctorCat" },
   };
   // Not implemented (needs mechanics this game doesn't have yet): The Flying Cat's Angel-Weaken
   // proc - no Angel trait or weaken status exists in this game.
@@ -1729,6 +1736,11 @@
              21:15000,22:24000,23:36600,24:53400,25:74400,26:99600,27:129000,28:162600,29:200400,30:242400,
              31:17500,32:28000,33:42700,34:62300,35:86800,36:116200,37:150500,38:189700,39:233800,40:282800,
              41:20000,42:32000,43:48800,44:71200,45:99200,46:132800,47:172000,48:216800,49:267200,50:323200},
+    fortune: {2:8000,3:12200,4:17800,5:24800,6:33200,7:43000,8:54200,9:66800,10:80800,
+             11:10000,12:16000,13:24400,14:35600,15:49600,16:66400,17:86000,18:108400,19:133600,20:161600,
+             21:15000,22:24000,23:36600,24:53400,25:74400,26:99600,27:129000,28:162600,29:200400,30:242400,
+             31:17500,32:28000,33:42700,34:62300,35:86800,36:116200,37:150500,38:189700,39:233800,40:282800,
+             41:20000,42:32000,43:48800,44:71200,45:99200,46:132800,47:172000,48:216800,49:267200,50:323200},
   };
   // Secret Special Cats only show up in cat-selection lists (Upgrade, Equip) once found via
   // their own unlock condition - everything else in CATS has always just been freely available.
@@ -1875,6 +1887,11 @@
       "A merciful Cat that brings peace and love to all of its followers. Charges for confessions. Might slow Floating enemies.",
       "Envelopes the enemies in gracious serenity to allow them to move to the afterlife. Might slow Floating enemies.",
       "On a journey to save souls through enlightenment. Mostly just beats up the local wildlife, though. Might slow Floating enemies (Area Attack)",
+    ],
+    fortune: [
+      "A Cat that loves the idea of fortune telling. Has read one too many astrology books. Might knockback Floating enemies.",
+      "Eldest son of a prominent Tuna fisherman. Gets seasick. Might knockback Floating enemies.",
+      "His medical philosophy is \"Hair of the Dog\". If it doesn't kill ya, it must be working, right?! Might knockback Floating enemies.",
     ],
   };
   function catDescriptionAt(c, tier) {
@@ -3873,7 +3890,7 @@
   // in the "Units: movement + combat" loop below while slowedUntil is in the future; attack
   // cycle timing (u.swing) is untouched, matching how Freeze only blocks movement/attack
   // initiation, not an ongoing attack's own timer.
-  const SLOW_DURATION = 2.0; // seconds - no duration was given, matching Freeze's flavor
+  const SLOW_DURATION = 4.0; // seconds
   function applySlowProc(attacker, defender) {
     const sl = attacker.def.slow;
     if (!sl || !defender.def || defender.def.trait !== sl.trait) return;
@@ -6101,6 +6118,79 @@
     return grid;
   }
 
+  // ---------------------------------------------------------------------------
+  // Fortune Teller Cat family: the eleventh Rare Cat. Standard round-cat body (head raised
+  // slightly to leave room for whatever it's balancing on below - a crystal ball, then a
+  // spiky urchin creature shared with Doctor Cat), per reference art.
+  // ---------------------------------------------------------------------------
+  function buildFortuneBodyOnto(grid) {
+    pxOctagonBody(grid, 8.5, 28.5, 8, 27.3, 6.3, 5, "W");
+    pxOutline(grid, "K");
+    pxFace(grid, 0);
+  }
+  function buildCrystalBallOnto(grid) {
+    pxEllipse(grid, 18, 34, 8, 6, "G");
+    pxOutline(grid, "K");
+    pxEllipse(grid, 14, 31, 2, 1.4, "W");
+    pxOutline(grid, "K");
+  }
+  function buildUrchinOnto(grid) {
+    const cx = 18, cy = 33;
+    for (let deg = 0; deg < 360; deg += 24) {
+      const rad = deg * Math.PI / 180;
+      pxLine(grid, cx, cy, cx + Math.cos(rad) * 9, cy + Math.sin(rad) * 5, "K");
+    }
+    pxEllipse(grid, cx, cy, 5, 4, "K");
+    pxOutline(grid, "K");
+  }
+  function buildFortuneGrid() {
+    const grid = makePxGrid();
+    buildFortuneBodyOnto(grid);
+    buildCrystalBallOnto(grid);
+    // bandana wrapped around the head, knotted at the back with trailing ends
+    pxEllipse(grid, 18, 6, 11, 4, "K");
+    pxOutline(grid, "K");
+    pxTaper(grid, 28, 6, 3, 33, 16, 2, "K");
+    pxTaper(grid, 30, 8, 2, 34, 20, 1.4, "K");
+    pxOutline(grid, "K");
+    return grid;
+  }
+  function buildFishermanGrid() {
+    const grid = makePxGrid();
+    buildFortuneBodyOnto(grid);
+    buildUrchinOnto(grid);
+    // fishing-hat headband
+    pxRect(grid, 9, 5, 27, 8, "S");
+    pxOutline(grid, "K");
+    // fishing rod arcing up, line down to a small fish
+    pxTaper(grid, 24, 4, 1.2, 30, -6, 0.8, "S");
+    pxLine(grid, 30, -6, 26, 10, "S");
+    pxOutline(grid, "K");
+    pxEllipse(grid, 26, 12, 1.8, 1.2, "B");
+    pxOutline(grid, "K");
+    return grid;
+  }
+  function buildDoctorGrid() {
+    const grid = makePxGrid();
+    buildFortuneBodyOnto(grid);
+    buildUrchinOnto(grid);
+    // head-mirror band
+    pxRect(grid, 9, 5, 27, 7, "S");
+    pxEllipse(grid, 18, 3, 2.2, 2.2, "S");
+    pxOutline(grid, "K");
+    // tie
+    pxTriangle(grid, 18, 22, 26, 1.4, "R");
+    pxOutline(grid, "K");
+    // briefcase held to the side
+    pxRect(grid, 2, 20, 8, 26, "G");
+    pxOutline(grid, "K");
+    // small virus minions floating beside
+    pxEllipse(grid, 32, 24, 2, 2, "K");
+    pxEllipse(grid, 33, 16, 1.6, 1.6, "K");
+    pxOutline(grid, "K");
+    return grid;
+  }
+
   // heightScale: per-sprite vertical stretch, anchored at the ground, so different units can
   // be taller/shorter than the base Cat without redesigning their whole coordinate grid - the
   // "scaling tool" for keeping cats' relative sizes right when reference art has no scale bar.
@@ -6183,6 +6273,9 @@
     bishopCat: { grid: buildBishopGrid() },
     monkCat: { grid: buildMonkGrid() },
     sanzoCat: { grid: buildSanzoGrid() },
+    fortuneCat: { grid: buildFortuneGrid() },
+    fishermanCat: { grid: buildFishermanGrid() },
+    doctorCat: { grid: buildDoctorGrid() },
   };
 
   // Renders a pixel-sprite grid onto a small standalone <canvas> icon (its own context, not
