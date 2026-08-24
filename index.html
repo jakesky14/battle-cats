@@ -1390,6 +1390,23 @@
     // switches from a Single to an Area attack, but damage doesn't increase at all (matches
     // the given data exactly, not a typo).
     { id:"viking", name:"Viking Cat", emoji:"🐱", cost:525, hp:665, dmg:80, range:140*RANGE_SCALE, cycle:0.83, fore:0.53, tgt:"single", speed:11*SPEED_SCALE, cd:3.87, kb:3, trait:"Traitless", strongAgainst:["Red"], rarity:"rare", color:"#f4f4f4", sprite:"vikingCat" },
+    // Eighth Rare Cat. Evolves into Captain Cat, then - True Form, needs Catfruit like every
+    // other Rare Cat's - Dread Pirate Catley. knockbackAgainst (not strongAgainst): a chance to
+    // knock back Red enemies with no accompanying damage bonus/reduction - see the
+    // knockbackAgainst fallback added to applyKnockbackProc for why this needs its own field
+    // instead of reusing strongAgainst like Jamiera/Viking Cat do.
+    { id:"pirate", name:"Pirate Cat", emoji:"🐱", cost:510, hp:305, dmg:33, range:270*RANGE_SCALE, cycle:1.50, fore:0.33, tgt:"single", speed:8*SPEED_SCALE, cd:5.87, kb:3, trait:"Traitless", strongAgainst:[], knockbackAgainst:["Red"], knockbackProc:{ chance: 0.3 }, rarity:"rare", color:"#f4f4f4", sprite:"pirateCat" },
+    // Ninth Rare Cat. Evolves into Phantom Thief Cat, then - True Form, needs Catfruit like
+    // every other Rare Cat's - Goemon Cat. doubleMoney: doubles the money dropped by an enemy
+    // this unit lands the killing hit on (see the doubleMoneyKill flag set per-hit and read in
+    // the money-drop loop below).
+    { id:"thief", name:"Thief Cat", emoji:"🐱", cost:495, hp:462, dmg:54, range:170*RANGE_SCALE, cycle:1.00, fore:0.50, tgt:"single", speed:13*SPEED_SCALE, cd:5.20, kb:3, trait:"Traitless", strongAgainst:[], doubleMoney:true, rarity:"rare", color:"#f4f4f4", sprite:"thiefCat" },
+    // Tenth Rare Cat. Evolves into Monk Cat, then - True Form, needs Catfruit like every other
+    // Rare Cat's - Sanzo Cat. slow: a chance to halve a Floating enemy's speed for a few
+    // seconds (see applySlowProc/slowedUntil) - no enemy currently has the Floating trait, same
+    // "data's on the books, content that triggers it doesn't exist yet" treatment as Flower
+    // Cat's Freeze (no Dark-trait enemy either).
+    { id:"bishop", name:"Bishop Cat", emoji:"🐱", cost:495, hp:380, dmg:37, range:200*RANGE_SCALE, cycle:0.97, fore:0.27, tgt:"single", speed:10*SPEED_SCALE, cd:3.87, kb:3, trait:"Traitless", strongAgainst:[], slow:{ trait:"Floating", chance:0.2 }, rarity:"rare", color:"#f4f4f4", sprite:"bishopCat" },
   ];
 
   // Enemy roster.
@@ -1448,6 +1465,9 @@
     salon: { name: "Paris Cat", emoji: "🐱", hpMult: 580 / 480, dmgMult: 250 / 180, sprite: "parisCat" },
     jurassic: { name: "Jurassic Cat Sitter", emoji: "🐱", hpMult: 670 / 570, dmgMult: 87 / 77, sprite: "jurassicCatSitter" },
     viking: { name: "Thor Cat", emoji: "🐱", hpMult: 765 / 665, dmgMult: 90 / 80, sprite: "thorCat" },
+    pirate: { name: "Captain Cat", emoji: "🐱", hpMult: 350 / 305, dmgMult: 43 / 33, sprite: "captainCat" },
+    thief: { name: "Phantom Thief Cat", emoji: "🐱", hpMult: 540 / 462, dmgMult: 64 / 54, sprite: "phantomThiefCat" },
+    bishop: { name: "Monk Cat", emoji: "🐱", hpMult: 440 / 380, dmgMult: 47 / 37, sprite: "monkCat" },
   };
 
   // Special Cats don't get a True Form here at all. Flower Cat's real unlock condition for one is
@@ -1489,6 +1509,12 @@
     // Damage stays 90, matching the given data exactly - only HP and attack type change here.
     viking: { name: "Maximum the Fighter", emoji: "🐱", hp: 1530, dmg: 90, tgt: "area",
               sprite: "maximumFighter" },
+    pirate: { name: "Dread Pirate Catley", emoji: "🐱", hp: 900, dmg: 43, range: 300 * RANGE_SCALE,
+              knockbackProc: { chance: 0.4 }, sprite: "dreadPirateCatley" },
+    thief:  { name: "Goemon Cat", emoji: "🐱", hp: 540, dmg: 96, range: 200 * RANGE_SCALE, tgt: "area",
+              sprite: "goemonCat" },
+    bishop: { name: "Sanzo Cat", emoji: "🐱", hp: 660, dmg: 57, range: 250 * RANGE_SCALE, tgt: "area",
+              sprite: "sanzoCat" },
   };
   // Not implemented (needs mechanics this game doesn't have yet): The Flying Cat's Angel-Weaken
   // proc - no Angel trait or weaken status exists in this game.
@@ -1688,6 +1714,21 @@
              21:15000,22:24000,23:36600,24:53400,25:74400,26:99600,27:129000,28:162600,29:200400,30:242400,
              31:17500,32:28000,33:42700,34:62300,35:86800,36:116200,37:150500,38:189700,39:233800,40:282800,
              41:20000,42:32000,43:48800,44:71200,45:99200,46:132800,47:172000,48:216800,49:267200,50:323200},
+    pirate: {2:8000,3:12200,4:17800,5:24800,6:33200,7:43000,8:54200,9:66800,10:80800,
+             11:10000,12:16000,13:24400,14:35600,15:49600,16:66400,17:86000,18:108400,19:133600,20:161600,
+             21:15000,22:24000,23:36600,24:53400,25:74400,26:99600,27:129000,28:162600,29:200400,30:242400,
+             31:17500,32:28000,33:42700,34:62300,35:86800,36:116200,37:150500,38:189700,39:233800,40:282800,
+             41:20000,42:32000,43:48800,44:71200,45:99200,46:132800,47:172000,48:216800,49:267200,50:323200},
+    thief:  {2:8000,3:12200,4:17800,5:24800,6:33200,7:43000,8:54200,9:66800,10:80800,
+             11:10000,12:16000,13:24400,14:35600,15:49600,16:66400,17:86000,18:108400,19:133600,20:161600,
+             21:15000,22:24000,23:36600,24:53400,25:74400,26:99600,27:129000,28:162600,29:200400,30:242400,
+             31:17500,32:28000,33:42700,34:62300,35:86800,36:116200,37:150500,38:189700,39:233800,40:282800,
+             41:20000,42:32000,43:48800,44:71200,45:99200,46:132800,47:172000,48:216800,49:267200,50:323200},
+    bishop: {2:8000,3:12200,4:17800,5:24800,6:33200,7:43000,8:54200,9:66800,10:80800,
+             11:10000,12:16000,13:24400,14:35600,15:49600,16:66400,17:86000,18:108400,19:133600,20:161600,
+             21:15000,22:24000,23:36600,24:53400,25:74400,26:99600,27:129000,28:162600,29:200400,30:242400,
+             31:17500,32:28000,33:42700,34:62300,35:86800,36:116200,37:150500,38:189700,39:233800,40:282800,
+             41:20000,42:32000,43:48800,44:71200,45:99200,46:132800,47:172000,48:216800,49:267200,50:323200},
   };
   // Secret Special Cats only show up in cat-selection lists (Upgrade, Equip) once found via
   // their own unlock condition - everything else in CATS has always just been freely available.
@@ -1819,6 +1860,21 @@
       "A combat-class Cat that has read too many fantasy novels. Strong against Red enemies.",
       "Having found the internet, this Cat had its armour and weapon order made. Strong against Red enemies.",
       "Turns out his \"order made\" armor is a knockoff brand. Even the cheap stuff is still enough to hit Red for massive Area dmg.",
+    ],
+    pirate: [
+      "Influenced by a certain pirate cartoon, and dreams of being a Pirate King. Can't swim. Might knockback Red enemies.",
+      "Still thinks Pirates are cool. Still can't swim. Doesn't get along with Ninja Cat anymore. Might knockback Red enemies.",
+      "Just learned that there are movies about pirates too! Inspired him to upgrade his boat. Might knockback Red enemies.",
+    ],
+    thief: [
+      "Moves fast. Steals faster. More money earned when defeating an enemy.",
+      "Moves too fast. Still steals the same. Has a large treasure collection now. More money earned when defeating an enemy.",
+      "Bandit of legend, last seen in old Japan fighting against the shogun's tyranny. Slips extra money out of enemy pockets with area attacks.",
+    ],
+    bishop: [
+      "A merciful Cat that brings peace and love to all of its followers. Charges for confessions. Might slow Floating enemies.",
+      "Envelopes the enemies in gracious serenity to allow them to move to the afterlife. Might slow Floating enemies.",
+      "On a journey to save souls through enlightenment. Mostly just beats up the local wildlife, though. Might slow Floating enemies (Area Attack)",
     ],
   };
   function catDescriptionAt(c, tier) {
@@ -2118,7 +2174,7 @@
       def: { ...form, dmg: Math.round(form.dmg * mult) }, team: "player",
       x: P_BASE_X - 10,
       hp, max: hp,
-      swing: -1, swung: false, flash: 0, w: 30, kbCount: 0, frozenUntil: 0,
+      swing: -1, swung: false, flash: 0, w: 30, kbCount: 0, frozenUntil: 0, slowedUntil: 0,
     });
   }
 
@@ -2137,7 +2193,7 @@
       def: e, team: "enemy",
       x: E_BASE_X + 10,
       hp: e.hp, max: e.hp,
-      swing: -1, swung: false, flash: 0, w: e.w, kbCount: 0, frozenUntil: 0,
+      swing: -1, swung: false, flash: 0, w: e.w, kbCount: 0, frozenUntil: 0, slowedUntil: 0,
     });
   }
 
@@ -3812,6 +3868,19 @@
     defender.frozenUntil = Math.max(defender.frozenUntil || 0, G.time + fz.duration);
   }
 
+  // Slow: like Freeze, but the defender keeps moving/attacking at half speed instead of fully
+  // stopping - Bishop Cat family's ability (20% chance vs Floating). Movement speed is halved
+  // in the "Units: movement + combat" loop below while slowedUntil is in the future; attack
+  // cycle timing (u.swing) is untouched, matching how Freeze only blocks movement/attack
+  // initiation, not an ongoing attack's own timer.
+  const SLOW_DURATION = 2.0; // seconds - no duration was given, matching Freeze's flavor
+  function applySlowProc(attacker, defender) {
+    const sl = attacker.def.slow;
+    if (!sl || !defender.def || defender.def.trait !== sl.trait) return;
+    if (Math.random() >= sl.chance) return;
+    defender.slowedUntil = Math.max(defender.slowedUntil || 0, G.time + (sl.duration || SLOW_DURATION));
+  }
+
   // Critical hit: an attacker with a def.crit ({chance, mult}) has a chance for a landed hit to
   // deal mult x its normal damage instead - paired with a "clang" sound cue (see playClang).
   function rollCrit(attacker) {
@@ -3820,14 +3889,16 @@
   }
 
   // Knockback proc: an attacker with a def.knockbackProc ({chance}) has a chance, on each hit
-  // against a defender whose trait it's Strong Against, to force a knockback outside the normal
-  // kb-threshold system (applyKnockback above) - same idea as Sniper the Cat's unconditional
-  // knockback, but chance-based and gated to the attacker's own Strong Against list.
+  // against a defender of a given trait, to force a knockback outside the normal kb-threshold
+  // system (applyKnockback above) - same idea as Sniper the Cat's unconditional knockback, but
+  // chance-based. Which traits trigger it comes from def.knockbackAgainst if set (Pirate Cat:
+  // knockback vs Red with no accompanying damage bonus/reduction), else falls back to
+  // def.strongAgainst (Jamiera Cat: knockback vs the same traits it's already Strong Against).
   function applyKnockbackProc(attacker, defender) {
     const kp = attacker.def.knockbackProc;
     if (!kp || !defender.def) return;
-    const strong = attacker.def.strongAgainst || [];
-    if (!strong.includes(defender.def.trait)) return;
+    const targets = attacker.def.knockbackAgainst || attacker.def.strongAgainst || [];
+    if (!targets.includes(defender.def.trait)) return;
     if (Math.random() < kp.chance) knockbackPush(defender);
   }
 
@@ -3921,10 +3992,12 @@
             let dmg = damageAmount(u, t);
             if (rollCrit(u)) { dmg *= u.def.crit.mult; playClang(); }
             t.hp -= dmg;
+            t.doubleMoneyKill = !!u.def.doubleMoney; // Thief Cat family: doubles the drop if this hit kills t
             applySurviveProc(t);
             t.flash = 0.12;
             applyKnockback(t);
             applyFreezeProc(u, t);
+            applySlowProc(u, t);
             applyKnockbackProc(u, t);
           }
           G.fx.push({ x: (u.x + hits[0].x) / 2, y: 0, life: 0.25, t: u.team });
@@ -3940,7 +4013,8 @@
           u.swing += dt;
           if (u.swing >= u.def.cycle) u.swing = -1;
         }
-        u.x += dir * u.def.speed * dt;
+        const slowMult = u.slowedUntil > G.time ? 0.5 : 1;
+        u.x += dir * u.def.speed * slowMult * dt;
         u.x = Math.max(E_BASE_X + 6, Math.min(P_BASE_X - 6, u.x));
       }
     }
@@ -3949,7 +4023,7 @@
     const dropMult = moneyDropMult();
     for (const u of G.units) {
       if (u.hp <= 0 && u.team === "enemy") {
-        const drop = (u.def.drop || 0) * dropMult;
+        const drop = (u.def.drop || 0) * dropMult * (u.doubleMoneyKill ? 2 : 1);
         G.money = Math.min(workerWallet(G.workerLv), G.money + drop);
       }
     }
@@ -5862,6 +5936,171 @@
     return grid;
   }
 
+  // ---------------------------------------------------------------------------
+  // Pirate Cat family: the eighth Rare Cat. Standard round-cat body wearing a pirate hat
+  // (a dark band across the top with a raised crown and a skull emblem), holding a hook,
+  // then standing behind a cannon, then finally becoming the ship itself per reference art.
+  // ---------------------------------------------------------------------------
+  function buildPirateHatOnto(grid) {
+    pxEllipse(grid, 18, 2, 13, 5, "K");
+    pxEllipse(grid, 18, -2, 10, 4, "K");
+    pxOutline(grid, "K");
+    pxEllipse(grid, 18, 1, 1.6, 1.6, "W");
+    pxOutline(grid, "K");
+  }
+  function buildPirateGrid() {
+    const grid = makePxGrid();
+    pxOctagonBody(grid, 8.5, 28.5, 5.2, 27.3, 6.3, 6.3, "W");
+    pxOutline(grid, "K");
+    pxFace(grid, 0);
+    pxLegs(grid, 0);
+    buildPirateHatOnto(grid);
+    // hook held to the side
+    pxThickLine(grid, 5, 18, 3, 24, 1.8, "K");
+    pxTaper(grid, 3, 24, 2.2, 2, 29, 1, "K");
+    pxOutline(grid, "K");
+    return grid;
+  }
+  function buildCaptainGrid() {
+    const grid = makePxGrid();
+    pxOctagonBody(grid, 8.5, 28.5, 5.2, 27.3, 6.3, 6.3, "W");
+    pxOutline(grid, "K");
+    pxFace(grid, 0);
+    buildPirateHatOnto(grid);
+    // cannon in front, replacing the legs
+    pxRect(grid, 2, 26, 22, 33, "G");
+    pxEllipse(grid, 4, 29.5, 3.5, 3.5, "K");
+    pxOutline(grid, "K");
+    pxRect(grid, 8, 33, 16, 36, "S");
+    pxOutline(grid, "K");
+    return grid;
+  }
+  function buildDreadPirateGrid() {
+    const grid = makePxGrid();
+    // ship-hull body, replacing legs entirely
+    pxTaper(grid, 18, 27, 26, 18, 39, 16, "S");
+    pxOutline(grid, "K");
+    pxRect(grid, 6, 30, 30, 34, "S");
+    pxOutline(grid, "K");
+    // cat head/torso riding on top of the hull
+    pxOctagonBody(grid, 8.5, 28.5, 5.2, 27.3, 6.3, 6.3, "W");
+    pxOutline(grid, "K");
+    pxFace(grid, 0);
+    buildPirateHatOnto(grid);
+    // sail behind
+    pxTriangle(grid, 30, -4, 20, 6, "W");
+    pxOutline(grid, "K");
+    return grid;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Thief Cat family: the ninth Rare Cat. Thief Cat is a slim top-hat-and-cape gentleman
+  // burglar; Phantom Thief Cat is deliberately NOT that same silhouette - its real official
+  // design is a strange gray tank-tread creature, kept here on purpose rather than "fixed"
+  // into a more conventional evolution; Goemon Cat is a dark red-eyed ninja/samurai figure.
+  // ---------------------------------------------------------------------------
+  function buildThiefGrid() {
+    const grid = makePxGrid();
+    pxOctagonBody(grid, 8.5, 28.5, 5.2, 27.3, 6.3, 6.3, "W");
+    pxOutline(grid, "K");
+    pxFace(grid, 0);
+    pxLegs(grid, 0);
+    // top hat
+    pxRect(grid, 11, -4, 25, 4, "K");
+    pxRect(grid, 8, 3, 28, 6, "K");
+    pxOutline(grid, "K");
+    // flowing cape behind
+    pxTaper(grid, 28, 10, 4, 33, 34, 10, "K");
+    pxOutline(grid, "K");
+    return grid;
+  }
+  function buildPhantomThiefGrid() {
+    const grid = makePxGrid();
+    // round gray body on tank treads
+    pxEllipse(grid, 18, 20, 13, 12, "G");
+    pxOutline(grid, "K");
+    pxRect(grid, 4, 30, 32, 38, "K");
+    pxOutline(grid, "K");
+    for (let x = 6; x <= 30; x += 5) pxEllipse(grid, x, 34, 2, 2, "S");
+    pxOutline(grid, "K");
+    // small cat ears + face on the gray head
+    pxTriangle(grid, 12, 6, 8, 1.4, "G");
+    pxTriangle(grid, 24, 6, 8, 1.4, "G");
+    pxOutline(grid, "K");
+    pxEllipse(grid, 14.5, 18, 1.3, 1.6, "K");
+    pxEllipse(grid, 21.5, 18, 1.3, 1.6, "K");
+    pxLine(grid, 15, 22, 18, 25, "K");
+    pxLine(grid, 18, 25, 21, 22, "K");
+    return grid;
+  }
+  function buildGoemonGrid() {
+    const grid = makePxGrid();
+    pxOctagonBody(grid, 8.5, 28.5, 5.2, 27.3, 6.3, 6.3, "K");
+    pxTriangle(grid, 5.4, 2, 9.4, 1.1, "K");
+    pxTriangle(grid, 30.6, 2, 9.4, 1.1, "K");
+    pxOutline(grid, "K");
+    pxEllipse(grid, 14, 14, 1.6, 1.8, "R");
+    pxEllipse(grid, 22, 14, 1.6, 1.8, "R");
+    pxLine(grid, 14, 18, 18, 21, "W");
+    pxLine(grid, 18, 21, 22, 18, "W");
+    pxLegs(grid, 0);
+    // fan held up
+    pxTaper(grid, 4, 10, 1, 18, 3, 8, "W");
+    pxOutline(grid, "K");
+    return grid;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Bishop Cat family: the tenth Rare Cat. Standard round-cat body carrying an ornate staff,
+  // topped with an escalating hat - a pointed mitre, then a rounder hood, then a tall layered
+  // pagoda crown with a small monkey figure riding it, per reference art.
+  // ---------------------------------------------------------------------------
+  function buildBishopBodyOnto(grid) {
+    pxOctagonBody(grid, 8.5, 28.5, 5.2, 27.3, 6.3, 6.3, "W");
+    pxOutline(grid, "K");
+    pxFace(grid, 0);
+    pxLegs(grid, 0);
+  }
+  function buildBishopStaffOnto(grid) {
+    pxThickLine(grid, 3, 8, 3, 30, 1.6, "S");
+    pxEllipse(grid, 3, 6, 2.4, 2.4, "Y");
+    pxOutline(grid, "K");
+  }
+  function buildBishopGrid() {
+    const grid = makePxGrid();
+    buildBishopBodyOnto(grid);
+    pxTriangle(grid, 18, -6, 6, 8, "S");
+    pxRect(grid, 10, 4, 26, 7, "S");
+    pxOutline(grid, "K");
+    buildBishopStaffOnto(grid);
+    return grid;
+  }
+  function buildMonkGrid() {
+    const grid = makePxGrid();
+    buildBishopBodyOnto(grid);
+    pxEllipse(grid, 18, 1, 12, 6, "S");
+    pxOutline(grid, "K");
+    buildBishopStaffOnto(grid);
+    return grid;
+  }
+  function buildSanzoGrid() {
+    const grid = makePxGrid();
+    buildBishopBodyOnto(grid);
+    // layered pagoda crown
+    pxRect(grid, 9, -6, 27, -2, "S");
+    pxRect(grid, 7, -2, 29, 2, "S");
+    pxRect(grid, 10, 2, 26, 5, "S");
+    pxOutline(grid, "K");
+    // small monkey figure riding on top
+    pxEllipse(grid, 18, -9, 2.4, 2.2, "O");
+    pxOutline(grid, "K");
+    buildBishopStaffOnto(grid);
+    // cloud beneath
+    pxEllipse(grid, 18, 36, 12, 3, "B");
+    pxOutline(grid, "K");
+    return grid;
+  }
+
   // heightScale: per-sprite vertical stretch, anchored at the ground, so different units can
   // be taller/shorter than the base Cat without redesigning their whole coordinate grid - the
   // "scaling tool" for keeping cats' relative sizes right when reference art has no scale bar.
@@ -5935,6 +6174,15 @@
     vikingCat: { grid: buildVikingGrid() },
     thorCat: { grid: buildThorGrid() },
     maximumFighter: { grid: buildMaximumGrid() },
+    pirateCat: { grid: buildPirateGrid() },
+    captainCat: { grid: buildCaptainGrid() },
+    dreadPirateCatley: { grid: buildDreadPirateGrid() },
+    thiefCat: { grid: buildThiefGrid() },
+    phantomThiefCat: { grid: buildPhantomThiefGrid() },
+    goemonCat: { grid: buildGoemonGrid() },
+    bishopCat: { grid: buildBishopGrid() },
+    monkCat: { grid: buildMonkGrid() },
+    sanzoCat: { grid: buildSanzoGrid() },
   };
 
   // Renders a pixel-sprite grid onto a small standalone <canvas> icon (its own context, not
@@ -5980,7 +6228,7 @@
   // rose, armor) are the point - unlike Titan/Luchador's tall-humanoid case above, cropping
   // these to just the head/face would hide exactly what makes each form distinct, so they're
   // exempted from the auto height-crop below despite naturally being tall.
-  const FULL_BODY_CROP = new Set(["salonCat", "parisCat", "cyborgCat"]);
+  const FULL_BODY_CROP = new Set(["salonCat", "parisCat", "cyborgCat", "dreadPirateCatley", "sanzoCat"]);
   // Like renderSpriteIcon, but crops to the sprite's actual silhouette (no dead space around a
   // small unit) and, for sprites much taller than wide (Titan/Luchador-style humanoids, the
   // boxy vending machines) or forced above, crops further to just the head/upper-body - or, for
