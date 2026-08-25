@@ -6236,9 +6236,9 @@
     // pointed hood
     pxTriangle(grid, 18, -6, 8, 7, "W");
     pxOutline(grid, "K");
-    // spiky fur collar - stops short of the body's right edge (x=25, not 29) to leave clear
+    // spiky fur collar - stops short of the body's right edge (x=20, not 29) to leave clear
     // room beside it for Necromancer Cat's ghost, instead of the two silhouettes touching
-    for (let x = 8; x <= 25; x += 3.2) pxTriangle(grid, x, 30, 25, 1.4, "W");
+    for (let x = 8; x <= 20; x += 3.2) pxTriangle(grid, x, 30, 25, 1.4, "W");
     pxOutline(grid, "K");
     pxLegs(grid, 0);
   }
@@ -6258,35 +6258,42 @@
   }
   // A bigger, clearly-separate floating ghost with its own round-eyed face - per the user's
   // explicit request that the ghosts were barely visible, too close to the cat, and faceless.
+  // The 3 bottom tail-wisps are small downward-pointing triangles hanging off the ghost's
+  // rounded bottom edge (apexY below baseY - a fixed-size tail, not scaled off cy directly,
+  // so it can't balloon into a shape taller than the grid itself like an earlier version did).
   function buildGhostOnto(grid, cx, cy, r) {
-    pxEllipse(grid, cx, cy, r, r * 1.15, "W");
-    pxTriangle(grid, cx - r * 0.7, cy + r * 0.55, r * 0.85, 1.2, "W");
-    pxTriangle(grid, cx, cy + r * 1.15, r * 0.85, 1.2, "W");
-    pxTriangle(grid, cx + r * 0.7, cy + r * 0.55, r * 0.85, 1.2, "W");
+    pxEllipse(grid, cx, cy, r, r, "W");
+    const bodyBottom = cy + r, tailTip = bodyBottom + r * 0.55, halfW = r * 0.3;
+    pxTriangle(grid, cx - r * 0.55, tailTip, bodyBottom, halfW, "W");
+    pxTriangle(grid, cx, tailTip + r * 0.15, bodyBottom, halfW, "W");
+    pxTriangle(grid, cx + r * 0.55, tailTip, bodyBottom, halfW, "W");
     pxOutline(grid, "K");
-    pxEllipse(grid, cx - r * 0.3, cy - r * 0.1, r * 0.16, r * 0.22, "K");
-    pxEllipse(grid, cx + r * 0.3, cy - r * 0.1, r * 0.16, r * 0.22, "K");
-    pxLine(grid, cx - r * 0.25, cy + r * 0.35, cx + r * 0.25, cy + r * 0.35, "K");
+    pxEllipse(grid, cx - r * 0.32, cy - r * 0.1, r * 0.17, r * 0.22, "K");
+    pxEllipse(grid, cx + r * 0.32, cy - r * 0.1, r * 0.17, r * 0.22, "K");
+    pxLine(grid, cx - r * 0.22, cy + r * 0.35, cx + r * 0.22, cy + r * 0.35, "K");
   }
   function buildNecromancerGrid() {
     const grid = makePxGrid();
     buildShamanBodyOnto(grid);
     buildShamanStaffOnto(grid);
     // bigger ghost, clearly separate from the cat with its own face - per the user's explicit
-    // request (the collar above stops at x=25 to leave this room)
-    buildGhostOnto(grid, 31, 33, 6);
+    // request (the collar above stops at x=20 to leave this room). r=4.5 at cx=28 keeps the
+    // whole shape (including the tail-wisps below) inside the 36x40 grid with no clipping.
+    buildGhostOnto(grid, 28, 30, 4.5);
     return grid;
   }
   // Solid-shadow cat silhouette (Necro-Dancer Cat's flanking ghosts) with small glowing white
   // eyes, distinguishing it from the round classic-ghost shape used for Necromancer Cat's.
-  function buildCatShadowGhostOnto(grid, cx, cy) {
-    pxEllipse(grid, cx, cy, 3.6, 4.4, "K");
-    pxTriangle(grid, cx - 2, cy + 2.8, 3.4, 1.2, "K");
-    pxTriangle(grid, cx, cy + 4.8, 3.4, 1.2, "K");
-    pxTriangle(grid, cx + 2, cy + 2.8, 3.4, 1.2, "K");
+  // Same fixed-size-tail approach as buildGhostOnto, for the same reason.
+  function buildCatShadowGhostOnto(grid, cx, cy, r) {
+    pxEllipse(grid, cx, cy, r, r, "K");
+    const bodyBottom = cy + r, tailTip = bodyBottom + r * 0.5, halfW = r * 0.3;
+    pxTriangle(grid, cx - r * 0.55, tailTip, bodyBottom, halfW, "K");
+    pxTriangle(grid, cx, tailTip + r * 0.15, bodyBottom, halfW, "K");
+    pxTriangle(grid, cx + r * 0.55, tailTip, bodyBottom, halfW, "K");
     pxOutline(grid, "K");
-    pxEllipse(grid, cx - 1.1, cy - 0.6, 0.7, 0.9, "W");
-    pxEllipse(grid, cx + 1.1, cy - 0.6, 0.7, 0.9, "W");
+    pxEllipse(grid, cx - r * 0.3, cy - r * 0.15, r * 0.2, r * 0.25, "W");
+    pxEllipse(grid, cx + r * 0.3, cy - r * 0.15, r * 0.2, r * 0.25, "W");
   }
   function buildNecroDancerGrid() {
     const grid = makePxGrid();
@@ -6303,14 +6310,15 @@
     pxTaper(grid, 26, 6, 2, 31, -2, 1, "W");
     pxOutline(grid, "K");
     // left ghost holding a staff, right ghost banging the drum - both at ground level beside
-    // the drum, per the user's explicit request to include them, made bigger and clearly
-    // separate per their follow-up feedback
-    buildCatShadowGhostOnto(grid, 5, 35);
-    pxLine(grid, 5, 24, 5, 30.5, "S");
-    pxEllipse(grid, 5, 22, 1.8, 1.8, "W");
+    // the drum, per the user's explicit request to include them. r=3.5 at cx=4/31 keeps both
+    // (including their tail-wisps) fully inside the grid with no clipping - the main body
+    // above has no content below y=26, so there's nothing to collide with at this height.
+    buildCatShadowGhostOnto(grid, 4, 31, 3.5);
+    pxLine(grid, 4, 21, 4, 27.5, "S");
+    pxEllipse(grid, 4, 19, 1.6, 1.6, "W");
     pxOutline(grid, "K");
-    buildCatShadowGhostOnto(grid, 31, 35);
-    pxLine(grid, 27, 32, 31, 30, "S");
+    buildCatShadowGhostOnto(grid, 31, 31, 3.5);
+    pxLine(grid, 27, 29, 31, 27, "S");
     pxOutline(grid, "K");
     return grid;
   }
