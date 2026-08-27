@@ -269,6 +269,12 @@
     padding: 8px 16px; font-weight: 700; font-size: 12px; cursor: pointer;
   }
   .title-testmode-btn.active { background: #2f9d55; }
+  .title-games-link {
+    position: absolute; top: 16px; left: 16px; z-index: 5;
+    background: rgba(0,0,0,.35); color: #fff; text-decoration: none;
+    border: 2px solid rgba(255,255,255,.4); border-radius: 8px;
+    padding: 8px 16px; font-weight: 700; font-size: 12px;
+  }
   .title-logo { display: flex; align-items: center; justify-content: center; gap: 4px; position: relative; z-index: 2; }
   .title-paw {
     width: 52px; height: 52px; position: relative;
@@ -870,6 +876,7 @@
 </style>
 
 <div id="titleScreen" class="title-bg">
+  <a class="title-games-link" href="https://claude.ai/code/artifact/4a154741-a4dd-492f-a1f2-6a148ab75f78" target="_blank" rel="noopener">🏓 Party Minigames</a>
   <button class="title-testmode-btn" id="testModeBtn">TEST MODE: OFF</button>
   <div class="title-logo">
     <div class="title-paw">
