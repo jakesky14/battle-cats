@@ -1441,6 +1441,14 @@
     // other Rare Cat's - Rodeo Cat. slow: 30% chance vs Dark, 2s on the first two forms, extended
     // to 4s on Rodeo Cat (see the override in THIRD_EVOLUTIONS.gunslinger).
     { id:"gunslinger", name:"Cat Gunslinger", emoji:"🐱", cost:645, hp:310, dmg:80, range:290*RANGE_SCALE, cycle:2.70, fore:0.13, tgt:"single", speed:9*SPEED_SCALE, cd:6.53, kb:3, trait:"Traitless", strongAgainst:[], slow:{ trait:"Dark", chance:0.3, duration:2 }, rarity:"rare", color:"#f4f4f4", sprite:"gunslingerCat" },
+    // Seventeenth Rare Cat. Evolves into Totem Cat, then - True Form, needs Catfruit like every
+    // other Rare Cat's - Acrobat Cats. knockbackAgainst (not strongAgainst): 30% chance vs Angel
+    // on the first two forms, bumped to 50% on Acrobat Cats (see THIRD_EVOLUTIONS.stilts).
+    { id:"stilts", name:"Stilts Cat", emoji:"🐱", cost:570, hp:335, dmg:46, range:310*RANGE_SCALE, cycle:2.53, fore:0.57, tgt:"single", speed:6*SPEED_SCALE, cd:8.53, kb:3, trait:"Traitless", strongAgainst:[], knockbackAgainst:["Angel"], knockbackProc:{ chance:0.3 }, rarity:"rare", color:"#f4f4f4", sprite:"stiltsCat" },
+    // Eighteenth Rare Cat. Evolves into Plane Cat, then - True Form, needs Catfruit like every
+    // other Rare Cat's - Robocat. knockbackAgainst vs Dark, a steady 50% chance across all 3
+    // forms (unlike Stilts Cat's family, this one doesn't ramp up on the True Form).
+    { id:"tin", name:"Tin Cat", emoji:"🐱", cost:510, hp:605, dmg:77, range:295*RANGE_SCALE, cycle:2.53, fore:0.83, tgt:"single", speed:8*SPEED_SCALE, cd:6.53, kb:3, trait:"Traitless", strongAgainst:[], knockbackAgainst:["Dark"], knockbackProc:{ chance:0.5 }, rarity:"rare", color:"#f4f4f4", sprite:"tinCat" },
   ];
 
   // Enemy roster.
@@ -1508,6 +1516,8 @@
     archer: { name: "Cupid Cat", emoji: "🐱", hpMult: 240 / 180, sprite: "cupidCat" },
     swordsman: { name: "Sword Master Cat", emoji: "🐱", hpMult: 650 / 550, dmgMult: 110 / 100, sprite: "swordMasterCat" },
     gunslinger: { name: "Cat Eastwood", emoji: "🐱", hpMult: 360 / 310, dmgMult: 93 / 80, sprite: "catEastwood" },
+    stilts: { name: "Totem Cat", emoji: "🐱", hpMult: 398 / 335, dmgMult: 66 / 46, sprite: "totemCat" },
+    tin: { name: "Plane Cat", emoji: "🐱", hpMult: 750 / 605, dmgMult: 107 / 77, speed: 15 * SPEED_SCALE, sprite: "planeCat" },
   };
 
   // Special Cats don't get a True Form here at all. Flower Cat's real unlock condition for one is
@@ -1567,6 +1577,10 @@
                  sprite: "elementalDuelistCat" },
     gunslinger: { name: "Rodeo Cat", emoji: "🐱", hp: 460, dmg: 106, range: 320 * RANGE_SCALE,
                   cycle: 2.77, slow: { trait: "Dark", chance: 0.3, duration: 4 }, sprite: "rodeoCat" },
+    stilts: { name: "Acrobat Cats", emoji: "🐱", hp: 796, dmg: 132,
+              knockbackProc: { chance: 0.5 }, sprite: "acrobatCats" },
+    tin: { name: "Robocat", emoji: "🐱", hp: 895, dmg: 137, range: 345 * RANGE_SCALE,
+           speed: 10 * SPEED_SCALE, sprite: "robocat" },
   };
   // Not implemented (needs mechanics this game doesn't have yet): The Flying Cat's Angel-Weaken
   // proc - no Angel trait or weaken status exists in this game.
@@ -1815,6 +1829,16 @@
              21:15000,22:24000,23:36600,24:53400,25:74400,26:99600,27:129000,28:162600,29:200400,30:242400,
              31:17500,32:28000,33:42700,34:62300,35:86800,36:116200,37:150500,38:189700,39:233800,40:282800,
              41:20000,42:32000,43:48800,44:71200,45:99200,46:132800,47:172000,48:216800,49:267200,50:323200},
+    stilts: {2:8000,3:12200,4:17800,5:24800,6:33200,7:43000,8:54200,9:66800,10:80800,
+             11:10000,12:16000,13:24400,14:35600,15:49600,16:66400,17:86000,18:108400,19:133600,20:161600,
+             21:15000,22:24000,23:36600,24:53400,25:74400,26:99600,27:129000,28:162600,29:200400,30:242400,
+             31:17500,32:28000,33:42700,34:62300,35:86800,36:116200,37:150500,38:189700,39:233800,40:282800,
+             41:20000,42:32000,43:48800,44:71200,45:99200,46:132800,47:172000,48:216800,49:267200,50:323200},
+    tin: {2:8000,3:12200,4:17800,5:24800,6:33200,7:43000,8:54200,9:66800,10:80800,
+             11:10000,12:16000,13:24400,14:35600,15:49600,16:66400,17:86000,18:108400,19:133600,20:161600,
+             21:15000,22:24000,23:36600,24:53400,25:74400,26:99600,27:129000,28:162600,29:200400,30:242400,
+             31:17500,32:28000,33:42700,34:62300,35:86800,36:116200,37:150500,38:189700,39:233800,40:282800,
+             41:20000,42:32000,43:48800,44:71200,45:99200,46:132800,47:172000,48:216800,49:267200,50:323200},
   };
   // Secret Special Cats only show up in cat-selection lists (Upgrade, Equip) once found via
   // their own unlock condition - everything else in CATS has always just been freely available.
@@ -1991,6 +2015,16 @@
       "Nameless legend of the Western frontier. Today, he's out bringing bandits to justice. May Slow Dark enemies.",
       "A wandering gunman of legend, wielding his pistol for justice! Italian is his first language. May Slow Dark enemies.",
       "Retired from the desperado life and now in training to win the big bullriding competition. May Slow Dark enemies.",
+    ],
+    stilts: [
+      "A cat so ambitious that he built wooden stilts to better reach for the stars. Knocks back Angels every once in a while.",
+      "Couldn't cut it by himself, so he gathered some pals to work together. Naturally, he's on top. Knocks back Angels every once in a while.",
+      "Hopefully this pair's choice of cheap Swedish furniture won't bring their dreams crashing to the ground. Sometimes knocks Angels back.",
+    ],
+    tin: [
+      "Cutting-edge firepower masked by the soulful nostalgia of yesteryear. May Knockback Dark enemies.",
+      "Dreaming of the skies, he allowed the Cat Army engineers to install top-class tech in his body. May Knockback Dark enemies.",
+      "Captured by an evil organization and remade to be an unstoppable, merciless android who may Knockback Dark. (So cute, though!)",
     ],
   };
   function catDescriptionAt(c, tier) {
@@ -6686,6 +6720,135 @@
     return grid;
   }
 
+  // Stilts Cat: standard cat body perched atop two tall bamboo poles, with the hands drawn
+  // last so they read as gripping in front of the poles rather than behind the body.
+  function buildStiltsGrid() {
+    const grid = makePxGrid();
+    pxThickLine(grid, 13, 20, 13, 39, 2.2, "O");
+    pxThickLine(grid, 23, 20, 23, 39, 2.2, "O");
+    pxOutline(grid, "K");
+    for (let y = 25; y <= 35; y += 5) {
+      pxRect(grid, 12, y, 14, y + 1, "K");
+      pxRect(grid, 22, y, 24, y + 1, "K");
+    }
+    pxOctagonBody(grid, 8.5, 28.5, 5, 22, 6.3, 5, "W");
+    pxOutline(grid, "K");
+    pxFace(grid, 0);
+    pxEllipse(grid, 13, 21, 2.6, 2, "W");
+    pxEllipse(grid, 23, 21, 2.6, 2, "W");
+    pxOutline(grid, "K");
+    return grid;
+  }
+  // Totem Cat: 5 stacked cat-head blocks (alternating shade), the top one with small wings
+  // and a blush - "he's on top" per the description.
+  function buildTotemGrid() {
+    const grid = makePxGrid();
+    const top = 2, bottom = 38, blocks = 5;
+    const blockH = (bottom - top) / blocks;
+    for (let i = 0; i < blocks; i++) {
+      const yT = top + i * blockH + 0.4;
+      const yB = top + (i + 1) * blockH - 0.4;
+      pxOctagonBody(grid, 10, 26, yT, yB, 5, 1.6, i % 2 === 0 ? "G" : "W");
+    }
+    pxOutline(grid, "K");
+    for (let i = 0; i < blocks; i++) {
+      const cy = top + i * blockH + blockH / 2;
+      pxRect(grid, 13, cy - 1, 15, cy + 1, "K");
+      pxRect(grid, 21, cy - 1, 23, cy + 1, "K");
+    }
+    const wingY = top + blockH / 2;
+    pxTriangle(grid, 10, wingY - 3, wingY + 3, 6, "W");
+    pxTriangle(grid, 26, wingY - 3, wingY + 3, 6, "W");
+    pxOutline(grid, "K");
+    pxRect(grid, 12, wingY + 1, 14, wingY + 2, "M");
+    pxRect(grid, 22, wingY + 1, 24, wingY + 2, "M");
+    return grid;
+  }
+  // Acrobat Cats: a cat balancing a precarious tilted stack of chairs, with a second, smaller
+  // cat perched on top. Custom (non-pxFace) faces throughout, since neither cat sits at the
+  // standard body position pxFace's hardcoded coordinates assume.
+  function buildAcrobatGrid() {
+    const grid = makePxGrid();
+    pxOctagonBody(grid, 9, 27, 27, 39, 6, 4, "W");
+    pxOutline(grid, "K");
+    pxRect(grid, 13, 31, 15, 33, "K");
+    pxRect(grid, 21, 31, 23, 33, "K");
+    pxLine(grid, 15, 35, 18, 37, "K");
+    pxLine(grid, 18, 37, 21, 35, "K");
+    pxThickLine(grid, 9, 30, 3, 26, 1.6, "W");
+    pxThickLine(grid, 27, 30, 33, 26, 1.6, "W");
+    pxOutline(grid, "K");
+    const chairColors = ["S", "G", "S"];
+    for (let i = 0; i < 3; i++) {
+      const cy = 22 - i * 6;
+      const tilt = i % 2 === 0 ? 1 : -1;
+      pxRect(grid, 12 + tilt, cy - 2, 24 + tilt, cy, chairColors[i]);
+      pxOutline(grid, "K");
+      pxLine(grid, 12 + tilt, cy, 11 + tilt, cy + 4, "K");
+      pxLine(grid, 24 + tilt, cy, 25 + tilt, cy + 4, "K");
+    }
+    pxEllipse(grid, 18, 3, 6, 5, "W");
+    pxOutline(grid, "K");
+    pxRect(grid, 16, 2, 17, 3, "K");
+    pxRect(grid, 19, 2, 20, 3, "K");
+    return grid;
+  }
+
+  // Tin Cat: plain round cat body on a tank-tread base, with a long cannon barrel to the side.
+  function buildTinCatGrid() {
+    const grid = makePxGrid();
+    pxOctagonBody(grid, 8.5, 28.5, 8, 27.3, 6.3, 5, "W");
+    pxOutline(grid, "K");
+    pxFace(grid, 0);
+    pxRect(grid, 8, 30, 29, 34, "G");
+    pxOutline(grid, "K");
+    pxEllipse(grid, 11, 34, 3, 3, "K");
+    pxEllipse(grid, 26, 34, 3, 3, "K");
+    pxOutline(grid, "K");
+    pxRect(grid, 27, 17, 34, 20, "S");
+    pxOutline(grid, "K");
+    return grid;
+  }
+  // Plane Cat: cat riding a small fighter-plane body (mount replaces legs, same approach as
+  // Captain Cat's cannon / Dread Pirate Catley's ship hull).
+  function buildPlaneOnto(grid) {
+    pxTaper(grid, 30, 24, 5, 4, 30, 9, "G");
+    pxOutline(grid, "K");
+    pxRect(grid, 30, 25, 35, 27, "K");
+    pxOutline(grid, "K");
+    pxRect(grid, 8, 29, 26, 32, "S");
+    pxOutline(grid, "K");
+    pxEllipse(grid, 12, 35, 2.4, 2.4, "K");
+    pxEllipse(grid, 22, 35, 2.4, 2.4, "K");
+    pxOutline(grid, "K");
+  }
+  function buildPlaneCatGrid() {
+    const grid = makePxGrid();
+    buildPlaneOnto(grid);
+    pxOctagonBody(grid, 8.5, 26.5, 5, 24, 6.3, 5, "W");
+    pxOutline(grid, "K");
+    pxFace(grid, 0);
+    return grid;
+  }
+  // Robocat: boxy robot torso/legs with a gauge on the chest and a cannon arm, cat head on top.
+  function buildRobocatGrid() {
+    const grid = makePxGrid();
+    pxRect(grid, 10, 24, 26, 34, "S");
+    pxOutline(grid, "K");
+    pxRect(grid, 13, 26, 23, 30, "K");
+    pxRect(grid, 15, 27, 21, 29, "G");
+    pxOutline(grid, "K");
+    pxRect(grid, 11, 34, 15, 39, "G");
+    pxRect(grid, 21, 34, 25, 39, "G");
+    pxOutline(grid, "K");
+    pxThickLine(grid, 27, 22, 35, 16, 3, "K");
+    pxOutline(grid, "K");
+    pxOctagonBody(grid, 10, 26, 4, 20, 6, 4, "W");
+    pxOutline(grid, "K");
+    pxFace(grid, -2);
+    return grid;
+  }
+
   // heightScale: per-sprite vertical stretch, anchored at the ground, so different units can
   // be taller/shorter than the base Cat without redesigning their whole coordinate grid - the
   // "scaling tool" for keeping cats' relative sizes right when reference art has no scale bar.
@@ -6786,6 +6949,12 @@
     gunslingerCat: { grid: buildGunslingerGrid() },
     catEastwood: { grid: buildEastwoodGrid() },
     rodeoCat: { grid: buildRodeoGrid(), scale: 1.3 },
+    stiltsCat: { grid: buildStiltsGrid() },
+    totemCat: { grid: buildTotemGrid(), heightScale: 1.1 },
+    acrobatCats: { grid: buildAcrobatGrid() },
+    tinCat: { grid: buildTinCatGrid() },
+    planeCat: { grid: buildPlaneCatGrid() },
+    robocat: { grid: buildRobocatGrid() },
   };
 
   // Renders a pixel-sprite grid onto a small standalone <canvas> icon (its own context, not
@@ -6831,7 +7000,7 @@
   // rose, armor) are the point - unlike Titan/Luchador's tall-humanoid case above, cropping
   // these to just the head/face would hide exactly what makes each form distinct, so they're
   // exempted from the auto height-crop below despite naturally being tall.
-  const FULL_BODY_CROP = new Set(["salonCat", "parisCat", "cyborgCat", "dreadPirateCatley", "sanzoCat", "catEastwood", "rodeoCat"]);
+  const FULL_BODY_CROP = new Set(["salonCat", "parisCat", "cyborgCat", "dreadPirateCatley", "sanzoCat", "catEastwood", "rodeoCat", "stiltsCat", "totemCat", "acrobatCats", "planeCat", "robocat"]);
   // Like renderSpriteIcon, but crops to the sprite's actual silhouette (no dead space around a
   // small unit) and, for sprites much taller than wide (Titan/Luchador-style humanoids, the
   // boxy vending machines) or forced above, crops further to just the head/upper-body - or, for
