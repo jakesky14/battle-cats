@@ -1437,6 +1437,10 @@
     // Fifteenth Rare Cat. Evolves into Sword Master Cat, then - True Form, needs Catfruit like
     // every other Rare Cat's - Elemental Duelist Cat. massiveAgainst: a flat 3x dealt to Red.
     { id:"swordsman", name:"Swordsman Cat", emoji:"🐱", cost:630, hp:550, dmg:100, range:155*RANGE_SCALE, cycle:1.10, fore:0.27, tgt:"single", speed:11*SPEED_SCALE, cd:4.53, kb:3, trait:"Traitless", strongAgainst:[], massiveAgainst:["Red"], rarity:"rare", color:"#f4f4f4", sprite:"swordsmanCat" },
+    // Sixteenth Rare Cat. Evolves into Cat Eastwood, then - True Form, needs Catfruit like every
+    // other Rare Cat's - Rodeo Cat. slow: 30% chance vs Dark, 2s on the first two forms, extended
+    // to 4s on Rodeo Cat (see the override in THIRD_EVOLUTIONS.gunslinger).
+    { id:"gunslinger", name:"Cat Gunslinger", emoji:"🐱", cost:645, hp:310, dmg:80, range:290*RANGE_SCALE, cycle:2.70, fore:0.13, tgt:"single", speed:9*SPEED_SCALE, cd:6.53, kb:3, trait:"Traitless", strongAgainst:[], slow:{ trait:"Dark", chance:0.3, duration:2 }, rarity:"rare", color:"#f4f4f4", sprite:"gunslingerCat" },
   ];
 
   // Enemy roster.
@@ -1503,6 +1507,7 @@
     witch: { name: "Sorceress Cat", emoji: "🐱", hpMult: 440 / 380, dmgMult: 47 / 37, sprite: "sorceressCat" },
     archer: { name: "Cupid Cat", emoji: "🐱", hpMult: 240 / 180, sprite: "cupidCat" },
     swordsman: { name: "Sword Master Cat", emoji: "🐱", hpMult: 650 / 550, dmgMult: 110 / 100, sprite: "swordMasterCat" },
+    gunslinger: { name: "Cat Eastwood", emoji: "🐱", hpMult: 360 / 310, dmgMult: 93 / 80, sprite: "catEastwood" },
   };
 
   // Special Cats don't get a True Form here at all. Flower Cat's real unlock condition for one is
@@ -1560,6 +1565,8 @@
               speed: 16 * SPEED_SCALE, sprite: "cataur" },
     swordsman: { name: "Elemental Duelist Cat", emoji: "🐱", hp: 1200, dmg: 240, cd: 3.20,
                  sprite: "elementalDuelistCat" },
+    gunslinger: { name: "Rodeo Cat", emoji: "🐱", hp: 460, dmg: 106, range: 320 * RANGE_SCALE,
+                  cycle: 2.77, slow: { trait: "Dark", chance: 0.3, duration: 4 }, sprite: "rodeoCat" },
   };
   // Not implemented (needs mechanics this game doesn't have yet): The Flying Cat's Angel-Weaken
   // proc - no Angel trait or weaken status exists in this game.
@@ -1593,6 +1600,8 @@
         emoji: evo3.emoji,
         hp: evo3.hp,
         dmg: evo3.dmg,
+        cycle: evo3.cycle !== undefined ? evo3.cycle : form.cycle,
+        fore: evo3.fore !== undefined ? evo3.fore : form.fore,
         cd: evo3.cd !== undefined ? evo3.cd : form.cd,
         cost: evo3.cost !== undefined ? evo3.cost : form.cost,
         range: evo3.range !== undefined ? evo3.range : form.range,
@@ -1801,6 +1810,11 @@
              21:15000,22:24000,23:36600,24:53400,25:74400,26:99600,27:129000,28:162600,29:200400,30:242400,
              31:17500,32:28000,33:42700,34:62300,35:86800,36:116200,37:150500,38:189700,39:233800,40:282800,
              41:20000,42:32000,43:48800,44:71200,45:99200,46:132800,47:172000,48:216800,49:267200,50:323200},
+    gunslinger: {2:8000,3:12200,4:17800,5:24800,6:33200,7:43000,8:54200,9:66800,10:80800,
+             11:10000,12:16000,13:24400,14:35600,15:49600,16:66400,17:86000,18:108400,19:133600,20:161600,
+             21:15000,22:24000,23:36600,24:53400,25:74400,26:99600,27:129000,28:162600,29:200400,30:242400,
+             31:17500,32:28000,33:42700,34:62300,35:86800,36:116200,37:150500,38:189700,39:233800,40:282800,
+             41:20000,42:32000,43:48800,44:71200,45:99200,46:132800,47:172000,48:216800,49:267200,50:323200},
   };
   // Secret Special Cats only show up in cat-selection lists (Upgrade, Equip) once found via
   // their own unlock condition - everything else in CATS has always just been freely available.
@@ -1972,6 +1986,11 @@
       "Trained in a certain game to become a magic swordsman. Very effective Battle Cat. Fire sword does massive damage to Red enemies.",
       "Mastered the art of dual wielding. Also can use magic. Scary combination. Flame swords do massive damage to Red enemies.",
       "So in tune with his blades that he can now command the forces of nature themselves. Flames do massive damage to Red enemies.",
+    ],
+    gunslinger: [
+      "Nameless legend of the Western frontier. Today, he's out bringing bandits to justice. May Slow Dark enemies.",
+      "A wandering gunman of legend, wielding his pistol for justice! Italian is his first language. May Slow Dark enemies.",
+      "Retired from the desperado life and now in training to win the big bullriding competition. May Slow Dark enemies.",
     ],
   };
   function catDescriptionAt(c, tier) {
@@ -6568,6 +6587,105 @@
     return grid;
   }
 
+  // Wide-brim cowboy hat with a sheriff-star badge, plus a bandana that covers the lower face
+  // and trails off to the side - shared across all 3 Gunslinger forms.
+  function buildCowboyHatOnto(grid) {
+    pxEllipse(grid, 18, 3, 15, 4, "G");
+    pxEllipse(grid, 17, -4, 9, 6, "G");
+    pxOutline(grid, "K");
+    pxRect(grid, 15, 1, 18, 3, "Y");
+    pxOutline(grid, "K");
+  }
+  function buildBandanaOnto(grid) {
+    // starts a couple rows below the eyes (13-15) so the face doesn't merge into one black
+    // blob - just a mask over the nose/mouth, with a small tail flowing off to the side.
+    pxTriangleV(grid, 18, 23, 17, 5, "K");
+    pxOutline(grid, "K");
+    pxTaper(grid, 23, 19, 3, 30, 12, 1, "K");
+    pxOutline(grid, "K");
+  }
+  function buildHolsterGunOnto(grid) {
+    pxThickLine(grid, 5, 21, 5, 28, 2, "K");
+    pxRect(grid, 2, 25, 9, 28, "S");
+    pxOutline(grid, "K");
+  }
+  function buildGunslingerGrid() {
+    const grid = makePxGrid();
+    pxOctagonBody(grid, 8.5, 28.5, 8, 27.3, 6.3, 5, "W");
+    pxOutline(grid, "K");
+    pxFace(grid, 0);
+    pxLegs(grid, 0);
+    buildCowboyHatOnto(grid);
+    buildBandanaOnto(grid);
+    buildHolsterGunOnto(grid);
+    return grid;
+  }
+  // Rocking horse: rockers + posts + a simple horse head/body, with the cat's legs replaced by
+  // sitting on top - same "mount replaces legs" approach as Captain Cat's cannon.
+  function buildRockingHorseOnto(grid) {
+    // "S" (cream/silver) throughout so the horse reads as a distinct toy, not the same
+    // white as the cat's own fur sitting on top of it.
+    pxEllipse(grid, 18, 38, 15, 2, "O");
+    pxOutline(grid, "K");
+    pxThickLine(grid, 11, 31, 11, 37, 2, "O");
+    pxThickLine(grid, 25, 31, 25, 37, 2, "O");
+    pxOutline(grid, "K");
+    pxEllipse(grid, 18, 30, 13, 6, "S");
+    pxOutline(grid, "K");
+    pxTaper(grid, 10, 27, 6, 2, 33, 5, "S");
+    pxOutline(grid, "K");
+    pxEllipse(grid, 1, 32, 4, 4, "S");
+    pxOutline(grid, "K");
+    pxTriangle(grid, 2, 24, 29, 1.6, "S");
+    pxOutline(grid, "K");
+    pxRect(grid, 0, 31, 1, 32, "K");
+  }
+  function buildEastwoodGrid() {
+    const grid = makePxGrid();
+    buildRockingHorseOnto(grid);
+    pxOctagonBody(grid, 8.5, 28.5, 5, 24, 6.3, 5, "W");
+    pxOutline(grid, "K");
+    pxFace(grid, 0);
+    buildCowboyHatOnto(grid);
+    buildBandanaOnto(grid);
+    buildHolsterGunOnto(grid);
+    return grid;
+  }
+  // Robotic rodeo bull: gray body/head with dark horns, a star saddle blanket, and wheeled
+  // robotic legs - noticeably bigger than the base Cat, given a scale bump in PIXEL_SPRITES.
+  function buildRoboBullOnto(grid) {
+    pxEllipse(grid, 18, 28, 12, 7, "S");
+    pxOutline(grid, "K");
+    pxEllipse(grid, 6, 26, 6, 5, "S");
+    pxOutline(grid, "K");
+    pxTaper(grid, 4, 22, 2.2, 0, 15, 0.8, "K");
+    pxTaper(grid, 9, 22, 2.2, 13, 15, 0.8, "K");
+    pxOutline(grid, "K");
+    pxEllipse(grid, 1, 28, 1.6, 1.6, "K");
+    pxOutline(grid, "K");
+    pxRect(grid, 11, 22, 25, 26, "R");
+    pxOutline(grid, "K");
+    pxRect(grid, 16, 23, 19, 25, "Y");
+    pxOutline(grid, "K");
+    pxRect(grid, 7, 33, 11, 37, "G");
+    pxRect(grid, 23, 33, 27, 37, "G");
+    pxOutline(grid, "K");
+    pxEllipse(grid, 9, 38, 3, 3, "K");
+    pxEllipse(grid, 25, 38, 3, 3, "K");
+    pxOutline(grid, "K");
+  }
+  function buildRodeoGrid() {
+    const grid = makePxGrid();
+    buildRoboBullOnto(grid);
+    pxOctagonBody(grid, 8.5, 28.5, 3, 22, 6.3, 5, "W");
+    pxOutline(grid, "K");
+    pxFace(grid, 0);
+    buildCowboyHatOnto(grid);
+    buildBandanaOnto(grid);
+    buildHolsterGunOnto(grid);
+    return grid;
+  }
+
   // heightScale: per-sprite vertical stretch, anchored at the ground, so different units can
   // be taller/shorter than the base Cat without redesigning their whole coordinate grid - the
   // "scaling tool" for keeping cats' relative sizes right when reference art has no scale bar.
@@ -6665,6 +6783,9 @@
     swordsmanCat: { grid: buildSwordsmanGrid() },
     swordMasterCat: { grid: buildSwordMasterGrid() },
     elementalDuelistCat: { grid: buildElementalDuelistGrid() },
+    gunslingerCat: { grid: buildGunslingerGrid() },
+    catEastwood: { grid: buildEastwoodGrid() },
+    rodeoCat: { grid: buildRodeoGrid(), scale: 1.3 },
   };
 
   // Renders a pixel-sprite grid onto a small standalone <canvas> icon (its own context, not
@@ -6710,7 +6831,7 @@
   // rose, armor) are the point - unlike Titan/Luchador's tall-humanoid case above, cropping
   // these to just the head/face would hide exactly what makes each form distinct, so they're
   // exempted from the auto height-crop below despite naturally being tall.
-  const FULL_BODY_CROP = new Set(["salonCat", "parisCat", "cyborgCat", "dreadPirateCatley", "sanzoCat"]);
+  const FULL_BODY_CROP = new Set(["salonCat", "parisCat", "cyborgCat", "dreadPirateCatley", "sanzoCat", "catEastwood", "rodeoCat"]);
   // Like renderSpriteIcon, but crops to the sprite's actual silhouette (no dead space around a
   // small unit) and, for sprites much taller than wide (Titan/Luchador-style humanoids, the
   // boxy vending machines) or forced above, crops further to just the head/upper-body - or, for
