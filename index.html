@@ -1449,6 +1449,11 @@
     // other Rare Cat's - Robocat. knockbackAgainst vs Dark, a steady 50% chance across all 3
     // forms (unlike Stilts Cat's family, this one doesn't ramp up on the True Form).
     { id:"tin", name:"Tin Cat", emoji:"🐱", cost:510, hp:605, dmg:77, range:295*RANGE_SCALE, cycle:2.53, fore:0.83, tgt:"single", speed:8*SPEED_SCALE, cd:6.53, kb:3, trait:"Traitless", strongAgainst:[], knockbackAgainst:["Dark"], knockbackProc:{ chance:0.5 }, rarity:"rare", color:"#f4f4f4", sprite:"tinCat" },
+    // Nineteenth Rare Cat. Evolves into Artist Cat, then - True Form, needs Catfruit like every
+    // other Rare Cat's - Ramen Cat. resistantAgainst (new field, purely defensive - see
+    // damageAmount): only takes 1/4 damage from Angel, no bonus damage dealt to them, unlike
+    // Strong Against which is both. Same resistance the whole way through all 3 forms.
+    { id:"rocker", name:"Rocker Cat", emoji:"🐱", cost:315, hp:450, dmg:32, range:120*RANGE_SCALE, cycle:10/30, fore:5/30, tgt:"single", speed:8*SPEED_SCALE, cd:3.87, kb:1, trait:"Traitless", strongAgainst:[], resistantAgainst:["Angel"], rarity:"rare", color:"#f4f4f4", sprite:"rockerCat" },
   ];
 
   // Enemy roster.
@@ -1518,6 +1523,7 @@
     gunslinger: { name: "Cat Eastwood", emoji: "🐱", hpMult: 360 / 310, dmgMult: 93 / 80, sprite: "catEastwood" },
     stilts: { name: "Totem Cat", emoji: "🐱", hpMult: 398 / 335, dmgMult: 66 / 46, sprite: "totemCat" },
     tin: { name: "Plane Cat", emoji: "🐱", hpMult: 750 / 605, dmgMult: 107 / 77, speed: 15 * SPEED_SCALE, sprite: "planeCat" },
+    rocker: { name: "Artist Cat", emoji: "🐱", hpMult: 750 / 450, dmgMult: 54 / 32, sprite: "artistCat" },
   };
 
   // Special Cats don't get a True Form here at all. Flower Cat's real unlock condition for one is
@@ -1581,6 +1587,7 @@
               knockbackProc: { chance: 0.5 }, sprite: "acrobatCats" },
     tin: { name: "Robocat", emoji: "🐱", hp: 895, dmg: 137, range: 345 * RANGE_SCALE,
            speed: 10 * SPEED_SCALE, sprite: "robocat" },
+    rocker: { name: "Ramen Cat", emoji: "🐱", hp: 1050, dmg: 60, sprite: "ramenCat" },
   };
   // Not implemented (needs mechanics this game doesn't have yet): The Flying Cat's Angel-Weaken
   // proc - no Angel trait or weaken status exists in this game.
@@ -1623,6 +1630,7 @@
         tgt: evo3.tgt !== undefined ? evo3.tgt : form.tgt,
         speed: evo3.speed !== undefined ? evo3.speed : form.speed,
         strongAgainst: evo3.strongAgainst !== undefined ? evo3.strongAgainst : form.strongAgainst,
+        resistantAgainst: evo3.resistantAgainst !== undefined ? evo3.resistantAgainst : form.resistantAgainst,
         survive: evo3.survive !== undefined ? evo3.survive : form.survive,
         freeze: evo3.freeze !== undefined ? evo3.freeze : form.freeze,
         slow: evo3.slow !== undefined ? evo3.slow : form.slow,
@@ -1839,6 +1847,11 @@
              21:15000,22:24000,23:36600,24:53400,25:74400,26:99600,27:129000,28:162600,29:200400,30:242400,
              31:17500,32:28000,33:42700,34:62300,35:86800,36:116200,37:150500,38:189700,39:233800,40:282800,
              41:20000,42:32000,43:48800,44:71200,45:99200,46:132800,47:172000,48:216800,49:267200,50:323200},
+    rocker: {2:8000,3:12200,4:17800,5:24800,6:33200,7:43000,8:54200,9:66800,10:80800,
+             11:10000,12:16000,13:24400,14:35600,15:49600,16:66400,17:86000,18:108400,19:133600,20:161600,
+             21:15000,22:24000,23:36600,24:53400,25:74400,26:99600,27:129000,28:162600,29:200400,30:242400,
+             31:17500,32:28000,33:42700,34:62300,35:86800,36:116200,37:150500,38:189700,39:233800,40:282800,
+             41:20000,42:32000,43:48800,44:71200,45:99200,46:132800,47:172000,48:216800,49:267200,50:323200},
   };
   // Secret Special Cats only show up in cat-selection lists (Upgrade, Equip) once found via
   // their own unlock condition - everything else in CATS has always just been freely available.
@@ -2025,6 +2038,11 @@
       "Cutting-edge firepower masked by the soulful nostalgia of yesteryear. May Knockback Dark enemies.",
       "Dreaming of the skies, he allowed the Cat Army engineers to install top-class tech in his body. May Knockback Dark enemies.",
       "Captured by an evil organization and remade to be an unstoppable, merciless android who may Knockback Dark. (So cute, though!)",
+    ],
+    rocker: [
+      "A peanut farmer's son, became a rocker to avoid coming out about his nut allergies to his family. Resistant to Angelic attacks.",
+      "After album number 2 flopped, tried to get into fine art. Can only draw peanuts, so didn't sell. Resistant to Angelic attacks.",
+      "Noodles might seem like a simple dish, but they need an artist's touch to master. Flashy prep style also boosts defense vs Angels.",
     ],
   };
   function catDescriptionAt(c, tier) {
@@ -3976,14 +3994,19 @@
     // "Massive Damage" (def.massiveAgainst) is a separate, stronger ability - a flat 3x dealt,
     // with no matching damage-taken discount - and stacks multiplicatively with Strong Against
     // if a unit somehow has both against the same trait.
+    // "Resistant" (def.resistantAgainst) is purely defensive, unlike Strong Against - only 1/4
+    // damage taken from that trait, with no matching attack-damage bonus (Rocker Cat's family:
+    // Resistant to Angel, no bonus damage dealt to them).
     let dmg = attacker.def.dmg;
     const atkStrong = attacker.def.strongAgainst || [];
     const atkMassive = attacker.def.massiveAgainst || [];
     const defStrong = (defender.def && defender.def.strongAgainst) || [];
+    const defResistant = (defender.def && defender.def.resistantAgainst) || [];
     const defTrait = defender.def ? defender.def.trait : null;
     if (defTrait && atkStrong.includes(defTrait)) dmg *= 1.5;
     if (defTrait && atkMassive.includes(defTrait)) dmg *= 3;
     if (defStrong.includes(attacker.def.trait)) dmg *= 0.5;
+    if (defResistant.includes(attacker.def.trait)) dmg *= 0.25;
     return dmg;
   }
 
@@ -6849,6 +6872,83 @@
     return grid;
   }
 
+  // Long, flowing rockstar hair shared by Rocker Cat and Artist Cat - sweeping bangs down over
+  // one side, tapering to a thin trailing lock. Ramen Cat keeps long hair too, just restyled
+  // spikier/upswept for chef energy (see the spike loop in buildRamenCatGrid) rather than
+  // reusing this exact silhouette.
+  function buildLongHairOnto(grid) {
+    // bangs across the forehead, well above the eyes (13-15) so the face stays clearly visible
+    pxTaper(grid, 18, 3, 11, 18, 7, 13, "S");
+    pxOutline(grid, "K");
+    // one long lock sweeping down past the shoulder
+    pxTaper(grid, 25, 5, 5, 32, 23, 2, "S");
+    pxOutline(grid, "K");
+  }
+  function buildRockerCatGrid() {
+    const grid = makePxGrid();
+    pxOctagonBody(grid, 8.5, 28.5, 8, 27.3, 6.3, 5, "W");
+    pxOutline(grid, "K");
+    pxFace(grid, 0);
+    pxLegs(grid, 0);
+    buildLongHairOnto(grid);
+    // microphone held up beside the head
+    pxThickLine(grid, 31, 30, 31, 15, 1.6, "K");
+    pxOutline(grid, "K");
+    pxEllipse(grid, 31, 13, 2.4, 2.8, "G");
+    pxOutline(grid, "K");
+    return grid;
+  }
+  function buildArtistCatGrid() {
+    const grid = makePxGrid();
+    pxOctagonBody(grid, 8.5, 28.5, 8, 27.3, 6.3, 5, "W");
+    pxOutline(grid, "K");
+    pxFace(grid, 0);
+    pxLegs(grid, 0);
+    buildLongHairOnto(grid);
+    // beret
+    pxEllipse(grid, 18, 1, 8, 3, "K");
+    pxOutline(grid, "K");
+    // palette with dabs of paint, held to one side
+    pxEllipse(grid, 6, 23, 4.2, 3.2, "O");
+    pxOutline(grid, "K");
+    pxEllipse(grid, 4.5, 22, 0.8, 0.8, "R");
+    pxEllipse(grid, 7, 21.5, 0.8, 0.8, "B");
+    pxEllipse(grid, 6, 24.5, 0.8, 0.8, "Y");
+    pxOutline(grid, "K");
+    // rolled canvas/paint tube in the other hand
+    pxRect(grid, 28, 22, 34, 25, "S");
+    pxOutline(grid, "K");
+    return grid;
+  }
+  // Ramen Cat: same long-hair silhouette but spikier/upswept (chef energy), a headband, a
+  // ramen bowl in the right hand, and a net ladle full of noodles in the left (per the request).
+  function buildRamenCatGrid() {
+    const grid = makePxGrid();
+    pxOctagonBody(grid, 8.5, 28.5, 8, 27.3, 6.3, 5, "W");
+    pxOutline(grid, "K");
+    pxFace(grid, 0);
+    pxLegs(grid, 0);
+    for (let i = 0; i < 5; i++) {
+      const x = 9 + i * 4.5;
+      pxTriangleV(grid, x, -6 - (i % 2) * 4, 7, 2.6, "G");
+    }
+    pxOutline(grid, "K");
+    pxRect(grid, 9, 6, 27, 8, "K");
+    pxOutline(grid, "K");
+    // ramen bowl, right hand
+    pxTaper(grid, 24, 20, 8, 24, 26, 5, "S");
+    pxOutline(grid, "K");
+    pxEllipse(grid, 24, 20, 4, 1.3, "W");
+    pxOutline(grid, "K");
+    // net ladle with noodles, left hand
+    pxThickLine(grid, 8, 26, 3, 19, 1.4, "K");
+    pxOutline(grid, "K");
+    pxEllipse(grid, 3, 21, 2.8, 2.2, "S");
+    pxOutline(grid, "K");
+    pxEllipse(grid, 3, 21, 1.6, 1.2, "W");
+    return grid;
+  }
+
   // heightScale: per-sprite vertical stretch, anchored at the ground, so different units can
   // be taller/shorter than the base Cat without redesigning their whole coordinate grid - the
   // "scaling tool" for keeping cats' relative sizes right when reference art has no scale bar.
@@ -6955,6 +7055,9 @@
     tinCat: { grid: buildTinCatGrid() },
     planeCat: { grid: buildPlaneCatGrid() },
     robocat: { grid: buildRobocatGrid() },
+    rockerCat: { grid: buildRockerCatGrid() },
+    artistCat: { grid: buildArtistCatGrid() },
+    ramenCat: { grid: buildRamenCatGrid() },
   };
 
   // Renders a pixel-sprite grid onto a small standalone <canvas> icon (its own context, not
