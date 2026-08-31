@@ -1509,6 +1509,33 @@
     { id:"welter", name:"Welterweight Cat", emoji:"🐱", cost:540, hp:360, dmg:77, range:250*RANGE_SCALE, cycle:1.83, fore:0.53, tgt:"single", speed:9*SPEED_SCALE, cd:9.20, kb:3, trait:"Traitless", strongAgainst:[],
       multiHit:[{ t:0.07, dmg:15 }, { t:0.27, dmg:4 }, { t:0.53, dmg:58 }],
       knockbackAgainst:["Zombie"], knockbackProc:{ chance:0.16 }, zombieKiller:true, rarity:"rare", color:"#f4f4f4", sprite:"welterweightCat" },
+    // Twenty-third Rare Cat. Evolves into Rover Cat Mk II, then - True Form, needs Catfruit
+    // like every other Rare Cat's - Catellite. strongAgainst vs Alien on all 3 forms.
+    // immuneToWarp (new field): purely data-only for now, like Zombie Killer above - Warp is a
+    // whole enemy-side status (temporarily removes a hit cat from the field) that no enemy in
+    // this game has yet. immuneToSlow/immuneToWeaken (new fields, wired into
+    // applySlowProc/applyWeakenProc): ONLY Catellite's True Form has these, not the first two
+    // forms - confirmed explicitly by the user after Wushu Cat's family raised the same
+    // question for Shigong Cat.
+    { id:"rover", name:"Rover Cat", emoji:"🐱", cost:300, hp:600, dmg:200, range:120*RANGE_SCALE, cycle:3.03, fore:0.67, tgt:"single", speed:10*SPEED_SCALE, cd:3.87, kb:1, trait:"Traitless",
+      strongAgainst:["Alien"], immuneToWarp:true, rarity:"rare", color:"#f4f4f4", sprite:"roverCat" },
+    // Twenty-fourth Rare Cat. Evolves into Flamenco Cat, then - True Form, needs Catfruit like
+    // every other Rare Cat's - Bellydance Cat. dodge (new field/mechanic - see
+    // applyDodgeCheck): 30% chance to evade a Red enemy's hit entirely (no damage, no other
+    // on-hit effects), then a guaranteed 2s of dodging every Red attack after a successful one.
+    { id:"matador", name:"Matador Cat", emoji:"🐱", cost:540, hp:675, dmg:140, range:190*RANGE_SCALE, cycle:2.87, fore:1.13, tgt:"single", speed:14*SPEED_SCALE, cd:3.87, kb:3, trait:"Traitless",
+      strongAgainst:[], dodge:{ trait:"Red", chance:0.3, immuneDuration:2 }, rarity:"rare", color:"#f4f4f4", sprite:"matadorCat" },
+    // Twenty-fifth and final gacha Rare Cat. Evolves into Sifu Cat, then - True Form, needs
+    // Catfruit like every other Rare Cat's - Shigong Cat. MULTI-HIT: 3 hits per cycle at
+    // 0.33s/0.67s/1.17s (given foreswing 0.33s is just the time to the first hit, same
+    // "0.34s later, then 0.5s after" cumulative-timestamp pattern as Welterweight Cat's
+    // family) - def.fore is set to the LAST hit's timestamp (1.17s), which combined with the
+    // given 0.63s backswing lands exactly on the given 1.80s TBA/cycle. resistantAgainst vs
+    // Zombie (1/4 damage taken, no attack bonus) + zombieKiller, same pairing as Rocker Cat's
+    // family. immuneToSlow: Shigong Cat's True Form only, not the first two forms.
+    { id:"wushu", name:"Wushu Cat", emoji:"🐱", cost:360, hp:510, dmg:219, range:120*RANGE_SCALE, cycle:1.80, fore:1.17, tgt:"single", speed:9*SPEED_SCALE, cd:5.87, kb:1, trait:"Traitless",
+      strongAgainst:[], multiHit:[{ t:0.33, dmg:73 }, { t:0.67, dmg:73 }, { t:1.17, dmg:73 }],
+      resistantAgainst:["Zombie"], zombieKiller:true, rarity:"rare", color:"#f4f4f4", sprite:"wushuCat" },
   ];
 
   // Enemy roster.
@@ -1585,6 +1612,10 @@
     gardener: { name: "Lumbercat", emoji: "🐱", hpMult: 500 / 400, dmgMult: 20 / 15, sprite: "lumbercat" },
     welter: { name: "Heavyweight Cat", emoji: "🐱", hpMult: 480 / 360, dmgMult: 99 / 77,
               multiHit: [{ t: 0.07, dmg: 20 }, { t: 0.27, dmg: 5 }, { t: 0.53, dmg: 74 }], sprite: "heavyweightCat" },
+    rover: { name: "Rover Cat Mk II", emoji: "🐱", hpMult: 800 / 600, dmgMult: 250 / 200, sprite: "roverCatMk2" },
+    matador: { name: "Flamenco Cat", emoji: "🐱", hpMult: 900 / 675, dmgMult: 190 / 140, sprite: "flamencoCat" },
+    wushu: { name: "Sifu Cat", emoji: "🐱", hpMult: 660 / 510, dmgMult: 273 / 219,
+             multiHit: [{ t: 0.33, dmg: 91 }, { t: 0.67, dmg: 91 }, { t: 1.17, dmg: 91 }], sprite: "sifuCat" },
   };
 
   // Special Cats don't get a True Form here at all. Flower Cat's real unlock condition for one is
@@ -1661,6 +1692,11 @@
     gardener: { name: "Weedwacker Cat", emoji: "🐱", hp: 1000, dmg: 20, range: 250 * RANGE_SCALE,
                 freeze: { trait: "Zombie", chance: 0.05, duration: 4 }, sprite: "weedwackerCat" },
     welter: { name: "Ectoweight Cat", emoji: "🐱", hp: 960, dmg: 99, range: 280 * RANGE_SCALE, sprite: "ectoweightCat" },
+    rover: { name: "Catellite", emoji: "🐱", hp: 800, dmg: 325, speed: 12 * SPEED_SCALE, cost: 270,
+             strongAgainst: ["Alien"], immuneToSlow: true, immuneToWeaken: true, sprite: "catellite" },
+    matador: { name: "Bellydance Cat", emoji: "🐱", hp: 1200, dmg: 190, speed: 18 * SPEED_SCALE,
+               dodge: { trait: "Red", chance: 0.3, immuneDuration: 2 }, sprite: "bellydanceCat" },
+    wushu: { name: "Shigong Cat", emoji: "🐱", hp: 960, dmg: 273, immuneToSlow: true, sprite: "shigongCat" },
   };
   // Not implemented (needs mechanics this game doesn't have yet): The Flying Cat's Angel-Weaken
   // proc - no Angel trait or weaken status exists in this game.
@@ -1711,6 +1747,9 @@
         crit: evo3.crit !== undefined ? evo3.crit : form.crit,
         weaken: evo3.weaken !== undefined ? evo3.weaken : form.weaken,
         zombieKiller: evo3.zombieKiller !== undefined ? evo3.zombieKiller : form.zombieKiller,
+        immuneToSlow: evo3.immuneToSlow !== undefined ? evo3.immuneToSlow : form.immuneToSlow,
+        immuneToWeaken: evo3.immuneToWeaken !== undefined ? evo3.immuneToWeaken : form.immuneToWeaken,
+        dodge: evo3.dodge !== undefined ? evo3.dodge : form.dodge,
         knockbackProc: evo3.knockbackProc !== undefined ? evo3.knockbackProc : form.knockbackProc,
         sprite: evo3.sprite !== undefined ? evo3.sprite : form.sprite,
       };
@@ -1953,6 +1992,21 @@
              21:15000,22:24000,23:36600,24:53400,25:74400,26:99600,27:129000,28:162600,29:200400,30:242400,
              31:17500,32:28000,33:42700,34:62300,35:86800,36:116200,37:150500,38:189700,39:233800,40:282800,
              41:20000,42:32000,43:48800,44:71200,45:99200,46:132800,47:172000,48:216800,49:267200,50:323200},
+    rover: {2:8000,3:12200,4:17800,5:24800,6:33200,7:43000,8:54200,9:66800,10:80800,
+             11:10000,12:16000,13:24400,14:35600,15:49600,16:66400,17:86000,18:108400,19:133600,20:161600,
+             21:15000,22:24000,23:36600,24:53400,25:74400,26:99600,27:129000,28:162600,29:200400,30:242400,
+             31:17500,32:28000,33:42700,34:62300,35:86800,36:116200,37:150500,38:189700,39:233800,40:282800,
+             41:20000,42:32000,43:48800,44:71200,45:99200,46:132800,47:172000,48:216800,49:267200,50:323200},
+    matador: {2:8000,3:12200,4:17800,5:24800,6:33200,7:43000,8:54200,9:66800,10:80800,
+             11:10000,12:16000,13:24400,14:35600,15:49600,16:66400,17:86000,18:108400,19:133600,20:161600,
+             21:15000,22:24000,23:36600,24:53400,25:74400,26:99600,27:129000,28:162600,29:200400,30:242400,
+             31:17500,32:28000,33:42700,34:62300,35:86800,36:116200,37:150500,38:189700,39:233800,40:282800,
+             41:20000,42:32000,43:48800,44:71200,45:99200,46:132800,47:172000,48:216800,49:267200,50:323200},
+    wushu: {2:8000,3:12200,4:17800,5:24800,6:33200,7:43000,8:54200,9:66800,10:80800,
+             11:10000,12:16000,13:24400,14:35600,15:49600,16:66400,17:86000,18:108400,19:133600,20:161600,
+             21:15000,22:24000,23:36600,24:53400,25:74400,26:99600,27:129000,28:162600,29:200400,30:242400,
+             31:17500,32:28000,33:42700,34:62300,35:86800,36:116200,37:150500,38:189700,39:233800,40:282800,
+             41:20000,42:32000,43:48800,44:71200,45:99200,46:132800,47:172000,48:216800,49:267200,50:323200},
   };
   // Secret Special Cats only show up in cat-selection lists (Upgrade, Equip) once found via
   // their own unlock condition - everything else in CATS has always just been freely available.
@@ -2176,6 +2230,21 @@
       "Successor to a legendary Japanese boxer. Looks the part, but he's always KO'ed in the 2nd round. Might knockback Zombies.",
       "Unorthodox technique, sure, but this afro'd hero always gets up before the 10-count. Might knockback Zombies.",
       "Had a near death experience trying to lose weight for the next bout, then revived after absorbing ghostly energy. Might knockback Zombies.",
+    ],
+    rover: [
+      "The first Cat probe produced by NYASA. Built to resist extraterrestrial attacks, with Warp Blocking and Strong against Aliens.",
+      "Cutting edge NYASA Cat probe. Transmission power is so advanced that it even gets the dirty channels. Strong vs Aliens, with Warp Blocking.",
+      "Experimental NYASA satellite made for remote observation of areas as far as the corner store. Strong vs Aliens, with Warp Blocking.",
+    ],
+    matador: [
+      "Fearless bullfighter dodging danger with a hearty Olé! Pacifist at heart, his only weapon is his crimson cape. Has a chance to dodge Red attacks.",
+      "Graceful dancer dodging danger to hearty Olés! Well trained in the art of Dodging Red attacks (as well as unwanted advances from certain tomcats.)",
+      "Supreme virtuoso of an vigorous, beautiful dance. A glittering veil and hypnotic movements help her confuse enemies and Dodge Red attacks.",
+    ],
+    wushu: [
+      "Top student at a discount martial arts school that costs $40 per month. Goes twice weekly after work. Tough vs Zombies.",
+      "Owner of a discount martial arts school. His insistence on using custom equipment disqualifies him from official competitions. Tough vs Zombies.",
+      "His peerless fighting instincts obliterate any enemy in his path. Even his battle aura sends foes fleeing in fear! Tough vs Zombies.",
     ],
   };
   function catDescriptionAt(c, tier) {
@@ -2492,7 +2561,7 @@
       x: P_BASE_X - 10,
       hp, max: hp,
       swing: -1, swung: false, multiHitIdx: 0, flash: 0, w: 30, kbCount: 0,
-      frozenUntil: 0, slowedUntil: 0, weakenedUntil: 0,
+      frozenUntil: 0, slowedUntil: 0, weakenedUntil: 0, dodgeImmuneUntil: 0,
     });
   }
 
@@ -2512,7 +2581,7 @@
       x: E_BASE_X + 10,
       hp: e.hp, max: e.hp,
       swing: -1, swung: false, multiHitIdx: 0, flash: 0, w: e.w, kbCount: 0,
-      frozenUntil: 0, slowedUntil: 0, weakenedUntil: 0,
+      frozenUntil: 0, slowedUntil: 0, weakenedUntil: 0, dodgeImmuneUntil: 0,
     });
   }
 
@@ -4328,6 +4397,7 @@
   function applySlowProc(attacker, defender) {
     const sl = attacker.def.slow;
     if (!sl || !defender.def || defender.def.trait !== sl.trait) return;
+    if (defender.def.immuneToSlow) return; // Catellite / Shigong Cat True Forms
     if (Math.random() >= sl.chance) return;
     defender.slowedUntil = Math.max(defender.slowedUntil || 0, G.time + (sl.duration || SLOW_DURATION));
   }
@@ -4339,8 +4409,26 @@
   function applyWeakenProc(attacker, defender) {
     const wk = attacker.def.weaken;
     if (!wk || !defender.def || !wk.traits.includes(defender.def.trait)) return;
+    if (defender.def.immuneToWeaken) return; // Catellite True Form only
     if (Math.random() >= wk.chance) return;
     defender.weakenedUntil = Math.max(defender.weakenedUntil || 0, G.time + wk.duration);
+  }
+
+  // Dodge: a defender with a def.dodge ({trait, chance, immuneDuration}) has a chance, on each
+  // hit from that trait, to evade it completely - no damage, no other on-hit effects at all
+  // (knockback/freeze/slow/etc never fire for a dodged hit, matching real Dodge semantics).
+  // After a dodge (chance-based OR while the guaranteed-immune window is still active), the
+  // defender is GUARANTEED to dodge every attack of that trait for immuneDuration more seconds
+  // - Matador Cat family's ability (30% vs Red, 2s of guaranteed immunity after each dodge).
+  // Returns true if the hit should be cancelled.
+  function applyDodgeCheck(attacker, defender) {
+    const dg = defender.def && defender.def.dodge;
+    if (!dg || !attacker.def || attacker.def.trait !== dg.trait) return false;
+    if (defender.dodgeImmuneUntil > G.time || Math.random() < dg.chance) {
+      defender.dodgeImmuneUntil = G.time + dg.immuneDuration;
+      return true;
+    }
+    return false;
   }
 
   // Critical hit: an attacker with a def.crit ({chance, mult}) has a chance for a landed hit to
@@ -4449,6 +4537,7 @@
           ? targets
           : [targets.reduce((a, b) => Math.abs(a.x - u.x) <= Math.abs(b.x - u.x) ? a : b)];
         const landHit = (t, dmgOverride) => {
+          if (applyDodgeCheck(u, t)) return; // Matador Cat family: evaded, no damage/effects at all
           let dmg = damageAmount(u, t, dmgOverride);
           if (rollCrit(u)) { dmg *= u.def.crit.mult; playClang(); }
           t.hp -= dmg;
@@ -7614,6 +7703,226 @@
     return grid;
   }
 
+  // Rover Cat family: grey antenna ears, a segmented chest emblem, a small stand peeking from
+  // beneath the legs (not a mount-replaces-legs cat, unlike Plane Cat - just an accent, so it's
+  // drawn before pxLegs so the legs render on top of it, same idea as the horse/bull mounts).
+  // Small solid triangular ear-stubs, not thin lines - a thin pxThickLine accessory gets
+  // visibly fatter every time pxOutline runs again later in the build (each call adds one more
+  // growth ring around whatever's already filled), which is only really noticeable on thin
+  // shapes; a shape with real width from the start absorbs that fine. Also keeping outline
+  // calls down to one per shape-group (not one per accessory) limits how many growth passes
+  // stack up in the first place.
+  function buildAntennaEarsOnto(grid) {
+    pxTriangle(grid, 9, 0, 8, 2.2, "G");
+    pxTriangle(grid, 27, 0, 8, 2.2, "G");
+  }
+  function buildChestEmblemOnto(grid) {
+    pxRect(grid, 9, 24, 27, 26, "G");
+    pxEllipse(grid, 18, 28, 3, 3, "S");
+    pxEllipse(grid, 18, 28, 1.4, 1.4, "K");
+  }
+  function buildBaseStandOnto(grid) {
+    pxTriangleV(grid, 18, 36, 32, 8, "G");
+  }
+  function buildRoverCatGrid() {
+    const grid = makePxGrid();
+    pxOctagonBody(grid, 8.5, 28.5, 8, 27.3, 6.3, 5, "W");
+    buildAntennaEarsOnto(grid);
+    pxOutline(grid, "K");
+    pxFace(grid, 0);
+    buildChestEmblemOnto(grid);
+    buildBaseStandOnto(grid);
+    pxOutline(grid, "K");
+    pxLegs(grid, 0);
+    return grid;
+  }
+  // Rover Cat Mk II: a dish antenna hat, a wrench arm held up to the side.
+  function buildDishHatOnto(grid) {
+    pxEllipse(grid, 18, 3, 10, 4, "S");
+    pxEllipse(grid, 24, 2, 3, 2, "G");
+  }
+  function buildWrenchArmOnto(grid) {
+    pxThickLine(grid, 32, 30, 32, 18, 2.4, "G");
+    pxRect(grid, 30, 15, 34, 19, "G");
+  }
+  function buildRoverCatMk2Grid() {
+    const grid = makePxGrid();
+    pxOctagonBody(grid, 8.5, 28.5, 8, 27.3, 6.3, 5, "W");
+    buildDishHatOnto(grid);
+    pxOutline(grid, "K");
+    pxFace(grid, 0);
+    buildChestEmblemOnto(grid);
+    pxLegs(grid, 0);
+    buildWrenchArmOnto(grid);
+    pxOutline(grid, "K");
+    return grid;
+  }
+  // Catellite: twin segmented solar-panel wings at the flanks, twin antenna prongs on top.
+  function buildSolarWingsOnto(grid) {
+    pxRect(grid, 0, 17, 8, 21, "G");
+    pxRect(grid, 28, 17, 36, 21, "G");
+    pxLine(grid, 3, 17, 3, 21, "S");
+    pxLine(grid, 6, 17, 6, 21, "S");
+    pxLine(grid, 31, 17, 31, 21, "S");
+    pxLine(grid, 34, 17, 34, 21, "S");
+  }
+  function buildAntennaProngsOnto(grid) {
+    pxThickLine(grid, 16, 3, 16, -3, 1.6, "S");
+    pxThickLine(grid, 20, 3, 20, -3, 1.6, "S");
+    pxEllipse(grid, 16, -4, 1, 1, "S");
+    pxEllipse(grid, 20, -4, 1, 1, "S");
+  }
+  function buildCatelliteGrid() {
+    const grid = makePxGrid();
+    pxOctagonBody(grid, 8.5, 28.5, 8, 27.3, 6.3, 5, "W");
+    buildAntennaProngsOnto(grid);
+    pxOutline(grid, "K");
+    pxFace(grid, 0);
+    buildChestEmblemOnto(grid);
+    pxLegs(grid, 0);
+    buildSolarWingsOnto(grid);
+    pxOutline(grid, "K");
+    return grid;
+  }
+
+  // Matador Cat: a small beret, a red cape held out to one side, a rolled item in the other hand.
+  function buildBeretOnto(grid) {
+    pxEllipse(grid, 18, 2, 7, 3, "K");
+    pxOutline(grid, "K");
+  }
+  function buildCapeOnto(grid) {
+    pxTaper(grid, 4, 18, 3, 2, 32, 10, "R");
+    pxOutline(grid, "K");
+  }
+  function buildRolledItemOnto(grid) {
+    pxRect(grid, 30, 22, 34, 26, "S");
+    pxOutline(grid, "K");
+  }
+  function buildMatadorCatGrid() {
+    const grid = makePxGrid();
+    pxOctagonBody(grid, 8.5, 28.5, 8, 27.3, 6.3, 5, "W");
+    pxOutline(grid, "K");
+    buildBeretOnto(grid);
+    pxFace(grid, 0);
+    pxLegs(grid, 0);
+    buildCapeOnto(grid);
+    buildRolledItemOnto(grid);
+    return grid;
+  }
+  // Flamenco Cat: a black dress with a red ruffled hem, a rose held near the face.
+  function buildDressOnto(grid) {
+    pxRect(grid, 4, 24, 32, 29, "K");
+    pxOutline(grid, "K");
+    pxRect(grid, 4, 29, 32, 31, "R");
+    pxOutline(grid, "K");
+  }
+  function buildRoseOnto(grid) {
+    pxEllipse(grid, 30, 16, 2, 2, "R");
+    pxEllipse(grid, 30, 16, 0.8, 0.8, "K");
+    pxOutline(grid, "K");
+  }
+  function buildFlamencoCatGrid() {
+    const grid = makePxGrid();
+    pxOctagonBody(grid, 8.5, 28.5, 8, 27.3, 6.3, 5, "W");
+    pxOutline(grid, "K");
+    buildBeretOnto(grid);
+    pxFace(grid, 0);
+    buildDressOnto(grid);
+    pxLegs(grid, 0);
+    buildRoseOnto(grid);
+    return grid;
+  }
+  // Bellydance Cat: a flower crown, a big flowing cape/veil sweeping from both sides.
+  function buildFlowerCrownOnto(grid) {
+    pxEllipse(grid, 10, 4, 2, 2, "R");
+    pxEllipse(grid, 18, 1, 2, 2, "R");
+    pxEllipse(grid, 26, 4, 2, 2, "R");
+    pxOutline(grid, "K");
+  }
+  function buildFlowingCapeOnto(grid) {
+    pxTaper(grid, 4, 10, 3, 0, 34, 14, "R");
+    pxOutline(grid, "K");
+    pxTaper(grid, 32, 10, 3, 36, 34, 12, "R");
+    pxOutline(grid, "K");
+  }
+  function buildBellydanceCatGrid() {
+    const grid = makePxGrid();
+    pxOctagonBody(grid, 8.5, 28.5, 8, 27.3, 6.3, 5, "W");
+    pxOutline(grid, "K");
+    buildFlowerCrownOnto(grid);
+    pxFace(grid, 0);
+    buildDressOnto(grid);
+    pxLegs(grid, 0);
+    buildFlowingCapeOnto(grid);
+    return grid;
+  }
+
+  // Wushu Cat family: a headband, twin mechanical tri-segment arms raised in a guard stance -
+  // tipColor lets the 3 forms swap the hand-end look (plain / clawed / flaming).
+  function buildHeadbandOnto(grid) {
+    pxRect(grid, 9, 9, 27, 11, "S");
+    pxOutline(grid, "K");
+  }
+  function buildMechArmsOnto(grid, tipColor) {
+    pxThickLine(grid, 6, 24, 2, 12, 3, "G");
+    pxThickLine(grid, 2, 12, 8, 6, 3, "G");
+    pxOutline(grid, "K");
+    pxThickLine(grid, 30, 24, 34, 12, 3, "G");
+    pxThickLine(grid, 34, 12, 28, 6, 3, "G");
+    pxOutline(grid, "K");
+    pxEllipse(grid, 8, 6, 2.2, 2.2, tipColor);
+    pxEllipse(grid, 28, 6, 2.2, 2.2, tipColor);
+    pxOutline(grid, "K");
+  }
+  function buildWushuCatGrid() {
+    const grid = makePxGrid();
+    pxOctagonBody(grid, 8.5, 28.5, 8, 27.3, 6.3, 5, "W");
+    pxOutline(grid, "K");
+    buildHeadbandOnto(grid);
+    pxFace(grid, 0);
+    pxLegs(grid, 0);
+    buildMechArmsOnto(grid, "S");
+    return grid;
+  }
+  // Sifu Cat: same arms, clawed tips, a mark on the headband.
+  function buildClawSpikesOnto(grid, cx, cy) {
+    pxTriangleV(grid, cx - 2, cy - 4, cy - 2, 1, "S");
+    pxTriangleV(grid, cx + 2, cy - 4, cy - 2, 1, "S");
+    pxTriangleV(grid, cx, cy - 5, cy - 3, 1, "S");
+  }
+  function buildSifuCatGrid() {
+    const grid = makePxGrid();
+    pxOctagonBody(grid, 8.5, 28.5, 8, 27.3, 6.3, 5, "W");
+    pxOutline(grid, "K");
+    buildHeadbandOnto(grid);
+    pxRect(grid, 16, 9, 20, 11, "R");
+    pxFace(grid, 0);
+    pxLegs(grid, 0);
+    buildMechArmsOnto(grid, "K");
+    buildClawSpikesOnto(grid, 8, 6);
+    buildClawSpikesOnto(grid, 28, 6);
+    pxOutline(grid, "K");
+    return grid;
+  }
+  // Shigong Cat: same arms, a glowing flame burst at each hand.
+  function buildFlameBurstOnto(grid, cx, cy) {
+    pxEllipse(grid, cx, cy, 3.2, 3.2, "Y");
+    pxEllipse(grid, cx, cy, 1.6, 1.6, "O");
+    pxOutline(grid, "K");
+  }
+  function buildShigongCatGrid() {
+    const grid = makePxGrid();
+    pxOctagonBody(grid, 8.5, 28.5, 8, 27.3, 6.3, 5, "W");
+    pxOutline(grid, "K");
+    buildHeadbandOnto(grid);
+    pxFace(grid, 0);
+    pxLegs(grid, 0);
+    buildMechArmsOnto(grid, "K");
+    buildFlameBurstOnto(grid, 8, 6);
+    buildFlameBurstOnto(grid, 28, 6);
+    return grid;
+  }
+
   // heightScale: per-sprite vertical stretch, anchored at the ground, so different units can
   // be taller/shorter than the base Cat without redesigning their whole coordinate grid - the
   // "scaling tool" for keeping cats' relative sizes right when reference art has no scale bar.
@@ -7738,6 +8047,15 @@
     welterweightCat: { grid: buildWelterweightCatGrid() },
     heavyweightCat: { grid: buildHeavyweightCatGrid() },
     ectoweightCat: { grid: buildEctoweightCatGrid() },
+    roverCat: { grid: buildRoverCatGrid() },
+    roverCatMk2: { grid: buildRoverCatMk2Grid() },
+    catellite: { grid: buildCatelliteGrid() },
+    matadorCat: { grid: buildMatadorCatGrid() },
+    flamencoCat: { grid: buildFlamencoCatGrid() },
+    bellydanceCat: { grid: buildBellydanceCatGrid() },
+    wushuCat: { grid: buildWushuCatGrid() },
+    sifuCat: { grid: buildSifuCatGrid() },
+    shigongCat: { grid: buildShigongCatGrid() },
   };
 
   // Renders a pixel-sprite grid onto a small standalone <canvas> icon (its own context, not
