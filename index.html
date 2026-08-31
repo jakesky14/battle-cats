@@ -858,6 +858,9 @@
   #revealUseBtn { background: linear-gradient(180deg,#6fd08a,#2f9d55); color: #fff; }
   #revealXpBtn { background: linear-gradient(180deg,#5fb0ff,#1f74dd); color: #fff; }
   #revealOkBtn { background: linear-gradient(180deg,#ffcf3f,#f0a800); color: #201800; }
+  #rareRevealUseBtn { background: linear-gradient(180deg,#6fd08a,#2f9d55); color: #fff; }
+  #rareRevealXpBtn { background: linear-gradient(180deg,#5fb0ff,#1f74dd); color: #fff; }
+  #rareRevealOkBtn { background: linear-gradient(180deg,#ffcf3f,#f0a800); color: #201800; }
 
   .storage-list { margin-top: 20px; display: flex; flex-direction: column; gap: 8px; max-width: 460px; }
   .storage-empty { color: #f4e2b8; opacity: .8; }
@@ -1130,11 +1133,22 @@
     Rare <b>69.7%</b> &nbsp;·&nbsp; Super Rare <b>25%</b> &nbsp;·&nbsp; Uber Rare <b>5%</b> &nbsp;·&nbsp; Legend Rare <b>0.3%</b>
   </div>
   <div class="capsule-main">
-    <div class="capsule-icon">🎟️</div>
+    <div class="capsule-icon" id="rareCapsuleIcon">🎟️</div>
     <div class="capsule-tickets">Rare Tickets: <span id="rareCapsuleTicketAmt">0</span></div>
-    <button class="capsule-roll-btn" id="rareCapsuleRollBtn" disabled>COMING SOON</button>
+    <button class="capsule-roll-btn" id="rareCapsuleRollBtn" disabled>NO TICKETS</button>
   </div>
   <button class="back-btn" id="rareCapsuleBackBtn">Back</button>
+
+  <div id="rareCapsuleReveal" class="capsule-reveal hidden">
+    <div class="reveal-icon" id="rareRevealIcon"></div>
+    <div class="reveal-name" id="rareRevealName"></div>
+    <div class="reveal-desc" id="rareRevealDesc"></div>
+    <div class="reveal-buttons">
+      <button id="rareRevealUseBtn">Use Now</button>
+      <button id="rareRevealXpBtn">Change to XP</button>
+      <button id="rareRevealOkBtn">OK</button>
+    </div>
+  </div>
 </div>
 
 <div id="storageScreen" class="screen hidden">
@@ -1454,6 +1468,12 @@
     // damageAmount): only takes 1/4 damage from Angel, no bonus damage dealt to them, unlike
     // Strong Against which is both. Same resistance the whole way through all 3 forms.
     { id:"rocker", name:"Rocker Cat", emoji:"🐱", cost:315, hp:450, dmg:32, range:120*RANGE_SCALE, cycle:10/30, fore:5/30, tgt:"single", speed:8*SPEED_SCALE, cd:3.87, kb:1, trait:"Traitless", strongAgainst:[], resistantAgainst:["Angel"], rarity:"rare", color:"#f4f4f4", sprite:"rockerCat" },
+    // Twentieth Rare Cat. Evolves into Commando Cat, then - True Form, needs Catfruit like every
+    // other Rare Cat's - Cameraman Cat. strongAgainst vs Floating (1.5x dealt/0.5x taken) PLUS
+    // survive (50% chance to revive at 1 HP from any lethal hit, not trait-gated like
+    // strongAgainst) - both carried on the base CATS entry so every evolution stage inherits them
+    // via the `...form` spread in evolvedForm, same pattern as Axe/Fish/Pogo Cat.
+    { id:"mercat", name:"Mer-Cat", emoji:"🐱", cost:540, hp:320, dmg:270, range:190*RANGE_SCALE, cycle:3.47, fore:0.83, tgt:"single", speed:4*SPEED_SCALE, cd:3.87, kb:4, trait:"Traitless", strongAgainst:["Floating"], survive:{ chance:0.5 }, rarity:"rare", color:"#f4f4f4", sprite:"merCat" },
   ];
 
   // Enemy roster.
@@ -1524,6 +1544,7 @@
     stilts: { name: "Totem Cat", emoji: "🐱", hpMult: 398 / 335, dmgMult: 66 / 46, sprite: "totemCat" },
     tin: { name: "Plane Cat", emoji: "🐱", hpMult: 750 / 605, dmgMult: 107 / 77, speed: 15 * SPEED_SCALE, sprite: "planeCat" },
     rocker: { name: "Artist Cat", emoji: "🐱", hpMult: 750 / 450, dmgMult: 54 / 32, sprite: "artistCat" },
+    mercat: { name: "Commando Cat", emoji: "🐱", hpMult: 380 / 320, dmgMult: 330 / 270, sprite: "commandoCat" },
   };
 
   // Special Cats don't get a True Form here at all. Flower Cat's real unlock condition for one is
@@ -1588,6 +1609,11 @@
     tin: { name: "Robocat", emoji: "🐱", hp: 895, dmg: 137, range: 345 * RANGE_SCALE,
            speed: 10 * SPEED_SCALE, sprite: "robocat" },
     rocker: { name: "Ramen Cat", emoji: "🐱", hp: 1050, dmg: 60, sprite: "ramenCat" },
+    // tgt switches to "area" here (both previous forms are "single") - same precedent as Viking
+    // Cat's Maximum the Fighter. cycle/fore both tick up slightly vs the first two forms' 3.47/0.83.
+    mercat: { name: "Cameraman Cat", emoji: "🐱", hp: 570, dmg: 330, range: 250 * RANGE_SCALE,
+              speed: 6 * SPEED_SCALE, tgt: "area", cycle: 3.50, fore: 0.87,
+              strongAgainst: ["Floating"], survive: { chance: 0.5 }, sprite: "cameramanCat" },
   };
   // Not implemented (needs mechanics this game doesn't have yet): The Flying Cat's Angel-Weaken
   // proc - no Angel trait or weaken status exists in this game.
@@ -1852,6 +1878,11 @@
              21:15000,22:24000,23:36600,24:53400,25:74400,26:99600,27:129000,28:162600,29:200400,30:242400,
              31:17500,32:28000,33:42700,34:62300,35:86800,36:116200,37:150500,38:189700,39:233800,40:282800,
              41:20000,42:32000,43:48800,44:71200,45:99200,46:132800,47:172000,48:216800,49:267200,50:323200},
+    mercat: {2:8000,3:12200,4:17800,5:24800,6:33200,7:43000,8:54200,9:66800,10:80800,
+             11:10000,12:16000,13:24400,14:35600,15:49600,16:66400,17:86000,18:108400,19:133600,20:161600,
+             21:15000,22:24000,23:36600,24:53400,25:74400,26:99600,27:129000,28:162600,29:200400,30:242400,
+             31:17500,32:28000,33:42700,34:62300,35:86800,36:116200,37:150500,38:189700,39:233800,40:282800,
+             41:20000,42:32000,43:48800,44:71200,45:99200,46:132800,47:172000,48:216800,49:267200,50:323200},
   };
   // Secret Special Cats only show up in cat-selection lists (Upgrade, Equip) once found via
   // their own unlock condition - everything else in CATS has always just been freely available.
@@ -2043,6 +2074,11 @@
       "A peanut farmer's son, became a rocker to avoid coming out about his nut allergies to his family. Resistant to Angelic attacks.",
       "After album number 2 flopped, tried to get into fine art. Can only draw peanuts, so didn't sell. Resistant to Angelic attacks.",
       "Noodles might seem like a simple dish, but they need an artist's touch to master. Flashy prep style also boosts defense vs Angels.",
+    ],
+    mercat: [
+      "A mermaid who came onshore to meet a prince. Survives on land by taking long breaths. Strong vs Floating, might survive a lethal strike.",
+      "Hearing her prince got kidnapped by terrorists, joined the Green Berets to save him. Strong vs Floating, might survive a lethal strike.",
+      "Putting her life on the line to tell the truth of the Great Cat War. Journalistic integrity causes huge area dmg vs Floating, might survive once.",
     ],
   };
   function catDescriptionAt(c, tier) {
@@ -2938,9 +2974,12 @@
   rankClaimBtn.addEventListener("click", claimNextRankReward);
 
   // Rank rewards require a manual claim (one at a time, in order). Plain "N XP" / "N Cat
-  // Food" entries actually grant that amount; every claimed reward (of any kind) also
-  // grants 1 Leadership. Everything else on the list still has no other mechanical effect
-  // (see the open-questions list - most of those items/rarities don't exist in this game yet).
+  // Food" entries actually grant that amount; "N Rare Cat Ticket(s)" / "N Rare Ticket(s)"
+  // grant real Rare Cat Capsule currency (the only other reward type this game actually has
+  // an economy for - see rareTickets/rollRareCapsule below). "Legend Ticket"/"Platinum
+  // Ticket" are deliberately NOT matched here - those currencies don't exist in this game.
+  // Every claimed reward (of any kind) also grants 1 Leadership. Everything else on the list
+  // still has no other mechanical effect (most of those items/rarities don't exist yet).
   function claimNextRankReward() {
     const rank = profile.userRank || 0;
     const next = RANK_REWARDS[profile.claimedRankRewards];
@@ -2948,8 +2987,10 @@
     const text = next[1];
     const xpMatch = text.match(/^([\d,]+)\s*XP$/);
     const foodMatch = text.match(/^([\d,]+)\s*Cat Food$/);
+    const rareTicketMatch = text.match(/^([\d,]+)\s*Rare (?:Cat )?Tickets?$/);
     if (xpMatch) profile.xp += parseInt(xpMatch[1].replace(/,/g, ""), 10);
     else if (foodMatch) profile.catFood += parseInt(foodMatch[1].replace(/,/g, ""), 10);
+    else if (rareTicketMatch) profile.rareTickets += parseInt(rareTicketMatch[1].replace(/,/g, ""), 10);
     profile.items.leadership = (profile.items.leadership || 0) + 1;
     profile.claimedRankRewards++;
     saveProfile();
@@ -3714,10 +3755,12 @@
   // the 11-name pool below and independently rotating to a new name every 3 real days
   // (survives tab/computer closing, same real-timestamp pattern as Gamatoto's expedition
   // timer). Drop rates (Rare/Super Rare/Uber Rare/Legend Rare) are fixed across every
-  // banner - no banner-specific rate-ups yet. The actual roll is disabled for now: none
-  // of the 185 Rare/Super Rare/Uber Rare/Legend Rare units exist yet, only the banner
-  // rotation + screen scaffolding do. In test mode, a SHUFFLE BANNER button force-advances
-  // all 3 slots immediately instead of waiting 3 real days.
+  // banner - no banner-specific rate-ups yet. Only the "Rare" tier actually has units in
+  // this game (the CATS with rarity:"rare"); a Super Rare/Uber Rare/Legend Rare roll can't
+  // grant a real unit yet, so it just spends the ticket and shows a "Units coming soon!"
+  // placeholder reveal instead - see rollRareCapsule/showNextRareReveal. In test mode, a
+  // SHUFFLE BANNER button force-advances all 3 slots immediately instead of waiting 3 real
+  // days.
   // ---------------------------------------------------------------------------
   const RARE_BANNER_NAMES = [
     "The Dynamites",
@@ -3775,7 +3818,17 @@
   }
 
   const rareCapsuleXpAmt = document.getElementById("rareCapsuleXpAmt");
+  const rareCapsuleIcon = document.getElementById("rareCapsuleIcon");
   const rareCapsuleTicketAmt = document.getElementById("rareCapsuleTicketAmt");
+  const rareCapsuleRollBtn = document.getElementById("rareCapsuleRollBtn");
+  const rareCapsuleReveal = document.getElementById("rareCapsuleReveal");
+  const rareRevealIcon = document.getElementById("rareRevealIcon");
+  const rareRevealName = document.getElementById("rareRevealName");
+  const rareRevealDesc = document.getElementById("rareRevealDesc");
+  const rareRevealUseBtn = document.getElementById("rareRevealUseBtn");
+  const rareRevealXpBtn = document.getElementById("rareRevealXpBtn");
+  const rareRevealOkBtn = document.getElementById("rareRevealOkBtn");
+  let rarePullQueue = [];
   const rareBannerRowEl = document.getElementById("rareBannerRow");
   const rareTestRowEl = document.getElementById("rareTestRow");
   function formatBannerTimeLeft(ms) {
@@ -3799,10 +3852,92 @@
         `<div class="rare-banner-timer">Shuffles in ${formatBannerTimeLeft(left)}</div>`;
       rareBannerRowEl.appendChild(el);
     });
+    rareCapsuleReveal.classList.add("hidden");
+    rareCapsuleIcon.classList.remove("spinning");
+    rareCapsuleIcon.textContent = "🎟️";
+    if (profile.rareTickets <= 0) {
+      rareCapsuleRollBtn.textContent = "NO TICKETS";
+      rareCapsuleRollBtn.disabled = true;
+    } else if (profile.rareTickets === 1) {
+      rareCapsuleRollBtn.textContent = "TRY ONCE";
+      rareCapsuleRollBtn.disabled = false;
+    } else {
+      rareCapsuleRollBtn.textContent = "TRY " + profile.rareTickets + " TIMES";
+      rareCapsuleRollBtn.disabled = false;
+    }
   }
   document.getElementById("menuRareCapsuleBtn").addEventListener("click", () => showScreen(rareCapsuleScreen));
   document.getElementById("rareCapsuleBackBtn").addEventListener("click", () => showScreen(mainMenu));
   document.getElementById("shuffleBannerBtn").addEventListener("click", shuffleAllRareBanners);
+
+  // Rolling: weighted by RARE_DROP_RATES. A "rare" result draws a random cat from the Rare
+  // pool below and reuses the plain Cat Capsule's reward plumbing (rewardName/rewardEmoji/
+  // rewardDesc/applyRewardUseNow/applyRewardToXp/storage) since the reward shape is
+  // identical ({type:"cat", id}). A super/uber/legend result has no real unit to grant, so
+  // it returns a {type:"placeholder", tier} reward instead - see showNextRareReveal.
+  const RARE_CAT_POOL = CATS.filter(c => c.rarity === "rare").map(c => ({ type: "cat", id: c.id }));
+  const RARE_TIER_LABELS = { rare: "Rare", super: "Super Rare", uber: "Uber Rare", legend: "Legend Rare" };
+  function rollRareRarityTier() {
+    const roll = Math.random() * 100;
+    // rarest tiers checked first so their thin slivers of the range aren't shadowed by
+    // floating-point rounding in the much larger "rare" bucket
+    let acc = 0;
+    for (const [tier, pct] of [["legend", RARE_DROP_RATES.legend], ["uber", RARE_DROP_RATES.uber],
+                                ["super", RARE_DROP_RATES.super], ["rare", RARE_DROP_RATES.rare]]) {
+      acc += pct;
+      if (roll < acc) return tier;
+    }
+    return "rare";
+  }
+  function rollRareCapsule() {
+    const tier = rollRareRarityTier();
+    if (tier === "rare") return RARE_CAT_POOL[Math.floor(Math.random() * RARE_CAT_POOL.length)];
+    return { type: "placeholder", tier };
+  }
+
+  function showNextRareReveal() {
+    if (rarePullQueue.length === 0) { renderRareCapsuleScreen(); return; }
+    const reward = rarePullQueue[0];
+    if (reward.type === "placeholder") {
+      rareRevealIcon.textContent = "❓";
+      rareRevealName.textContent = `You got a ${RARE_TIER_LABELS[reward.tier]}!`;
+      rareRevealDesc.textContent = "Units coming soon!";
+      rareRevealUseBtn.classList.add("hidden");
+      rareRevealXpBtn.classList.add("hidden");
+    } else {
+      rareRevealIcon.textContent = rewardEmoji(reward);
+      rareRevealName.textContent = rewardName(reward);
+      rareRevealDesc.textContent = rewardDesc(reward);
+      rareRevealUseBtn.classList.remove("hidden");
+      rareRevealXpBtn.classList.remove("hidden");
+    }
+    rareCapsuleReveal.classList.remove("hidden");
+  }
+  function resolveRareReveal(action) {
+    const reward = rarePullQueue.shift();
+    if (reward.type !== "placeholder") {
+      if (action === "use") applyRewardUseNow(reward);
+      else if (action === "xp") applyRewardToXp(reward);
+      else if (action === "ok") { profile.storage.push(reward); saveProfile(); }
+    }
+    showNextRareReveal();
+  }
+  rareCapsuleRollBtn.addEventListener("click", () => {
+    if (profile.rareTickets <= 0) return;
+    const count = profile.rareTickets;
+    profile.rareTickets = 0;
+    rarePullQueue = Array.from({ length: count }, rollRareCapsule);
+    saveProfile();
+    rareCapsuleRollBtn.disabled = true;
+    rareCapsuleIcon.classList.add("spinning");
+    setTimeout(() => {
+      rareCapsuleIcon.classList.remove("spinning");
+      showNextRareReveal();
+    }, 1200);
+  });
+  rareRevealUseBtn.addEventListener("click", () => resolveRareReveal("use"));
+  rareRevealXpBtn.addEventListener("click", () => resolveRareReveal("xp"));
+  rareRevealOkBtn.addEventListener("click", () => resolveRareReveal("ok"));
 
   const capsuleXpAmt = document.getElementById("capsuleXpAmt");
   const capsuleIcon = document.getElementById("capsuleIcon");
@@ -6949,6 +7084,71 @@
     return grid;
   }
 
+  // Mer-Cat: a light headwrap plus a big mermaid tail curling up off the back of the head,
+  // like a wave - the tail carries over to none of the later forms (camo gear takes its place).
+  function buildMermaidTailOnto(grid) {
+    pxTaper(grid, 25, 11, 7, 32, 1, 4, "S");
+    pxOutline(grid, "K");
+    pxTriangle(grid, 28, -3, 4, 3.4, "S");
+    pxTriangle(grid, 34, -1, 5, 3.6, "S");
+    pxOutline(grid, "K");
+    pxRect(grid, 9, 4, 27, 6, "S");
+    pxOutline(grid, "K");
+  }
+  function buildMerCatGrid() {
+    const grid = makePxGrid();
+    pxOctagonBody(grid, 8.5, 28.5, 8, 27.3, 6.3, 5, "W");
+    pxOutline(grid, "K");
+    buildMermaidTailOnto(grid);
+    pxFace(grid, 0);
+    pxLegs(grid, 0);
+    return grid;
+  }
+  // Camo gear shared by Commando Cat and Cameraman Cat: blotchy patches kept clear of the
+  // central face rectangle (x13-23, y13-23), plus a camo cap.
+  function buildCamoGearOnto(grid) {
+    pxEllipse(grid, 8, 18, 3.5, 4, "L");
+    pxEllipse(grid, 28, 17, 3.5, 4, "G");
+    pxEllipse(grid, 11, 25, 3.5, 2.5, "G");
+    pxEllipse(grid, 25, 25, 3.5, 2.5, "L");
+    pxEllipse(grid, 18, 26, 5, 2, "L");
+    pxOutline(grid, "K");
+    pxEllipse(grid, 18, 2, 9, 3, "L");
+    pxOutline(grid, "K");
+  }
+  function buildCommandoCatGrid() {
+    const grid = makePxGrid();
+    pxOctagonBody(grid, 8.5, 28.5, 8, 27.3, 6.3, 5, "W");
+    pxOutline(grid, "K");
+    buildCamoGearOnto(grid);
+    pxFace(grid, 0);
+    pxLegs(grid, 0);
+    return grid;
+  }
+  // Cameraman Cat: same camo gear, plus a wheeled camera dolly rig - a big wheel low on the
+  // left flank and a boxy camera/lens mounted up on the right. Drawn AFTER the body/camo (not
+  // before, like a mount-replaces-legs cat) since this rig's footprint overlaps the body's own
+  // silhouette instead of sitting entirely below it - drawing it first would just get erased by
+  // the body's solid fill.
+  function buildCameraRigOnto(grid) {
+    pxEllipse(grid, 6, 33, 4.5, 4.5, "G");
+    pxEllipse(grid, 6, 33, 2.2, 2.2, "S");
+    pxRect(grid, 24, 13, 33, 20, "K");
+    pxEllipse(grid, 33, 16.5, 3, 3, "S");
+    pxEllipse(grid, 33, 16.5, 1.6, 1.6, "K");
+    pxOutline(grid, "K");
+  }
+  function buildCameramanCatGrid() {
+    const grid = makePxGrid();
+    pxOctagonBody(grid, 8.5, 28.5, 8, 27.3, 6.3, 5, "W");
+    pxOutline(grid, "K");
+    buildCamoGearOnto(grid);
+    pxFace(grid, 0);
+    buildCameraRigOnto(grid);
+    pxLegs(grid, 0);
+    return grid;
+  }
+
   // heightScale: per-sprite vertical stretch, anchored at the ground, so different units can
   // be taller/shorter than the base Cat without redesigning their whole coordinate grid - the
   // "scaling tool" for keeping cats' relative sizes right when reference art has no scale bar.
@@ -7058,6 +7258,9 @@
     rockerCat: { grid: buildRockerCatGrid() },
     artistCat: { grid: buildArtistCatGrid() },
     ramenCat: { grid: buildRamenCatGrid() },
+    merCat: { grid: buildMerCatGrid() },
+    commandoCat: { grid: buildCommandoCatGrid() },
+    cameramanCat: { grid: buildCameramanCatGrid() },
   };
 
   // Renders a pixel-sprite grid onto a small standalone <canvas> icon (its own context, not
