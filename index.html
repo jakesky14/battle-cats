@@ -3627,7 +3627,9 @@
         btn.addEventListener("click", () => { upgradeRarityFilter = f.key; renderUpgradeScreen(); });
         catStrip.appendChild(btn);
       });
-      visibleCats().forEach(appendCatCard);
+      // Default (no tab pressed yet) shows Normal Cats only - Special/Rare/etc. require their
+      // own tab, or ALL CATS, same as the Equip screen below.
+      visibleCats().filter(c => !c.rarity).forEach(appendCatCard);
     } else {
       const backBtn = document.createElement("div");
       backBtn.className = "rarity-filter-btn";
@@ -3676,6 +3678,10 @@
   const equipXpAmt = document.getElementById("equipXpAmt");
   const equipDesc = document.getElementById("equipDesc");
   let selectedSlot = 0;
+  // Same rarity-filter tabs as the Upgrade screen (RARITY_FILTERS, defined above) - independent
+  // state since the two screens can be filtered differently. null = default view (Normal Cats
+  // only, plus the filter tabs); otherwise a RARITY_FILTERS key.
+  let equipRarityFilter = null;
 
   function renderEquipScreen() {
     equipXpAmt.textContent = Math.floor(profile.xp);
@@ -3698,7 +3704,7 @@
     });
 
     equipGridEl.innerHTML = "";
-    visibleCats().forEach(c => {
+    const appendEquipCatCard = c => {
       const lvl = profile.catLevels[c.id] || 1;
       const plus = profile.catPlus[c.id] || 0;
       const unlocked = highestUnlockedTier(c, lvl, plus);
@@ -3736,7 +3742,27 @@
         renderEquipScreen();
       });
       equipGridEl.appendChild(el);
-    });
+    };
+    if (equipRarityFilter === null) {
+      RARITY_FILTERS.forEach(f => {
+        const btn = document.createElement("div");
+        btn.className = "rarity-filter-btn";
+        btn.innerHTML = f.html;
+        btn.addEventListener("click", () => { equipRarityFilter = f.key; renderEquipScreen(); });
+        equipGridEl.appendChild(btn);
+      });
+      visibleCats().filter(c => !c.rarity).forEach(appendEquipCatCard);
+    } else {
+      const backBtn = document.createElement("div");
+      backBtn.className = "rarity-filter-btn";
+      backBtn.innerHTML = '<div class="rf-white">◀</div><div class="rf-white">BACK</div>';
+      backBtn.addEventListener("click", () => { equipRarityFilter = null; renderEquipScreen(); });
+      equipGridEl.appendChild(backBtn);
+      const filterDef = RARITY_FILTERS.find(f => f.key === equipRarityFilter);
+      visibleCats()
+        .filter(c => filterDef.match === null || (c.rarity || "normal") === filterDef.match)
+        .forEach(appendEquipCatCard);
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -4796,6 +4822,12 @@
     dx = dx || 0;
     pxRect(grid, 13 + dx, 13, 15 + dx, 15, "K"); // left eye
     pxRect(grid, 21 + dx, 13, 23 + dx, 15, "K"); // right eye
+    // nose: a small bump connecting the tops of the mouth's two humps, sitting in the tight
+    // 1-row gap between the eyes (which end at y15) and the humps themselves (y16.5) - closes
+    // what used to be an open notch at the top of the "w" into a proper nose.
+    pxLine(grid, 14 + dx, 16.5, 15 + dx, 16, "K");
+    pxLine(grid, 15 + dx, 16, 21 + dx, 16, "K");
+    pxLine(grid, 21 + dx, 16, 22 + dx, 16.5, "K");
     pxLine(grid, 14 + dx, 16.5, 16 + dx, 18.5, "K"); // "w" mouth
     pxLine(grid, 16 + dx, 18.5, 18 + dx, 16.8, "K");
     pxLine(grid, 18 + dx, 16.8, 20 + dx, 18.5, "K");
@@ -5905,53 +5937,68 @@
     pxEllipse(grid, 8.2, 12.5, 1.9, 1.1, "L");
     // flower head: a center disc + petals fanned around it, kept compact so it clears both the
     // top of the grid and the cat's own head with a visible gap (no petal at the bottom, where
-    // the stem meets it)
+    // the stem meets it) - left blank/plain white, no face drawn on it (per the user's request,
+    // a deliberate departure from the reference art, which does have one).
     pxEllipse(grid, 5, 6, 1.8, 1.8, "W");
     pxEllipse(grid, 5, 2, 1.6, 1.9, "W");
     pxEllipse(grid, 1.3, 6, 1.6, 1.9, "W");
     pxEllipse(grid, 8.7, 6, 1.6, 1.9, "W");
     pxEllipse(grid, 2.2, 3, 1.4, 1.7, "W");
     pxEllipse(grid, 7.8, 3, 1.4, 1.7, "W");
+    // arms reaching from the body over to the pot - drawn in "W" (same as the body/pot) so it
+    // reads as one continuous held shape rather than a separate-colored limb; the auto-outline
+    // pass right after still gives it a clean visible edge anywhere it borders empty canvas.
+    pxThickLine(grid, 14 + FLOWER_DX, 22, 9.5, 20.5, 2.8, "W");
+    pxEllipse(grid, 10.3, 19.3, 2, 1.8, "W"); // paw, poking past the pot's own rim for a clear silhouette
     pxOutline(grid, "K");
     // petal separator strokes, so the cluster reads as petals instead of one round blob
     pxLine(grid, 5, 6, 5, 2.3, "K");
     pxLine(grid, 5, 6, 2, 6, "K");
     pxLine(grid, 5, 6, 8, 6, "K");
-    // tiny face on the flower, echoing the reference art's flower-with-a-face
-    pxRect(grid, 4.2, 5.6, 4.6, 6, "K");
-    pxRect(grid, 5.4, 5.6, 5.8, 6, "K");
-    pxLine(grid, 4.3, 7, 5, 7.4, "K");
-    pxLine(grid, 5, 7.4, 5.7, 7, "K");
     pxFace(grid, FLOWER_DX);
-    pxLegs(grid, FLOWER_DX);
+    // Only two legs (not the usual double-line-per-side four), colored white like the body -
+    // solid stubs extending down from the body's own bottom edge so the auto-outline still
+    // defines them clearly against the empty canvas below, even though they're the same color
+    // as everything above them.
+    pxRect(grid, 12 + FLOWER_DX, 27, 16 + FLOWER_DX, 33, "W");
+    pxRect(grid, 22 + FLOWER_DX, 27, 26 + FLOWER_DX, 33, "W");
+    pxOutline(grid, "K");
     return grid;
   }
 
   function buildCooldownCatGrid() {
     const grid = makePxGrid();
     buildFlowerBodyOnto(grid);
-    // fan head: blue rim behind a smaller silver face, so the rim reads as a ring
-    pxEllipse(grid, 6, 8.5, 5.3, 5.8, "B");
-    pxEllipse(grid, 6, 8.5, 4.3, 4.8, "S");
+    // fan head (~2x the old rim/blade size, per the user's request) - blue rim behind a
+    // smaller silver face, so the rim reads as a ring. Center/stand shifted down and out to
+    // keep the now-much-bigger head roughly balanced over its base.
+    pxEllipse(grid, 7, 10, 9.5, 10, "B");
+    pxEllipse(grid, 7, 10, 7.7, 8.2, "S");
     // blades: spokes radiating from the hub
-    for (const [tx, ty] of [[6, 3], [6, 14], [0.7, 8.5], [11.3, 8.5], [2.5, 4.5], [9.5, 4.5], [2.5, 12.5], [9.5, 12.5]]) {
-      pxLine(grid, 6, 8.5, tx, ty, "K");
+    for (const [tx, ty] of [[7, 0.5], [7, 19.5], [-2.5, 10], [16.5, 10], [0, 4], [14, 4], [0, 16], [14, 16]]) {
+      pxLine(grid, 7, 10, tx, ty, "K");
     }
-    pxEllipse(grid, 6, 8.5, 1.8, 1.8, "W");
+    pxEllipse(grid, 7, 10, 3, 3, "W");
     // stand: pole + a small base with a power button
-    pxRect(grid, 5.3, 14.5, 6.7, 24, "S");
-    pxRect(grid, 1, 24, 10.5, 27, "S");
-    pxEllipse(grid, 8.5, 25.5, 0.9, 0.9, "B");
+    pxRect(grid, 6.3, 19.5, 7.7, 27, "S");
+    pxRect(grid, 1.5, 27, 12.5, 30, "S");
+    pxEllipse(grid, 10, 28.5, 0.9, 0.9, "B");
     pxOutline(grid, "K");
     // tiny face on the fan's hub, echoing the reference art's fan-with-a-face
-    pxRect(grid, 4.7, 7.8, 5.2, 8.3, "K");
-    pxRect(grid, 6.8, 7.8, 7.3, 8.3, "K");
-    pxLine(grid, 5.3, 9.3, 6, 9.8, "K");
-    pxLine(grid, 6, 9.8, 6.7, 9.3, "K");
+    pxRect(grid, 5.7, 9.3, 6.3, 9.9, "K");
+    pxRect(grid, 7.7, 9.3, 8.3, 9.9, "K");
+    pxLine(grid, 6.3, 11, 7, 11.6, "K");
+    pxLine(grid, 7, 11.6, 7.7, 11, "K");
+    // towel around the neck, one end draping down over the shoulder
+    pxRect(grid, 15, 23.5, 29, 26.5, "S");
+    pxOutline(grid, "K");
+    pxTaper(grid, 27, 26, 3, 30, 32, 2, "S");
+    pxOutline(grid, "K");
     pxFace(grid, FLOWER_DX);
     pxLegs(grid, FLOWER_DX);
-    // blush cheek, per the reference's "warm breeze" expression
-    pxEllipse(grid, 27, 16, 1.6, 1.1, "P");
+    // blush, centered on the face (not tucked under one eye) - eyes sit at roughly x18.5/x24.5
+    // with FLOWER_DX applied, so the midpoint between them is ~21.5.
+    pxEllipse(grid, 21.5, 18, 1.8, 1.3, "P");
     return grid;
   }
 
@@ -7969,8 +8016,10 @@
     titanCat: { grid: buildTitanGrid(), scale: 2.2 },
     mythicalTitanCat: { grid: buildMythicalTitanGrid(), scale: 2.2 },
     jamieraCat: { grid: buildJamieraGrid(), scale: 2.2 },
-    flowerCat: { grid: buildFlowerCatGrid() },
-    cooldownCat: { grid: buildCooldownCatGrid() },
+    // heightScale 1.15: taller than Mohawk Cat (no heightScale = 1.0) but shorter than Eraser
+    // Cat (1.35), per the user's request.
+    flowerCat: { grid: buildFlowerCatGrid(), heightScale: 1.15 },
+    cooldownCat: { grid: buildCooldownCatGrid(), heightScale: 1.15 },
     capsuleCat: { grid: buildCapsuleCatGrid() },
     crampedCats: { grid: buildCrampedCatsGrid() },
     maskedCat: { grid: buildMaskedGrid() },
