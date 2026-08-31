@@ -1348,6 +1348,9 @@
   // Titan below is a placeholder px value pending its real stats. cd = deploy recharge.
   const SPEED_SCALE = 6;
   const RANGE_SCALE = 0.4;
+  // Every trait except Metal (which doesn't exist in this game) - Onmyoji Cat family's weaken
+  // targets all of these.
+  const NON_METAL_TRAITS = ["Traitless", "Red", "Floating", "Dark", "Angel", "Alien", "Zombie", "Relic", "Aku"];
   // trait = this unit's own trait (matters when an enemy is strongAgainst it).
   // strongAgainst = enemy traits this unit deals 1.5x damage to, and takes 0.5x damage from.
   // kb = knockback count: gets knocked back after losing each 1/kb chunk of max HP (last one on death).
@@ -1474,6 +1477,38 @@
     // strongAgainst) - both carried on the base CATS entry so every evolution stage inherits them
     // via the `...form` spread in evolvedForm, same pattern as Axe/Fish/Pogo Cat.
     { id:"mercat", name:"Mer-Cat", emoji:"🐱", cost:540, hp:320, dmg:270, range:190*RANGE_SCALE, cycle:3.47, fore:0.83, tgt:"single", speed:4*SPEED_SCALE, cd:3.87, kb:4, trait:"Traitless", strongAgainst:["Floating"], survive:{ chance:0.5 }, rarity:"rare", color:"#f4f4f4", sprite:"merCat" },
+    // Nineteenth Rare Cat. Evolves into Neo Psychocat, then - True Form, needs Catfruit like
+    // every other Rare Cat's - Corrupted Psychocat. slow: 50% chance vs Alien, default 4s
+    // duration the whole way through all 3 forms (no ramp given).
+    { id:"psycho", name:"Psychocat", emoji:"🐱", cost:525, hp:380, dmg:50, range:365*RANGE_SCALE, cycle:3.50, fore:2.20, tgt:"single", speed:6*SPEED_SCALE, cd:7.87, kb:3, trait:"Traitless", strongAgainst:[], slow:{ trait:"Alien", chance:0.5 }, rarity:"rare", color:"#f4f4f4", sprite:"psychoCat" },
+    // Twentieth Rare Cat. Evolves into Magica Cat, then - True Form, needs Catfruit like every
+    // other Rare Cat's - Thaumaturge Cat. weaken (new field - see applyWeakenProc/damageAmount):
+    // 50% chance to halve a hit non-Metal enemy's own outgoing damage for 6.6667s, bumped to a
+    // flat 100% on the True Form. zombieKiller (new field): stops a killed Zombie from reviving
+    // - like several other traits in this file, no Zombie enemy with the burrow/revive behavior
+    // it counters exists yet, so this is data-only for now, same "on the books" treatment as
+    // Floating/Dark/Alien/Zombie got before any matching enemy existed.
+    { id:"onmyoji", name:"Onmyoji Cat", emoji:"🐱", cost:510, hp:350, dmg:30, range:310*RANGE_SCALE, cycle:4.03, fore:3.10, tgt:"single", speed:8*SPEED_SCALE, cd:11.87, kb:3, trait:"Traitless", strongAgainst:[],
+      weaken:{ traits:NON_METAL_TRAITS, chance:0.5, duration:6.6667 }, zombieKiller:true, rarity:"rare", color:"#f4f4f4", sprite:"onmyojiCat" },
+    // Twenty-first Rare Cat. Evolves into Lumbercat, then - True Form, needs Catfruit like
+    // every other Rare Cat's - Weedwacker Cat. freeze: 5% chance vs Zombie, 2s on the first two
+    // forms, extended to 4s on Weedwacker Cat. zombieKiller: same "on the books" treatment as
+    // Onmyoji Cat's above.
+    { id:"gardener", name:"Gardener Cat", emoji:"🐱", cost:540, hp:400, dmg:15, range:200*RANGE_SCALE, cycle:0.30, fore:0.03, tgt:"single", speed:9*SPEED_SCALE, cd:11.20, kb:3, trait:"Traitless", strongAgainst:[],
+      freeze:{ trait:"Zombie", chance:0.05, duration:2 }, zombieKiller:true, rarity:"rare", color:"#f4f4f4", sprite:"gardenerCat" },
+    // Twenty-second Rare Cat. Evolves into Heavyweight Cat, then - True Form, needs Catfruit
+    // like every other Rare Cat's - Ectoweight Cat. MULTI-HIT (new field, see the multi-hit
+    // branch in the combat loop): 3 separate hits land at their own timestamps within one
+    // attack cycle instead of a single hit at def.fore. def.fore is set to the LAST sub-hit's
+    // timestamp (0.53s) - the given "0.07s/2f" foreswing stat is only the time to the FIRST
+    // hit, per the user's own clarification that the real total foreswing is 0.53s. dmg (77)
+    // is the sum of all 3 sub-hits (15+4+58), matching the given DPS (77/1.83=42) exactly.
+    // knockbackAgainst/knockbackProc: 16% chance vs Zombie on EACH of the 3 sub-hits, not just
+    // the last - applyKnockbackProc is called once per sub-hit in the multi-hit loop, so this
+    // falls out naturally without special-casing.
+    { id:"welter", name:"Welterweight Cat", emoji:"🐱", cost:540, hp:360, dmg:77, range:250*RANGE_SCALE, cycle:1.83, fore:0.53, tgt:"single", speed:9*SPEED_SCALE, cd:9.20, kb:3, trait:"Traitless", strongAgainst:[],
+      multiHit:[{ t:0.07, dmg:15 }, { t:0.27, dmg:4 }, { t:0.53, dmg:58 }],
+      knockbackAgainst:["Zombie"], knockbackProc:{ chance:0.16 }, zombieKiller:true, rarity:"rare", color:"#f4f4f4", sprite:"welterweightCat" },
   ];
 
   // Enemy roster.
@@ -1545,6 +1580,11 @@
     tin: { name: "Plane Cat", emoji: "🐱", hpMult: 750 / 605, dmgMult: 107 / 77, speed: 15 * SPEED_SCALE, sprite: "planeCat" },
     rocker: { name: "Artist Cat", emoji: "🐱", hpMult: 750 / 450, dmgMult: 54 / 32, sprite: "artistCat" },
     mercat: { name: "Commando Cat", emoji: "🐱", hpMult: 380 / 320, dmgMult: 330 / 270, sprite: "commandoCat" },
+    psycho: { name: "Neo Psychocat", emoji: "🐱", hpMult: 440 / 380, dmgMult: 60 / 50, sprite: "neoPsychocat" },
+    onmyoji: { name: "Magica Cat", emoji: "🐱", hpMult: 410 / 350, dmgMult: 38 / 30, sprite: "magicaCat" },
+    gardener: { name: "Lumbercat", emoji: "🐱", hpMult: 500 / 400, dmgMult: 20 / 15, sprite: "lumbercat" },
+    welter: { name: "Heavyweight Cat", emoji: "🐱", hpMult: 480 / 360, dmgMult: 99 / 77,
+              multiHit: [{ t: 0.07, dmg: 20 }, { t: 0.27, dmg: 5 }, { t: 0.53, dmg: 74 }], sprite: "heavyweightCat" },
   };
 
   // Special Cats don't get a True Form here at all. Flower Cat's real unlock condition for one is
@@ -1614,6 +1654,13 @@
     mercat: { name: "Cameraman Cat", emoji: "🐱", hp: 570, dmg: 330, range: 250 * RANGE_SCALE,
               speed: 6 * SPEED_SCALE, tgt: "area", cycle: 3.50, fore: 0.87,
               strongAgainst: ["Floating"], survive: { chance: 0.5 }, sprite: "cameramanCat" },
+    psycho: { name: "Corrupted Psychocat", emoji: "🐱", hp: 560, dmg: 60, speed: 12 * SPEED_SCALE,
+              cycle: 2.37, fore: 1.40, slow: { trait: "Alien", chance: 0.5 }, sprite: "corruptedPsychocat" },
+    onmyoji: { name: "Thaumaturge Cat", emoji: "🐱", hp: 530, dmg: 46, cycle: 4.37,
+               weaken: { traits: NON_METAL_TRAITS, chance: 1.0, duration: 6.6667 }, sprite: "thaumaturgeCat" },
+    gardener: { name: "Weedwacker Cat", emoji: "🐱", hp: 1000, dmg: 20, range: 250 * RANGE_SCALE,
+                freeze: { trait: "Zombie", chance: 0.05, duration: 4 }, sprite: "weedwackerCat" },
+    welter: { name: "Ectoweight Cat", emoji: "🐱", hp: 960, dmg: 99, range: 280 * RANGE_SCALE, sprite: "ectoweightCat" },
   };
   // Not implemented (needs mechanics this game doesn't have yet): The Flying Cat's Angel-Weaken
   // proc - no Angel trait or weaken status exists in this game.
@@ -1636,6 +1683,7 @@
         kb: evo.kb !== undefined ? evo.kb : form.kb,
         tgt: evo.tgt !== undefined ? evo.tgt : form.tgt,
         speed: evo.speed !== undefined ? evo.speed : form.speed,
+        multiHit: evo.multiHit !== undefined ? evo.multiHit : form.multiHit,
         sprite: evo.sprite !== undefined ? evo.sprite : form.sprite,
       };
     }
@@ -1661,6 +1709,8 @@
         freeze: evo3.freeze !== undefined ? evo3.freeze : form.freeze,
         slow: evo3.slow !== undefined ? evo3.slow : form.slow,
         crit: evo3.crit !== undefined ? evo3.crit : form.crit,
+        weaken: evo3.weaken !== undefined ? evo3.weaken : form.weaken,
+        zombieKiller: evo3.zombieKiller !== undefined ? evo3.zombieKiller : form.zombieKiller,
         knockbackProc: evo3.knockbackProc !== undefined ? evo3.knockbackProc : form.knockbackProc,
         sprite: evo3.sprite !== undefined ? evo3.sprite : form.sprite,
       };
@@ -1883,11 +1933,38 @@
              21:15000,22:24000,23:36600,24:53400,25:74400,26:99600,27:129000,28:162600,29:200400,30:242400,
              31:17500,32:28000,33:42700,34:62300,35:86800,36:116200,37:150500,38:189700,39:233800,40:282800,
              41:20000,42:32000,43:48800,44:71200,45:99200,46:132800,47:172000,48:216800,49:267200,50:323200},
+    psycho: {2:8000,3:12200,4:17800,5:24800,6:33200,7:43000,8:54200,9:66800,10:80800,
+             11:10000,12:16000,13:24400,14:35600,15:49600,16:66400,17:86000,18:108400,19:133600,20:161600,
+             21:15000,22:24000,23:36600,24:53400,25:74400,26:99600,27:129000,28:162600,29:200400,30:242400,
+             31:17500,32:28000,33:42700,34:62300,35:86800,36:116200,37:150500,38:189700,39:233800,40:282800,
+             41:20000,42:32000,43:48800,44:71200,45:99200,46:132800,47:172000,48:216800,49:267200,50:323200},
+    onmyoji: {2:8000,3:12200,4:17800,5:24800,6:33200,7:43000,8:54200,9:66800,10:80800,
+             11:10000,12:16000,13:24400,14:35600,15:49600,16:66400,17:86000,18:108400,19:133600,20:161600,
+             21:15000,22:24000,23:36600,24:53400,25:74400,26:99600,27:129000,28:162600,29:200400,30:242400,
+             31:17500,32:28000,33:42700,34:62300,35:86800,36:116200,37:150500,38:189700,39:233800,40:282800,
+             41:20000,42:32000,43:48800,44:71200,45:99200,46:132800,47:172000,48:216800,49:267200,50:323200},
+    gardener: {2:8000,3:12200,4:17800,5:24800,6:33200,7:43000,8:54200,9:66800,10:80800,
+             11:10000,12:16000,13:24400,14:35600,15:49600,16:66400,17:86000,18:108400,19:133600,20:161600,
+             21:15000,22:24000,23:36600,24:53400,25:74400,26:99600,27:129000,28:162600,29:200400,30:242400,
+             31:17500,32:28000,33:42700,34:62300,35:86800,36:116200,37:150500,38:189700,39:233800,40:282800,
+             41:20000,42:32000,43:48800,44:71200,45:99200,46:132800,47:172000,48:216800,49:267200,50:323200},
+    welter: {2:8000,3:12200,4:17800,5:24800,6:33200,7:43000,8:54200,9:66800,10:80800,
+             11:10000,12:16000,13:24400,14:35600,15:49600,16:66400,17:86000,18:108400,19:133600,20:161600,
+             21:15000,22:24000,23:36600,24:53400,25:74400,26:99600,27:129000,28:162600,29:200400,30:242400,
+             31:17500,32:28000,33:42700,34:62300,35:86800,36:116200,37:150500,38:189700,39:233800,40:282800,
+             41:20000,42:32000,43:48800,44:71200,45:99200,46:132800,47:172000,48:216800,49:267200,50:323200},
   };
   // Secret Special Cats only show up in cat-selection lists (Upgrade, Equip) once found via
   // their own unlock condition - everything else in CATS has always just been freely available.
+  // Rare Cats (rarity:"rare") aren't freely available like Normal/Special Cats - they only
+  // show up here (Upgrade/Equip) once actually pulled from the Rare Cat Capsule at least
+  // once (see unlockRareCat/resolveRareReveal below).
+  function catOwned(c) {
+    return c.rarity !== "rare" || !!(profile.ownedRareCats && profile.ownedRareCats[c.id]);
+  }
   function visibleCats() {
     return CATS.filter(c => {
+      if (!catOwned(c)) return false;
       if (c.id === "flower") return profile.flowerCatUnlocked;
       if (c.id === "capsule") return profile.capsuleCatUnlocked;
       if (c.id === "masked") return profile.maskedCatUnlocked;
@@ -2080,6 +2157,26 @@
       "Hearing her prince got kidnapped by terrorists, joined the Green Berets to save him. Strong vs Floating, might survive a lethal strike.",
       "Putting her life on the line to tell the truth of the Great Cat War. Journalistic integrity causes huge area dmg vs Floating, might survive once.",
     ],
+    psycho: [
+      "Bends metal when excited. Loves cereal, but always ends up with a useless spoon before he can eat. Sometimes slows Alien movement.",
+      "His happiness opens up extradimensional portals. Don't accept his invitation to play catch-ball. Sometimes slows Alien movement.",
+      "All will be consumed by the portals he creates. Soon he himself will be sucked into the dark realms. Sometimes slows Alien movement.",
+    ],
+    onmyoji: [
+      "Exorcist who time travelled from the past. Always trying to purge sportscars of evil. Sometimes weakens non-Metal enemies.",
+      "Magical Girl by Alien contract - the shiny staff came as a signing bonus. Sometimes weakens non-Metal enemies.",
+      "The contract has been fulfilled. Ultimate power is within her grasp. But now she just works as a theme park villain. 100% weakens non-Metal.",
+    ],
+    gardener: [
+      "Bought lovely bonsai shears by mail-order. Now there are no more branches left in reach by the Cat Base. Might freeze Zombies.",
+      "Kept this key weapon in an anti-Zombie kit, instead of doing something useless like cutting down trees. Might freeze Zombies.",
+      "Ordered a fierce-looking trimmer online. He's never actually used this tool to cut plants. Might freeze Zombies for a bit longer.",
+    ],
+    welter: [
+      "Successor to a legendary Japanese boxer. Looks the part, but he's always KO'ed in the 2nd round. Might knockback Zombies.",
+      "Unorthodox technique, sure, but this afro'd hero always gets up before the 10-count. Might knockback Zombies.",
+      "Had a near death experience trying to lose weight for the next bout, then revived after absorbing ghostly energy. Might knockback Zombies.",
+    ],
   };
   function catDescriptionAt(c, tier) {
     const arr = CAT_DESCRIPTIONS[c.id];
@@ -2117,6 +2214,9 @@
     rareTickets: 3,   // Rare Cat Capsule currency - separate from `tickets`, same "no earn mechanism yet" treatment
     rareBanners: null, // lazily initialized by ensureRareBanners(): [{name, startTs}, ...] x3
     storage: [],      // capsule rewards banked via "OK", each {type:"cat", id} or {type:"orb"}
+    ownedRareCats: {}, // {[catId]: true} - which Rare Cats have actually been pulled at least
+                        // once from the Rare Cat Capsule (see catOwned/unlockRareCat). Starts
+                        // empty: Rare Cats are NOT available by default, unlike Normal/Special.
     testMode: false,  // when on, XP/tickets are kept topped up so testers never run dry
     nextDailyRewardTs: 0, // 0 = already available; based on real Date.now(), survives tab/computer closing
     language: "English",
@@ -2199,6 +2299,15 @@
       profile.pendingDailyItem = saved.pendingDailyItem;
     }
     if (saved.gamatoto) Object.assign(profile.gamatoto, saved.gamatoto);
+    if (saved.ownedRareCats) Object.assign(profile.ownedRareCats, saved.ownedRareCats);
+    // Old saves (from before Rare Cats required a capsule pull) may have a Rare Cat sitting in
+    // an equip slot despite ownedRareCats never having been earned for it - clear those slots
+    // rather than leave an inaccessible cat stuck equipped.
+    profile.equip = profile.equip.map(id => {
+      if (!id) return id;
+      const c = CATS.find(x => x.id === id);
+      return c && !catOwned(c) ? null : id;
+    });
   }
 
   // Same level-10-until-Chapter-2 rule as CAT_LEVEL_MAX above, applies to all base upgrades.
@@ -2375,10 +2484,15 @@
     const mult = catLevelMult(lvl + plus);
     const hp = Math.round(form.hp * mult);
     G.units.push({
-      def: { ...form, dmg: Math.round(form.dmg * mult) }, team: "player",
+      def: {
+        ...form, dmg: Math.round(form.dmg * mult),
+        multiHit: form.multiHit ? form.multiHit.map(h => ({ t: h.t, dmg: Math.round(h.dmg * mult) })) : undefined,
+      },
+      team: "player",
       x: P_BASE_X - 10,
       hp, max: hp,
-      swing: -1, swung: false, flash: 0, w: 30, kbCount: 0, frozenUntil: 0, slowedUntil: 0,
+      swing: -1, swung: false, multiHitIdx: 0, flash: 0, w: 30, kbCount: 0,
+      frozenUntil: 0, slowedUntil: 0, weakenedUntil: 0,
     });
   }
 
@@ -2397,7 +2511,8 @@
       def: e, team: "enemy",
       x: E_BASE_X + 10,
       hp: e.hp, max: e.hp,
-      swing: -1, swung: false, flash: 0, w: e.w, kbCount: 0, frozenUntil: 0, slowedUntil: 0,
+      swing: -1, swung: false, multiHitIdx: 0, flash: 0, w: e.w, kbCount: 0,
+      frozenUntil: 0, slowedUntil: 0, weakenedUntil: 0,
     });
   }
 
@@ -3704,8 +3819,9 @@
   };
   const CAPSULE_POOL = [
     // Special Cats (currently just Flower Cat) aren't in the normal Capsule pool - they're only
-    // obtainable through their own dedicated secret/unlock.
-    ...CATS.filter(c => c.rarity !== "special").map(c => ({ type: "cat", id: c.id })),
+    // obtainable through their own dedicated secret/unlock. Rare Cats aren't in it either -
+    // they're only obtainable through the Rare Cat Capsule below (see RARE_CAT_POOL).
+    ...CATS.filter(c => c.rarity !== "special" && c.rarity !== "rare").map(c => ({ type: "cat", id: c.id })),
     ...Object.keys(ORB_INFO).map(key => ({ type: "orb", key })),
   ];
 
@@ -3895,6 +4011,18 @@
     return { type: "placeholder", tier };
   }
 
+  // First-time pull of a Rare Cat unlocks it straight into the Equip/Upgrade menus instead of
+  // going through the Use Now/Change to XP/OK choice - there's no level to bump yet, it just
+  // becomes obtainable. Only a REPEAT pull of a Rare Cat already in ownedRareCats behaves like
+  // a normal capsule reward (Use Now = +1 bonus level, per the user's ask). Checked live at
+  // reveal time (not roll time) so two copies of the same new cat in one multi-pull correctly
+  // treat the first as "new" and the second as a real duplicate.
+  function unlockRareCat(id) {
+    profile.ownedRareCats = profile.ownedRareCats || {};
+    profile.ownedRareCats[id] = true;
+    profile.userRank = (profile.userRank || 0) + 1; // matches applyRewardUseNow's rank bump
+    saveProfile();
+  }
   function showNextRareReveal() {
     if (rarePullQueue.length === 0) { renderRareCapsuleScreen(); return; }
     const reward = rarePullQueue[0];
@@ -3902,6 +4030,14 @@
       rareRevealIcon.textContent = "❓";
       rareRevealName.textContent = `You got a ${RARE_TIER_LABELS[reward.tier]}!`;
       rareRevealDesc.textContent = "Units coming soon!";
+      rareRevealUseBtn.classList.add("hidden");
+      rareRevealXpBtn.classList.add("hidden");
+    } else if (!catOwned(CATS.find(c => c.id === reward.id))) {
+      unlockRareCat(reward.id);
+      reward._newUnlock = true;
+      rareRevealIcon.textContent = rewardEmoji(reward);
+      rareRevealName.textContent = "New Unit!";
+      rareRevealDesc.textContent = `${rewardName(reward)} added to your Equip and Upgrade menus.`;
       rareRevealUseBtn.classList.add("hidden");
       rareRevealXpBtn.classList.add("hidden");
     } else {
@@ -3915,7 +4051,7 @@
   }
   function resolveRareReveal(action) {
     const reward = rarePullQueue.shift();
-    if (reward.type !== "placeholder") {
+    if (reward.type !== "placeholder" && !reward._newUnlock) {
       if (action === "use") applyRewardUseNow(reward);
       else if (action === "xp") applyRewardToXp(reward);
       else if (action === "ok") { profile.storage.push(reward); saveProfile(); }
@@ -4124,7 +4260,11 @@
     return list;
   }
 
-  function damageAmount(attacker, defender) {
+  // "Weaken" (def.weaken) halves the AFFECTED unit's own outgoing damage for its duration -
+  // unlike every other trait ability here, it modifies the attacker's side of damageAmount,
+  // not the defender's, since it's a status on whoever GOT hit, changing what THEY deal next.
+  const WEAKEN_MULT = 0.5;
+  function damageAmount(attacker, defender, dmgOverride) {
     // "Strong Against" trait: 1.5x damage dealt to that trait, 0.5x damage taken from it.
     // "Massive Damage" (def.massiveAgainst) is a separate, stronger ability - a flat 3x dealt,
     // with no matching damage-taken discount - and stacks multiplicatively with Strong Against
@@ -4132,7 +4272,9 @@
     // "Resistant" (def.resistantAgainst) is purely defensive, unlike Strong Against - only 1/4
     // damage taken from that trait, with no matching attack-damage bonus (Rocker Cat's family:
     // Resistant to Angel, no bonus damage dealt to them).
-    let dmg = attacker.def.dmg;
+    // dmgOverride: for multi-hit attackers (def.multiHit), each sub-hit carries its own damage
+    // instead of using attacker.def.dmg - see the multi-hit branch in the combat loop below.
+    let dmg = dmgOverride !== undefined ? dmgOverride : attacker.def.dmg;
     const atkStrong = attacker.def.strongAgainst || [];
     const atkMassive = attacker.def.massiveAgainst || [];
     const defStrong = (defender.def && defender.def.strongAgainst) || [];
@@ -4142,6 +4284,7 @@
     if (defTrait && atkMassive.includes(defTrait)) dmg *= 3;
     if (defStrong.includes(attacker.def.trait)) dmg *= 0.5;
     if (defResistant.includes(attacker.def.trait)) dmg *= 0.25;
+    if (attacker.weakenedUntil > G.time) dmg *= WEAKEN_MULT;
     return dmg;
   }
 
@@ -4187,6 +4330,17 @@
     if (!sl || !defender.def || defender.def.trait !== sl.trait) return;
     if (Math.random() >= sl.chance) return;
     defender.slowedUntil = Math.max(defender.slowedUntil || 0, G.time + (sl.duration || SLOW_DURATION));
+  }
+
+  // Weaken: an attacker with a def.weaken ({traits, chance, duration}) has a chance, on each
+  // hit against a defender whose trait is in that list, to halve THAT DEFENDER'S OWN outgoing
+  // damage for the duration (see the weakenedUntil check in damageAmount) - Onmyoji Cat
+  // family's ability (50% vs all non-Metal traits, 100% on Thaumaturge Cat's True Form).
+  function applyWeakenProc(attacker, defender) {
+    const wk = attacker.def.weaken;
+    if (!wk || !defender.def || !wk.traits.includes(defender.def.trait)) return;
+    if (Math.random() >= wk.chance) return;
+    defender.weakenedUntil = Math.max(defender.weakenedUntil || 0, G.time + wk.duration);
   }
 
   // Critical hit: an attacker with a def.crit ({chance, mult}) has a chance for a landed hit to
@@ -4289,25 +4443,43 @@
       const targets = targetsInRange(u);
 
       if (targets.length > 0) {
-        if (u.swing < 0) { u.swing = 0; u.swung = false; }
+        if (u.swing < 0) { u.swing = 0; u.swung = false; u.multiHitIdx = 0; }
         u.swing += dt;
-        if (!u.swung && u.swing >= u.def.fore) {
-          u.swung = true;
-          const hits = u.def.tgt === "area"
-            ? targets
-            : [targets.reduce((a, b) => Math.abs(a.x - u.x) <= Math.abs(b.x - u.x) ? a : b)];
-          for (const t of hits) {
-            let dmg = damageAmount(u, t);
-            if (rollCrit(u)) { dmg *= u.def.crit.mult; playClang(); }
-            t.hp -= dmg;
-            t.doubleMoneyKill = !!u.def.doubleMoney; // Thief Cat family: doubles the drop if this hit kills t
-            applySurviveProc(t);
-            t.flash = 0.12;
-            applyKnockback(t);
-            applyFreezeProc(u, t);
-            applySlowProc(u, t);
-            applyKnockbackProc(u, t);
+        const pickHits = () => u.def.tgt === "area"
+          ? targets
+          : [targets.reduce((a, b) => Math.abs(a.x - u.x) <= Math.abs(b.x - u.x) ? a : b)];
+        const landHit = (t, dmgOverride) => {
+          let dmg = damageAmount(u, t, dmgOverride);
+          if (rollCrit(u)) { dmg *= u.def.crit.mult; playClang(); }
+          t.hp -= dmg;
+          t.doubleMoneyKill = !!u.def.doubleMoney; // Thief Cat family: doubles the drop if this hit kills t
+          applySurviveProc(t);
+          t.flash = 0.12;
+          applyKnockback(t);
+          applyFreezeProc(u, t);
+          applySlowProc(u, t);
+          applyWeakenProc(u, t);
+          applyKnockbackProc(u, t);
+        };
+        if (u.def.multiHit) {
+          // Welterweight Cat family's MULTI-HIT: several separate hits land at their own
+          // timestamps within one attack cycle (each with its own damage), instead of the
+          // usual single hit at u.def.fore - see multiHitIdx tracking which sub-hits already
+          // fired this cycle. u.def.fore is set to the LAST sub-hit's timestamp so the overall
+          // wind-up animation (elsewhere keyed off u.swing/u.def.fore) still spans the full
+          // multi-hit sequence.
+          while (u.multiHitIdx < u.def.multiHit.length && u.swing >= u.def.multiHit[u.multiHitIdx].t) {
+            const hit = u.def.multiHit[u.multiHitIdx];
+            u.multiHitIdx++;
+            const hits = pickHits();
+            for (const t of hits) landHit(t, hit.dmg);
+            G.fx.push({ x: (u.x + hits[0].x) / 2, y: 0, life: 0.25, t: u.team });
           }
+          if (u.multiHitIdx >= u.def.multiHit.length) u.swung = true;
+        } else if (!u.swung && u.swing >= u.def.fore) {
+          u.swung = true;
+          const hits = pickHits();
+          for (const t of hits) landHit(t);
           G.fx.push({ x: (u.x + hits[0].x) / 2, y: 0, life: 0.25, t: u.team });
         }
         if (u.swing >= u.def.cycle) u.swing = -1;
@@ -7149,6 +7321,299 @@
     return grid;
   }
 
+  // Psychocat: spiky grey hair, a thin collar band, a bent spoon held up beside the head.
+  function buildSpikyHairOnto(grid, color) {
+    for (let i = 0; i < 6; i++) {
+      const x = 8 + i * 4;
+      pxTriangleV(grid, x, -4 - (i % 3) * 3, 8, 2.2, color);
+    }
+    pxOutline(grid, "K");
+  }
+  function buildPsychoCatGrid() {
+    const grid = makePxGrid();
+    pxOctagonBody(grid, 8.5, 28.5, 8, 27.3, 6.3, 5, "W");
+    pxOutline(grid, "K");
+    buildSpikyHairOnto(grid, "G");
+    pxFace(grid, 0);
+    pxRect(grid, 9, 24, 27, 26, "S");
+    pxOutline(grid, "K");
+    pxLegs(grid, 0);
+    pxThickLine(grid, 31, 30, 32, 13, 1.6, "S");
+    pxOutline(grid, "K");
+    pxEllipse(grid, 32.5, 11, 2.6, 3.2, "S");
+    pxOutline(grid, "K");
+    return grid;
+  }
+  // Neo Psychocat / Corrupted Psychocat: a big jagged white mane over a dark cloak (the cloak
+  // is the standard W body with a K rect recolor below the mouth, matching how Commando Cat's
+  // camo gear recolors the body rather than replacing it).
+  function buildBigManeOnto(grid, color) {
+    for (let i = 0; i < 6; i++) {
+      const x = 6 + i * 4.8;
+      pxTriangleV(grid, x, -8 - (i % 2) * 5, 9, 4, color);
+    }
+    pxOutline(grid, "K");
+  }
+  function buildCloakOnto(grid) {
+    pxRect(grid, 4, 23, 32, 30, "K");
+    pxOutline(grid, "K");
+  }
+  function buildNeoPsychocatGrid() {
+    const grid = makePxGrid();
+    pxOctagonBody(grid, 8.5, 28.5, 8, 27.3, 6.3, 5, "W");
+    pxOutline(grid, "K");
+    buildBigManeOnto(grid, "W");
+    pxFace(grid, 0);
+    buildCloakOnto(grid);
+    pxLegs(grid, 0);
+    // small pink portal/flower beside the body
+    pxEllipse(grid, 4, 20, 3.4, 3.4, "M");
+    pxEllipse(grid, 4, 20, 1.4, 1.4, "W");
+    pxOutline(grid, "K");
+    return grid;
+  }
+  function buildCorruptedPsychocatGrid() {
+    const grid = makePxGrid();
+    pxOctagonBody(grid, 8.5, 28.5, 8, 27.3, 6.3, 5, "W");
+    pxOutline(grid, "K");
+    buildBigManeOnto(grid, "W");
+    pxFace(grid, 0);
+    buildCloakOnto(grid);
+    pxLegs(grid, 0);
+    // headphone-like ear pieces
+    pxEllipse(grid, 7, 12, 1.8, 2.4, "V");
+    pxEllipse(grid, 29, 12, 1.8, 2.4, "V");
+    pxOutline(grid, "K");
+    // purple spiral portal beside the body
+    pxEllipse(grid, 4, 20, 4.4, 4.4, "V");
+    pxEllipse(grid, 5, 19, 2.4, 2.4, "K");
+    pxEllipse(grid, 5, 19, 1, 1, "V");
+    pxOutline(grid, "K");
+    return grid;
+  }
+
+  // Onmyoji Cat: a tall dark hood, a cloth sash, a paper talisman held to the side.
+  function buildTallHoodOnto(grid) {
+    pxTaper(grid, 18, -6, 2, 18, 9, 16, "K");
+    pxOutline(grid, "K");
+  }
+  function buildTalismanOnto(grid) {
+    pxRect(grid, 30, 16, 33, 24, "S");
+    pxOutline(grid, "K");
+    pxLine(grid, 31, 18, 32, 18, "R");
+    pxLine(grid, 31, 21, 32, 21, "R");
+  }
+  function buildOnmyojiCatGrid() {
+    const grid = makePxGrid();
+    pxOctagonBody(grid, 8.5, 28.5, 8, 27.3, 6.3, 5, "W");
+    pxOutline(grid, "K");
+    buildTallHoodOnto(grid);
+    pxFace(grid, 0);
+    pxRect(grid, 9, 24, 27, 26, "S");
+    pxOutline(grid, "K");
+    pxLegs(grid, 0);
+    buildTalismanOnto(grid);
+    return grid;
+  }
+  // Magica Cat: fluffy hair, a heart-topped staff with a tiny cat-face medallion.
+  function buildFluffyHairOnto(grid) {
+    pxTaper(grid, 10, 1, 6, 6, 13, 9, "S");
+    pxTaper(grid, 26, 1, 6, 30, 13, 9, "S");
+    pxTaper(grid, 18, -3, 8, 18, 10, 12, "S");
+    pxOutline(grid, "K");
+  }
+  function buildHeartStaffOnto(grid) {
+    pxThickLine(grid, 32, 32, 32, 10, 1.4, "S");
+    pxOutline(grid, "K");
+    pxEllipse(grid, 30.5, 7, 1.8, 1.8, "M");
+    pxEllipse(grid, 33, 7, 1.8, 1.8, "M");
+    pxTriangleV(grid, 32, 10.5, 8, 3, "M");
+    pxOutline(grid, "K");
+    pxEllipse(grid, 32, 8, 1, 1, "W");
+    pxOutline(grid, "K");
+  }
+  function buildMagicaCatGrid() {
+    const grid = makePxGrid();
+    pxOctagonBody(grid, 8.5, 28.5, 8, 27.3, 6.3, 5, "W");
+    pxOutline(grid, "K");
+    buildFluffyHairOnto(grid);
+    pxFace(grid, 0);
+    pxLegs(grid, 0);
+    buildHeartStaffOnto(grid);
+    return grid;
+  }
+  // Thaumaturge Cat: black bat-ear hood, a zigzag hem trim, an eye-in-a-star staff.
+  function buildBatEarHoodOnto(grid) {
+    pxTriangle(grid, 8, 0, 12, 7, "K");
+    pxTriangle(grid, 28, 0, 12, 7, "K");
+    pxOutline(grid, "K");
+  }
+  function buildZigzagTrimOnto(grid) {
+    for (let i = 0; i < 5; i++) {
+      const x = 9 + i * 4;
+      pxTriangle(grid, x, 26, 29, 2, "S");
+    }
+    pxOutline(grid, "K");
+  }
+  function buildEyeStarStaffOnto(grid) {
+    pxThickLine(grid, 32, 32, 32, 14, 1.4, "S");
+    pxOutline(grid, "K");
+    pxTriangle(grid, 32, 6, 12, 5, "S");
+    pxTriangleV(grid, 32, 18, 12, 5, "S");
+    pxOutline(grid, "K");
+    pxEllipse(grid, 32, 12, 2.2, 2.2, "K");
+    pxEllipse(grid, 32, 12, 1, 1, "W");
+    pxOutline(grid, "K");
+  }
+  function buildThaumaturgeCatGrid() {
+    const grid = makePxGrid();
+    pxOctagonBody(grid, 8.5, 28.5, 8, 27.3, 6.3, 5, "W");
+    pxOutline(grid, "K");
+    buildBatEarHoodOnto(grid);
+    pxFace(grid, 0);
+    buildZigzagTrimOnto(grid);
+    pxLegs(grid, 0);
+    buildEyeStarStaffOnto(grid);
+    return grid;
+  }
+
+  // Gardener Cat: a knotted bandana, big hedge shears held forward.
+  function buildBandanaKnotOnto(grid) {
+    pxRect(grid, 9, 4, 27, 7, "S");
+    pxOutline(grid, "K");
+    pxTaper(grid, 27, 5, 3, 33, 2, 1, "S");
+    pxOutline(grid, "K");
+  }
+  function buildShearsOnto(grid) {
+    // both blades held out to the right, away from the face (x13-23) - an earlier version had
+    // one blade sweep across to (8,8), which cut straight through the mouth.
+    pxTaper(grid, 30, 30, 4, 33, 6, 1, "S");
+    pxTaper(grid, 30, 30, 4, 34, 14, 1, "S");
+    pxOutline(grid, "K");
+    pxEllipse(grid, 30, 29, 2.4, 2.4, "K");
+    pxOutline(grid, "K");
+  }
+  function buildGardenerCatGrid() {
+    const grid = makePxGrid();
+    pxOctagonBody(grid, 8.5, 28.5, 8, 27.3, 6.3, 5, "W");
+    pxOutline(grid, "K");
+    buildBandanaKnotOnto(grid);
+    pxFace(grid, 0);
+    pxLegs(grid, 0);
+    buildShearsOnto(grid);
+    return grid;
+  }
+  // Lumbercat: a hardhat, a chainsaw with a spiked bar and a small motor housing.
+  function buildHardhatOnto(grid) {
+    pxEllipse(grid, 18, 3, 9, 4, "O");
+    pxOutline(grid, "K");
+    pxRect(grid, 9, 5, 27, 6, "O");
+    pxOutline(grid, "K");
+  }
+  function buildChainsawOnto(grid) {
+    pxRect(grid, 6, 23, 30, 27, "G");
+    pxOutline(grid, "K");
+    for (let i = 0; i < 8; i++) {
+      const x = 7 + i * 3;
+      pxTriangleV(grid, x, 27, 30, 1.4, "S");
+    }
+    pxOutline(grid, "K");
+    pxRect(grid, 26, 20, 33, 28, "K");
+    pxOutline(grid, "K");
+  }
+  function buildLumbercatGrid() {
+    const grid = makePxGrid();
+    pxOctagonBody(grid, 8.5, 28.5, 8, 27.3, 6.3, 5, "W");
+    pxOutline(grid, "K");
+    buildHardhatOnto(grid);
+    pxFace(grid, 0);
+    pxLegs(grid, 0);
+    buildChainsawOnto(grid);
+    return grid;
+  }
+  // Weedwacker Cat: a wide cloth hood, a long-handled tool with a big spiked saw wheel.
+  function buildWideHoodOnto(grid) {
+    pxEllipse(grid, 18, 3, 11, 6, "S");
+    pxOutline(grid, "K");
+  }
+  function buildWeedwackerToolOnto(grid) {
+    pxThickLine(grid, 26, 26, 5, 19, 1.8, "G");
+    pxOutline(grid, "K");
+    // motor box kept clear of the face (x13-23) - an earlier version at x18-26 swallowed the
+    // right eye and most of the mouth.
+    pxRect(grid, 25, 17, 33, 22, "K");
+    pxOutline(grid, "K");
+    pxEllipse(grid, 4, 19, 5.5, 5.5, "G");
+    pxOutline(grid, "K");
+    [0, 45, 90, 135, 180, 225, 270, 315].forEach(deg => {
+      const rad = deg * Math.PI / 180;
+      const tx = 4 + Math.cos(rad) * 5.5, ty = 19 + Math.sin(rad) * 5.5;
+      pxEllipse(grid, tx, ty, 1.3, 1.3, "S");
+    });
+    pxOutline(grid, "K");
+  }
+  function buildWeedwackerCatGrid() {
+    const grid = makePxGrid();
+    pxOctagonBody(grid, 8.5, 28.5, 8, 27.3, 6.3, 5, "W");
+    pxOutline(grid, "K");
+    buildWideHoodOnto(grid);
+    pxFace(grid, 0);
+    pxLegs(grid, 0);
+    buildWeedwackerToolOnto(grid);
+    return grid;
+  }
+
+  // Welterweight Cat / Heavyweight Cat: spiky hair or an afro, boxing gloves at both sides.
+  function buildSpikyBlackHairOnto(grid) {
+    for (let i = 0; i < 5; i++) {
+      const x = 9 + i * 4.5;
+      pxTriangleV(grid, x, -5 - (i % 2) * 4, 7, 2.4, "K");
+    }
+    pxOutline(grid, "K");
+  }
+  function buildBoxingGlovesOnto(grid, size, color) {
+    pxEllipse(grid, 4, 26, size, size, color);
+    pxEllipse(grid, 32, 26, size, size, color);
+    pxOutline(grid, "K");
+  }
+  function buildWelterweightCatGrid() {
+    const grid = makePxGrid();
+    pxOctagonBody(grid, 8.5, 28.5, 8, 27.3, 6.3, 5, "W");
+    pxOutline(grid, "K");
+    buildSpikyBlackHairOnto(grid);
+    pxFace(grid, 0);
+    pxLegs(grid, 0);
+    buildBoxingGlovesOnto(grid, 4, "G");
+    return grid;
+  }
+  function buildAfroOnto(grid) {
+    pxEllipse(grid, 18, 4, 12, 7, "K");
+    pxOutline(grid, "K");
+  }
+  function buildHeavyweightCatGrid() {
+    const grid = makePxGrid();
+    pxOctagonBody(grid, 8.5, 28.5, 8, 27.3, 6.3, 5, "W");
+    pxOutline(grid, "K");
+    buildAfroOnto(grid);
+    pxFace(grid, 0);
+    pxLegs(grid, 0);
+    buildBoxingGlovesOnto(grid, 5, "G");
+    return grid;
+  }
+  // Ectoweight Cat: flame-white hair, dark gloves, a ghostly teal aura ring drawn as one more
+  // outline pass in "N" just outside everything else's normal "K" outline.
+  function buildEctoweightCatGrid() {
+    const grid = makePxGrid();
+    pxOctagonBody(grid, 8.5, 28.5, 8, 27.3, 6.3, 5, "W");
+    pxOutline(grid, "K");
+    buildBigManeOnto(grid, "W");
+    pxFace(grid, 0);
+    pxLegs(grid, 0);
+    buildBoxingGlovesOnto(grid, 5, "K");
+    pxOutline(grid, "N");
+    return grid;
+  }
+
   // heightScale: per-sprite vertical stretch, anchored at the ground, so different units can
   // be taller/shorter than the base Cat without redesigning their whole coordinate grid - the
   // "scaling tool" for keeping cats' relative sizes right when reference art has no scale bar.
@@ -7261,6 +7726,18 @@
     merCat: { grid: buildMerCatGrid() },
     commandoCat: { grid: buildCommandoCatGrid() },
     cameramanCat: { grid: buildCameramanCatGrid() },
+    psychoCat: { grid: buildPsychoCatGrid() },
+    neoPsychocat: { grid: buildNeoPsychocatGrid() },
+    corruptedPsychocat: { grid: buildCorruptedPsychocatGrid() },
+    onmyojiCat: { grid: buildOnmyojiCatGrid() },
+    magicaCat: { grid: buildMagicaCatGrid() },
+    thaumaturgeCat: { grid: buildThaumaturgeCatGrid() },
+    gardenerCat: { grid: buildGardenerCatGrid() },
+    lumbercat: { grid: buildLumbercatGrid() },
+    weedwackerCat: { grid: buildWeedwackerCatGrid() },
+    welterweightCat: { grid: buildWelterweightCatGrid() },
+    heavyweightCat: { grid: buildHeavyweightCatGrid() },
+    ectoweightCat: { grid: buildEctoweightCatGrid() },
   };
 
   // Renders a pixel-sprite grid onto a small standalone <canvas> icon (its own context, not
