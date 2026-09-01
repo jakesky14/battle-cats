@@ -4711,6 +4711,12 @@
   const PX_PALETTE = { W: "#ffffff", K: "#20201c", G: "#b0b0b0", S: "#d8d8de", M: "#ff2ee0", Y: "#e8c34a", O: "#e8791f", R: "#e0392b", L: "#8bc34a", B: "#4a9fe0", P: "#ffb3c8", N: "#33e07a", V: "#8a3fd8" };
 
   function makePxGrid() { return Array.from({ length: PXH }, () => Array(PXW).fill(null)); }
+  // Builds a grid directly from an array of PXH strings (each PXW chars, "." = empty) - used
+  // for the Cat family below, which is sampled pixel-for-pixel from the user's own reference
+  // art rather than composed from primitive shape calls, for exact fidelity.
+  function gridFromRows(rows) {
+    return rows.map(row => row.split("").map(c => c === "." ? null : c));
+  }
 
   function pxEllipse(grid, cx, cy, rx, ry, color) {
     for (let y = 0; y < PXH; y++) {
@@ -4862,61 +4868,146 @@
     pxLine(grid, 25.5 + dx, 31.5, 25.5 + dx, 35.5, "K");
   }
 
-  // Cat/Macho Cat/Mohawk Cat family - redrawn to match the user's own reference art: small
-  // triangular foot notches along the bottom edge instead of the usual stick-leg pair, and (on
-  // Macho Cat/Mohawk Cat) a pair of curled/flexed arms instead of no arms at all.
-  function buildCatFeetOnto(grid, dx) {
-    dx = dx || 0;
-    [11, 14.5, 18, 21.5, 25].forEach(x => pxTriangleV(grid, x + dx, 29, 27.3, 1, "K"));
-  }
+  // Cat/Macho Cat/Mohawk Cat family - sampled pixel-for-pixel from the user's own reference art
+  // (round chibi body, small notched feet, curled arms on Macho/Mohawk, an angled mohawk wedge
+  // on Mohawk Cat) rather than composed from primitive shape calls, for exact fidelity. Each
+  // row string is exactly PXW (36) chars, "." = empty; extracted by cropping/scaling the source
+  // artwork and reading its pixels directly rather than hand-tracing coordinates. (An earlier
+  // pass here mistakenly sampled a different, long-legged reference image - this is the
+  // corrected round-body one, confirmed against the user's re-sent reference.)
   function buildCatGrid() {
-    const grid = makePxGrid();
-    pxOctagonBody(grid, 8.5, 28.5, 5.2, 27.3, 6.3, 6.3, "W");
-    pxTriangle(grid, 5.4, 2, 9.4, 1.1, "W");
-    pxTriangle(grid, 30.6, 2, 9.4, 1.1, "W");
-    pxOutline(grid, "K");
-    pxFace(grid, 0, true);
-    buildCatFeetOnto(grid, 0);
-    return grid;
-  }
-
-  function buildDualArmsOnto(grid) {
-    // curled/flexed arms, per reference: right arm reaches out from the shoulder and hooks
-    // down, left arm hangs lower and hooks in the same way, mirrored.
-    pxThickLine(grid, 27, 18, 32, 21, 2.6, "W");
-    pxThickLine(grid, 32, 21, 31, 25, 2.4, "W");
-    pxEllipse(grid, 32, 22.5, 1.6, 1.8, "W");
-    pxThickLine(grid, 9, 20, 4, 23, 2.6, "W");
-    pxThickLine(grid, 4, 23, 5, 27, 2.4, "W");
-    pxEllipse(grid, 4, 24.5, 1.6, 1.8, "W");
+    return gridFromRows([
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "........K.................K.........",
+      "........KK...............KK.........",
+      "........KK...............KK.........",
+      "........KWKK...........KKWK.........",
+      "........KWWWK.........KWWWK.........",
+      "........KKKKKKKKKKKKKKKKKKK.........",
+      "........KWWWWWWWWWWWWWWWWWK.........",
+      "........KWWWWWWWWWWWWWWWWWK.........",
+      "......KKWWWWWWWWWWWWWWWWWWWKK.......",
+      ".....KWWWWWWWKWWWWWWWKWWWWWWWK......",
+      ".....KWWWWWWWWWWWWWWWWWWWWWWWK......",
+      ".....KWWWWWWWWWWWWWWWWWWWWWWWK......",
+      ".....KWWWWWWWWWWKWKWWWWWWWWWWK......",
+      ".....KWWWWWWWKWWWKWWWKWWWWWWWK......",
+      ".....KWWWWWWWWKKKWKKKWWWWWWWWK......",
+      ".....KWWWWWWWWKKKWKKKWWWWWWWWK......",
+      ".....KWWWWWWWWWWKWKWWWWWWWWWWK......",
+      ".....KWWWWWWWWWWWKWWWWWWWWWWWK......",
+      ".....KWWWWWWWWWWWWWWWWWWWWWWWK......",
+      "......KKWWWWWWWWWWWWWWWWWWWKK.......",
+      "......KKWWWWWWWWWWWWWWWWWWWKK.......",
+      "........KWWWWWWWWWWWWWWWWWK.........",
+      ".........KKKKKKKKKKKKKKKKK..........",
+      ".........KWWKWKK...KKWKWWK..........",
+      ".........KWWKWKK...KKWKWWK..........",
+      "..........KK.K.......K.KK...........",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+    ]);
   }
 
   function buildMachoGrid() {
-    const grid = makePxGrid();
-    pxOctagonBody(grid, 11, 25, 5.2, 27.3, 3.5, 6.3, "W");
-    pxTriangle(grid, 8, 2, 9.4, 1.1, "W");
-    pxTriangle(grid, 28, 2, 9.4, 1.1, "W");
-    buildDualArmsOnto(grid);
-    pxOutline(grid, "K");
-    pxFace(grid, 0, true);
-    buildCatFeetOnto(grid, 0);
-    return grid;
+    return gridFromRows([
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      ".....K.................K............",
+      ".....KKK..............KK............",
+      ".....KKK..............KK............",
+      ".....KWWK............KWK............",
+      ".....KWWWK.........KKWWK............",
+      ".....KKKKKKKKKKKKKKKKKKK............",
+      ".....KWWWWWWWWWWWWWWWWWK............",
+      ".....KWWWWWWWWWWWWWWWWWK............",
+      "....KWWWWWWWWWWWWWWWWWWWKK..........",
+      ".KKKWWWWWWKKWWWWWWKWWWWWWWKK........",
+      "KWKKWWWWWWWWWWWWWWWWWWWWWWWWKK......",
+      "KWKKWWWWWWWWWWWWWWWWWWWWWWWWKK......",
+      "KWKKWWWWWWWWWKWKKWWWWWWKWWWWWWK.....",
+      ".KKKWWWWWWKKWWKWWWKWWWWWKKKWWWWK....",
+      "..KKWWWWWWWWKKWKKKWWWWWWWWKKWWWWKK..",
+      "..KKWWWWWWWWKKWKKKWWWWWWWWKKWWWWKK..",
+      "..KKWWWWWWWWWKWKKWWWWWWWWWK.KKWWKK..",
+      "..KKWWWWWWWWWWKWWWWWWWWWWWK.KKWWKK..",
+      "KKKKWWWWWWWWWWWWWWWWWWWWWWKKWWWWKK..",
+      "KWWWKWWWWWWWWWWWWWWWWWWWKK.KWWWWKK..",
+      "KWWWKWWWWWWWWWWWWWWWWWWWKK.KWWWWKK..",
+      "WWKK.KWWWWWWWWWWWWWWWWWK....KKKK....",
+      "KK....KKKKKKKKKKKKKKKKK.............",
+      "......KKWKWWK....KWKKWK.............",
+      "......KKWKWWK....KWKKWK.............",
+      "........K.KK......K..K..............",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+    ]);
   }
 
   function buildMohawkGrid() {
-    const grid = makePxGrid();
-    pxOctagonBody(grid, 11, 25, 5.2, 27.3, 3.5, 6.3, "W");
-    pxTriangle(grid, 8, 2, 9.4, 1.1, "W");
-    pxTriangle(grid, 28, 2, 9.4, 1.1, "W");
-    buildDualArmsOnto(grid);
-    // mohawk: a solid black wedge between the ears, narrow at the top-left, widening down to
-    // the right ear - matching the asymmetric flag/fin shape in the reference (not a spiky
-    // strip down the center).
-    pxTaper(grid, 16, 0, 2, 22, 8, 8, "K");
-    pxOutline(grid, "K");
-    pxFace(grid, 0, true);
-    buildCatFeetOnto(grid, 0);
-    return grid;
+    return gridFromRows([
+      "...............KKKKK................",
+      "...............KKKKKK...............",
+      "...............KKKKKK...............",
+      "...............KKKKKKKK.............",
+      "...............KKKKKKKKK............",
+      "........K......KKKKKKKKKK..K........",
+      "........KKK....KKKKKKKKKKKKK........",
+      "........KKK....KKKKKKKKKKKKK........",
+      "........KWWK...KKKKKKKKKKWWK........",
+      "........KWWWK..KKKKKKKKKWWWK........",
+      "........KKKKKKKKKKKKKKKKKKKKK.......",
+      "........KKKKKKKKKKKKKKKKKKKKK.......",
+      "........KWWWWWWKKKKKWWWWWWWKK.......",
+      ".......KWWWWWWWWWWWWWWWWWWWWK.......",
+      "....KKKWWWWWWKKWWWWWWKKWWWWWWKKK....",
+      "....KKKWWWWWWKKWWWWWWKKWWWWWWKKK....",
+      "...KWWKWWWWWWWWWWWWWWWWWWWWWWWWWK...",
+      "...KWWKWWWWWWWWWKWWKWWWWWWWKWWWWWK..",
+      "....KKKWWWWWWKKWWKKWWKKWWWWWKKWWWWKK",
+      "......KWWWWWWWWKKWWKKWWWWWWWWKKKWWWW",
+      "......KWWWWWWWWKKWWKKWWWWWWWWKKKWWWW",
+      "......KWWWWWWWWWKWWKWWWWWWWWWK..KWWW",
+      "KKK...KWWWWWWWWWWKKWWWWWWWWWWK..KWWW",
+      "WWWKKKKWWWWWWWWWWWWWWWWWWWWWWKKKWWWW",
+      "WWWKKKKWWWWWWWWWWWWWWWWWWWWWWKKKWWWW",
+      "WWWKWWWKWWWWWWWWWWWWWWWWWWWWK.KKWWWW",
+      "WWWWWWK.KWWWWWWWWWWWWWWWWWWK....KKKK",
+      "KKKKKK...KKKKKKKKKKKKKKKKKK.........",
+      ".........KKWKWWK....KWWKWKK.........",
+      ".........KKWKWWK....KWWKWKK.........",
+      "...........K.KK......KK.K...........",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+    ]);
   }
 
   // Tank Cat family: a narrow rectangular body instead of the round/octagon Cat body, sharing
@@ -8169,7 +8260,7 @@
   // rose, armor) are the point - unlike Titan/Luchador's tall-humanoid case above, cropping
   // these to just the head/face would hide exactly what makes each form distinct, so they're
   // exempted from the auto height-crop below despite naturally being tall.
-  const FULL_BODY_CROP = new Set(["salonCat", "parisCat", "cyborgCat", "dreadPirateCatley", "sanzoCat", "catEastwood", "rodeoCat", "stiltsCat", "totemCat", "acrobatCats", "planeCat", "robocat"]);
+  const FULL_BODY_CROP = new Set(["salonCat", "parisCat", "cyborgCat", "dreadPirateCatley", "sanzoCat", "catEastwood", "rodeoCat", "stiltsCat", "totemCat", "acrobatCats", "planeCat", "robocat", "cat", "machoCat", "mohawkCat"]);
   // Like renderSpriteIcon, but crops to the sprite's actual silhouette (no dead space around a
   // small unit) and, for sprites much taller than wide (Titan/Luchador-style humanoids, the
   // boxy vending machines) or forced above, crops further to just the head/upper-body - or, for
