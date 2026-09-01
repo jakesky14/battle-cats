@@ -533,6 +533,10 @@
     position: absolute; bottom: 16px; right: 16px;
     display: flex; flex-direction: column; align-items: flex-end; gap: 12px;
   }
+  .battle-menu-stage-name {
+    background: rgba(0,0,0,.55); color: #ffd35a; border: 2px solid #ffd35a;
+    border-radius: 8px; padding: 6px 16px; font-weight: 900; font-size: 18px; letter-spacing: 1px;
+  }
   .battle-menu-actions { display: flex; align-items: center; gap: 10px; }
   .leadership-btn {
     background: linear-gradient(180deg,#ff5a5a,#b32020); color: #fff;
@@ -550,6 +554,7 @@
     border: none; border-radius: 14px; padding: 18px 36px; font-weight: 900; font-size: 20px; cursor: pointer;
     box-shadow: 0 6px 0 rgba(0,0,0,.3);
   }
+  .attack-btn:disabled { filter: grayscale(.6) brightness(.7); cursor: not-allowed; }
   .battle-menu-items {
     display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
     width: 340px;
@@ -1022,6 +1027,7 @@
   <div class="map-marker"></div>
   <button class="back-corner-btn" id="battleMenuBackBtn">◀ Back</button>
   <div class="battle-menu-panel">
+    <div class="battle-menu-stage-name" id="battleMenuStageName">KOREA</div>
     <div class="battle-menu-status-row">
       <div class="energy-display">⚡ Energy: <span id="energyAmt">100</span> / <span id="energyMax">100</span></div>
       <button class="leadership-btn" id="leadershipBtn">🚩 Leadership <span id="leadershipCount">0</span></button>
@@ -1213,7 +1219,6 @@
   const P_BASE_X = FIELD - 40;         // player base position (right side)
   const E_BASE_X = 40;                 // enemy base position (left side)
   const PLAYER_BASE_HP = 4000;
-  const ENEMY_BASE_HP  = 12000;
 
   // Language selection is fully wired (persisted, selectable), but only these headline labels are
   // actually translated as a demonstration - translating every screen in the game is a much bigger,
@@ -1541,13 +1546,34 @@
   // Enemy roster.
   // drop = ¢ money awarded to the player when this enemy is killed (Accountant boosts this).
   const ENEMIES = {
-    doge:   { name:"Doge",   emoji:"🐶", hp:130,  dmg:16,  range:42, cycle:1.0, fore:0.2,  tgt:"single", speed:30, trait:"Traitless", color:"#e8e0d0", w:26, drop:10 },
+    doge:   { name:"Doge",   emoji:"🐶", hp:90,   dmg:8,   range:44, cycle:1.57,fore:0.60, tgt:"single", speed:30, kb:3, trait:"Traitless", color:"#e8e0d0", w:26, drop:10 },
     those:  { name:"Snake",  emoji:"🐍", hp:90,   dmg:22,  range:40, cycle:0.8, fore:0.15, tgt:"single", speed:52, trait:"Red",       color:"#a0d060", w:24, drop:8 },
     snache: { name:"Snache", emoji:"👺", hp:280,  dmg:32,  range:46, cycle:1.2, fore:0.25, tgt:"single", speed:36, trait:"Traitless", color:"#ff9a8a", w:30, drop:20 },
     pigge:  { name:"Pigge",  emoji:"🐷", hp:420,  dmg:64,  range:50, cycle:1.3, fore:0.3,  tgt:"single", speed:42, trait:"Red",       color:"#ffb3c8", w:32, drop:30 },
     hippoe: { name:"Hippoe", emoji:"🦛", hp:950,  dmg:44,  range:46, cycle:1.6, fore:0.35, tgt:"single", speed:24, trait:"Traitless", color:"#9aa8c0", w:40, drop:60 },
     boss:   { name:"Teacher Bun", emoji:"👿", hp:4500, dmg:170, range:60, cycle:2.0, fore:0.4, tgt:"single", speed:20, trait:"Traitless", color:"#c04040", w:54, drop:250 },
   };
+
+  // ---------------------------------------------------------------------------
+  // Stages: real named levels, replacing the old escalating-endless-sandbox battle
+  // (pickEnemyType/ENEMY_BASE_HP/bossSpawned - since removed). Each stage picks its own
+  // enemy pool, enemy base HP, energy cost, and spawn schedule instead of one fixed
+  // generic fight. Only one exists so far (KOREA); battleMenuAttackBtn always launches
+  // STAGES[0] until a real stage-select screen exists for picking among more than one.
+  //
+  // spawn: { first: seconds until the very first spawn (0 = immediately), pauseUntil: no
+  // further spawns happen before this time mark even if the first spawn landed earlier,
+  // minInterval/maxInterval: random delay range between each spawn after that pause ends.
+  // maxOnField: a hard cap on live (non-base) enemy units at once - a spawn due while at the
+  // cap is deferred and retried every frame until room opens, then fires immediately. }
+  const STAGES = [
+    {
+      id: "korea", name: "KOREA", energyCost: 5, enemyBaseHp: 500,
+      enemyPool: ["doge"], maxOnField: 3,
+      spawn: { first: 0, pauseUntil: 20, minInterval: 6, maxInterval: 10 },
+    },
+  ];
+  const currentStage = STAGES[0];
 
   const WORKER_MAX = 8;
   // Worker Cat Rate (meta upgrade) raises the base ¢/sec rate; in-battle level still adds +5%/level on top.
@@ -2458,11 +2484,12 @@
       sniperTimer: 0,
       units: [],            // player + enemy units
       pBase: { x:P_BASE_X, hp:pHp, max:pHp, team:"player", isBase:true },
-      eBase: { x:E_BASE_X, hp:ENEMY_BASE_HP, max:ENEMY_BASE_HP, team:"enemy", isBase:true },
+      eBase: { x:E_BASE_X, hp:currentStage.enemyBaseHp, max:currentStage.enemyBaseHp, team:"enemy", isBase:true },
       cooldowns: roster.map(() => 0),
       cooldownMax: roster.map(() => 1), // avoids divide-by-zero before any deploy; overwritten on first deploy
-      spawnTimer: 3,
-      bossSpawned: false,
+      stage: currentStage,
+      nextSpawnAt: currentStage.spawn.first,
+      stageInitialSpawned: false,
       fx: [],               // floating hit sparks
       deployCount: 0,       // total deploy() calls this battle - Capsule Cat's solo-clear unlock check
     };
@@ -2612,29 +2639,9 @@
     G.cannonGauge = 0;
   }
 
-  function pickEnemyType() {
-    const t = G.time;
-    const roll = Math.random();
-    if (t < 25) return roll < 0.6 ? "doge" : "those";
-    if (t < 55) {
-      if (roll < 0.4) return "doge";
-      if (roll < 0.7) return "those";
-      if (roll < 0.92) return "snache";
-      return "pigge";
-    }
-    if (t < 95) {
-      if (roll < 0.25) return "those";
-      if (roll < 0.5) return "snache";
-      if (roll < 0.75) return "pigge";
-      if (roll < 0.92) return "hippoe";
-      return "boss";
-    }
-    // late game
-    if (roll < 0.2) return "snache";
-    if (roll < 0.45) return "pigge";
-    if (roll < 0.7) return "hippoe";
-    if (roll < 0.85) return "those";
-    return "boss";
+  function pickStageEnemyType() {
+    const pool = G.stage.enemyPool;
+    return pool[Math.floor(Math.random() * pool.length)];
   }
 
   workerBtn.addEventListener("click", upgradeWorker);
@@ -2680,7 +2687,8 @@
   const rankAlertDotEl = document.getElementById("rankAlertDot");
   const catFoodAmtEl = document.getElementById("catFoodAmt");
   const mainXpAmtEl = document.getElementById("mainXpAmt");
-  const ENERGY_PER_BATTLE = 10;
+  // Energy cost is per-stage now (currentStage.energyCost) - was a flat 10 for every battle
+  // back when there was only the one generic endless sandbox fight.
 
   // Daily reward: gated on real Date.now() timestamps stored in the saved profile, so it works
   // correctly no matter how long the tab/computer was closed - nothing here depends on the page
@@ -3340,6 +3348,8 @@
     return info.name;
   }
   const battleMenuItemsEl = document.getElementById("battleMenuItems");
+  const battleMenuStageNameEl = document.getElementById("battleMenuStageName");
+  const battleMenuAttackBtn = document.getElementById("battleMenuAttackBtn");
   const leadershipBtn = document.getElementById("leadershipBtn");
   const leadershipCountEl = document.getElementById("leadershipCount");
 
@@ -3361,6 +3371,9 @@
     regenEnergy();
     energyAmtEl.textContent = Math.floor(profile.energy);
     energyMaxEl.textContent = energyMax();
+    battleMenuStageNameEl.textContent = currentStage.name;
+    battleMenuAttackBtn.textContent = `ATTACK (${currentStage.energyCost}⚡)`;
+    battleMenuAttackBtn.disabled = profile.energy < currentStage.energyCost;
     renderLeadershipBtn();
     battleMenuItemsEl.innerHTML = "";
     Object.keys(ITEM_INFO).forEach(key => {
@@ -3400,15 +3413,15 @@
     renderEquipScreen();
     showScreen(equipScreen);
   });
-  document.getElementById("battleMenuAttackBtn").addEventListener("click", () => {
+  battleMenuAttackBtn.addEventListener("click", () => {
     regenEnergy();
-    if (profile.energy < ENERGY_PER_BATTLE) return;
+    if (profile.energy < currentStage.energyCost) return;
 
     // Golden Cat CPU: skip the battle entirely and instantly grant this stage's clear
     // rewards - only reachable (see goldenCpuEligible) on a stage already cleared for real,
     // and capped at profile.goldenCpuUsesLeft uses total (normal Cat CPU has no such cap).
     if (selectedBattleItems.catCPU === 2 && goldenCpuEligible()) {
-      profile.energy -= ENERGY_PER_BATTLE;
+      profile.energy -= currentStage.energyCost;
       profile.items.catCPU -= 2;
       profile.goldenCpuUsesLeft--;
       let mult = winXpMult();
@@ -3427,14 +3440,14 @@
       newGame();
       G.over = true;
       ovTitle.textContent = "⚡ Golden Cat CPU";
-      ovText.textContent = `Auto-cleared the stage without a fight. +${xpGained} XP, +${CAT_FOOD_PER_WIN} Cat Food. Golden Cat CPU uses left: ${profile.goldenCpuUsesLeft}.`;
+      ovText.textContent = `Auto-cleared ${currentStage.name} without a fight. +${xpGained} XP, +${CAT_FOOD_PER_WIN} Cat Food. Golden Cat CPU uses left: ${profile.goldenCpuUsesLeft}.`;
       ovBtn.classList.add("hidden");
       ovMenuBtn.classList.remove("hidden");
       overlay.classList.remove("hidden");
       return;
     }
 
-    profile.energy -= ENERGY_PER_BATTLE;
+    profile.energy -= currentStage.energyCost;
     pendingActiveItems = {};
     pendingSpeedUpBoosted = selectedBattleItems.speedUp === 2;
     Object.keys(selectedBattleItems).forEach(key => {
@@ -4335,8 +4348,8 @@
     saveProfile();
     ovTitle.textContent = won ? "🎉 Victory!" : "💀 Defeat";
     ovText.textContent = won
-      ? `You crushed the enemy base in ${G.time.toFixed(0)}s. Well fought, general! +${xpGained} XP, +${CAT_FOOD_PER_WIN} Cat Food` + capsuleUnlockMsg
-      : "Your base was destroyed. Regroup and try again — deploy meatshields, then push with damage cats.";
+      ? `${G.stage.name} cleared in ${G.time.toFixed(0)}s! Well fought, general! +${xpGained} XP, +${CAT_FOOD_PER_WIN} Cat Food` + capsuleUnlockMsg
+      : `Your base was destroyed on ${G.stage.name}. Regroup and try again — deploy meatshields, then push with damage cats.`;
     ovBtn.classList.add("hidden"); // "Play Again" removed - Main Menu is the only action here
     ovMenuBtn.classList.remove("hidden");
     overlay.classList.remove("hidden");
@@ -4534,18 +4547,21 @@
       }
     }
 
-    // Enemy spawning
-    G.spawnTimer -= dt;
-    if (G.spawnTimer <= 0) {
-      spawnEnemy(pickEnemyType());
-      const interval = Math.max(1.4, 5.5 - G.time / 28);
-      G.spawnTimer = interval * (0.7 + Math.random() * 0.6);
-    }
-    // one-time boss surge when enemy base is hurt
-    if (!G.bossSpawned && G.eBase.hp < G.eBase.max * 0.5) {
-      G.bossSpawned = true;
-      spawnEnemy("boss");
-      spawnEnemy("hippoe");
+    // Enemy spawning: stage-driven (see STAGES/currentStage.spawn) - a spawn due while the
+    // field is already at stage.maxOnField is deferred and retried every frame until room
+    // opens, rather than being skipped outright.
+    if (G.time >= G.nextSpawnAt) {
+      const aliveEnemies = G.units.filter(u => u.team === "enemy" && u.hp > 0 && !u.isBase).length;
+      if (aliveEnemies < G.stage.maxOnField) {
+        spawnEnemy(pickStageEnemyType());
+        if (!G.stageInitialSpawned) {
+          G.stageInitialSpawned = true;
+          G.nextSpawnAt = G.stage.spawn.pauseUntil;
+        } else {
+          const { minInterval, maxInterval } = G.stage.spawn;
+          G.nextSpawnAt = G.time + minInterval + Math.random() * (maxInterval - minInterval);
+        }
+      }
     }
 
     // Units: movement + combat
@@ -4822,12 +4838,10 @@
     dx = dx || 0;
     pxRect(grid, 13 + dx, 13, 15 + dx, 15, "K"); // left eye
     pxRect(grid, 21 + dx, 13, 23 + dx, 15, "K"); // right eye
-    // nose: a small bump connecting the tops of the mouth's two humps, sitting in the tight
-    // 1-row gap between the eyes (which end at y15) and the humps themselves (y16.5) - closes
-    // what used to be an open notch at the top of the "w" into a proper nose.
-    pxLine(grid, 14 + dx, 16.5, 15 + dx, 16, "K");
-    pxLine(grid, 15 + dx, 16, 21 + dx, 16, "K");
-    pxLine(grid, 21 + dx, 16, 22 + dx, 16.5, "K");
+    // nose: a small V (not a flat line) between the eyes, apex pointing down to meet the top
+    // of the "w" mouth right below it.
+    pxLine(grid, 15 + dx, 15, 18 + dx, 16.5, "K");
+    pxLine(grid, 18 + dx, 16.5, 21 + dx, 15, "K");
     pxLine(grid, 14 + dx, 16.5, 16 + dx, 18.5, "K"); // "w" mouth
     pxLine(grid, 16 + dx, 18.5, 18 + dx, 16.8, "K");
     pxLine(grid, 18 + dx, 16.8, 20 + dx, 18.5, "K");
