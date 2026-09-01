@@ -5010,58 +5010,142 @@
     ]);
   }
 
-  // Tank Cat family: a narrow rectangular body instead of the round/octagon Cat body, sharing
-  // the same face/leg design. Wall Cat adds a side panel; Eraser Cat splits the body into a
-  // head half and an eraser-box-styled lower half (gray strips flanking a labeled center strip).
+  // Tank Cat family - sampled pixel-for-pixel from the user's own reference art (same method
+  // as the Cat family above): a narrow tower-like body, Wall Cat adding a thin side panel,
+  // Eraser Cat adding grey side stripes down the lower half.
   function buildTankGrid() {
-    const grid = makePxGrid();
-    pxRect(grid, 11.5, 8, 24.5, 32, "W");
-    pxTriangle(grid, 11.5, 5, 9.4, 1.1, "W");
-    pxTriangle(grid, 24.5, 5, 9.4, 1.1, "W");
-    pxOutline(grid, "K");
-    pxFace(grid, 0);
-    pxLegs(grid, 0);
-    return grid;
+    return gridFromRows([
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "............K...........K...........",
+      "............KK.........KK...........",
+      "............KWK.......KWK...........",
+      "............KWWK.....KWWK...........",
+      "............KKKKKKKKKKKKK...........",
+      "............KWWWWWWWWWWWK...........",
+      "...........KWWWWWWWWWWWWWK..........",
+      "...........KWWWKWWWWWKWWWK..........",
+      "...........KWWWWWWWWWWWWWK..........",
+      "...........KWWWWWKWKWWWWWK..........",
+      "...........KWWWKWWKWWKWWWK..........",
+      "...........KWWWWKKWKKWWWWK..........",
+      "...........KWWWWWKWWKWWWWK..........",
+      "...........KWWWWKWWWKWWWWK..........",
+      "...........KWWWWKKKKKWWWWK..........",
+      "...........KWWWWWWWWWWWWWK..........",
+      "...........KWWWWWWWWWWWWWK..........",
+      "...........KWWWWWWWWWWWWWK..........",
+      "...........KWWWWWWWWWWWWWK..........",
+      "...........KWWWWWWWWWWWWWK..........",
+      "...........KWWWWWWWWWWWWWK..........",
+      "...........KWWWWWWWWWWWWWK..........",
+      "...........KWWWWWWWWWWWWWK..........",
+      "...........KWWWWWWWWWWWWWK..........",
+      "...........KWWWWWWWWWWWWWK..........",
+      "...........KWWWWWWWWWWWWWK..........",
+      "...........KWWWWWWWWWWWWWK..........",
+      "...........KWWWWWWWWWWWWWK..........",
+      "...........KWWWWWWWWWWWWWK..........",
+      "............KWWWWWWWWWWWK...........",
+      "............KKKKKKKKKKKKK...........",
+      "............KWKWK...KWKWK...........",
+      ".............K.K.....K.K............",
+      "....................................",
+      "....................................",
+      "....................................",
+    ]);
   }
 
   function buildWallGrid() {
-    const grid = makePxGrid();
-    pxRect(grid, 11.5, 8, 24.5, 32, "W");
-    pxTriangle(grid, 11.5, 5, 9.4, 1.1, "W");
-    pxTriangle(grid, 24.5, 5, 9.4, 1.1, "W");
-    pxRect(grid, 25, 8, 29, 32, "W"); // side panel
-    pxOutline(grid, "K");
-    pxLine(grid, 25, 8, 25, 32, "K"); // panel divider
-    pxFace(grid, -1.5); // shift left since the panel widens the silhouette
-    pxLegs(grid, -1.5);
-    pxLine(grid, 27, 31.5, 27, 35.5, "K"); // extra foot under the panel
-    return grid;
+    return gridFromRows([
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      ".............K.......K..............",
+      "............KWK.....KWK.............",
+      "...........KWWWK...KWWWK............",
+      "..........KKKKKKKKKKKKKKKK..........",
+      "..........KWWWWWWWWWWWWWKWK.........",
+      "..........KWWWWWWWWWWWWWKWK.........",
+      "..........KWWWKWWWWWKWWWKWK.........",
+      "..........KWWWWWWWWWWWWWKWK.........",
+      "..........KWWWWWKWKWWWWWKWK.........",
+      "..........KWWWKWWKWWKWWWKWK.........",
+      "..........KWWWWKKWKKWWWWKWK.........",
+      "..........KWWWWWKWWKWWWWKWK.........",
+      "..........KWWWWKWWWKWWWWKWK.........",
+      "..........KWWWWKKKKKWWWWKWK.........",
+      "..........KWWWWWWWWWWWWWKWK.........",
+      "..........KWWWWWWWWWWWWWKWK.........",
+      "..........KWWWWWWWWWWWWWKWK.........",
+      "..........KWWWWWWWWWWWWWKWK.........",
+      "..........KWWWWWWWWWWWWWKWK.........",
+      "..........KWWWWWWWWWWWWWKWK.........",
+      "..........KWWWWWWWWWWWWWKWK.........",
+      "..........KWWWWWWWWWWWWWKWK.........",
+      "..........KWWWWWWWWWWWWWKWK.........",
+      "..........KWWWWWWWWWWWWWKWK.........",
+      "..........KWWWWWWWWWWWWWKWK.........",
+      "..........KWWWWWWWWWWWWWKWK.........",
+      "..........KWWWWWWWWWWWWWKWK.........",
+      "..........KWWWWWWWWWWWWWKWK.........",
+      "..........KWWWWWWWWWWWWWKWK.........",
+      "..........KKKKKKKKKKKKKKKKK.........",
+      "...........KWKWK.....KWKWK..........",
+      "............K.K.......K.K...........",
+      "....................................",
+      "....................................",
+      "....................................",
+    ]);
   }
 
   function buildEraserGrid() {
-    const grid = makePxGrid();
-    pxRect(grid, 11.5, 8, 24.5, 32, "W");
-    pxTriangle(grid, 11.5, 5, 9.4, 1.1, "W");
-    pxTriangle(grid, 24.5, 5, 9.4, 1.1, "W");
-    pxRect(grid, 25, 8, 29, 32, "W");
-    pxOutline(grid, "K");
-    pxLine(grid, 25, 8, 25, 32, "K");
-    pxFace(grid, -1.5);
-    pxLegs(grid, -1.5);
-    pxLine(grid, 27, 31.5, 27, 35.5, "K");
-    pxLine(grid, 11.5, 20, 29, 20, "K");
-    pxRect(grid, 12, 21, 14, 31, "G");
-    pxRect(grid, 22, 21, 24, 31, "G");
-    pxRect(grid, 26, 21, 28, 31, "G");
-    pxLine(grid, 15, 21, 15, 31, "K");
-    pxLine(grid, 21, 21, 21, 31, "K");
-    // small blocky text mark down the white center strip, evoking the "NEKO" eraser branding
-    pxRect(grid, 16, 22, 16, 24, "K"); pxRect(grid, 20, 22, 20, 24, "K"); pxLine(grid, 16, 22, 20, 24, "K");
-    pxRect(grid, 16, 25, 20, 25, "K"); pxRect(grid, 16, 26, 20, 26, "K");
-    pxLine(grid, 16, 27, 16, 29, "K"); pxLine(grid, 20, 27, 20, 29, "K");
-    pxLine(grid, 16, 28, 20, 27, "K"); pxLine(grid, 16, 28, 20, 29, "K");
-    pxRect(grid, 16, 30, 20, 30, "K"); pxRect(grid, 16, 31, 16, 31, "K"); pxRect(grid, 20, 31, 20, 31, "K");
-    return grid;
+    return gridFromRows([
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      ".............K.......K..............",
+      "............KWK.....KWK.............",
+      "...........KWWWK...KWWWK............",
+      "..........KKKKKKKKKKKKKKKK..........",
+      "..........KWWWWWWWWWWWWWKWK.........",
+      "..........KWWWWWWWWWWWWWKWK.........",
+      "..........KWWWKWWWWWKWWWKWK.........",
+      "..........KWWWWWWWWWWWWWKWK.........",
+      "..........KWWWWWKWKWWWWWKWK.........",
+      "..........KWWWKWWKWWKWWWKWK.........",
+      "..........KWWWWKKWKKWWWWKWK.........",
+      "..........KWWWWWKWWKWWWWKWK.........",
+      "..........KWWWWKWWWKWWWWKWK.........",
+      "..........KWWWWKKKKKWWWWKWK.........",
+      "..........KWWWWWWWWWWWWWKWK.........",
+      "..........KKKKKKKKKKKKKKKWK.........",
+      "..........KGGGKWWWWWKGGGKKK.........",
+      "..........KGGGKWKKKWKGGGKGK.........",
+      "..........KGGGKWWWKWKGGGKGK.........",
+      "..........KGGGKWWKWWKGGGKGK.........",
+      "..........KGGGKWKKKWKGGGKGK.........",
+      "..........KGGGKWKWKWKGGGKGK.........",
+      "..........KGGGKWWWWWKGGGKGK.........",
+      "..........KGGGKWKKKWKGGGKGK.........",
+      "..........KGGGKWWKWWKGGGKGK.........",
+      "..........KGGGKWKKKWKGGGKGK.........",
+      "..........KGGGKWKWKWKGGGKGK.........",
+      "..........KGGGKWKKKWKGGGKGK.........",
+      "..........KGGGKWWWWWKGGGKGK.........",
+      "..........KKKKKKKKKKKKKKKKK.........",
+      "...........KWKWK.....KWKWK..........",
+      "............K.K.......K.K...........",
+      "....................................",
+      "....................................",
+      "....................................",
+    ]);
   }
 
   // Shared round Cat-style body - EXACT same octagon dimensions as buildCatGrid, so Axe/
