@@ -4834,14 +4834,18 @@
   // top of a reference sketch the user drew (dx shifts the whole face for Macho/Mohawk, whose
   // body is shifted left to leave room for the raised arm). Mouth is a "w" over a "u", per the
   // sketch, not the nose+tongue tried in an earlier pass.
-  function pxFace(grid, dx) {
+  // noNose: skips the nose V below - only the Cat/Macho Cat/Mohawk Cat family opts out of it
+  // (per the user's own reference art for that family, which has no nose mark at all).
+  function pxFace(grid, dx, noNose) {
     dx = dx || 0;
     pxRect(grid, 13 + dx, 13, 15 + dx, 15, "K"); // left eye
     pxRect(grid, 21 + dx, 13, 23 + dx, 15, "K"); // right eye
-    // nose: a small V (not a flat line) between the eyes, apex pointing down to meet the top
-    // of the "w" mouth right below it.
-    pxLine(grid, 15 + dx, 15, 18 + dx, 16.5, "K");
-    pxLine(grid, 18 + dx, 16.5, 21 + dx, 15, "K");
+    if (!noNose) {
+      // nose: a small, narrow V between the eyes, apex pointing down to meet the top of the
+      // "w" mouth right below it.
+      pxLine(grid, 16 + dx, 15.3, 18 + dx, 16.5, "K");
+      pxLine(grid, 18 + dx, 16.5, 20 + dx, 15.3, "K");
+    }
     pxLine(grid, 14 + dx, 16.5, 16 + dx, 18.5, "K"); // "w" mouth
     pxLine(grid, 16 + dx, 18.5, 18 + dx, 16.8, "K");
     pxLine(grid, 18 + dx, 16.8, 20 + dx, 18.5, "K");
@@ -4858,31 +4862,33 @@
     pxLine(grid, 25.5 + dx, 31.5, 25.5 + dx, 35.5, "K");
   }
 
+  // Cat/Macho Cat/Mohawk Cat family - redrawn to match the user's own reference art: small
+  // triangular foot notches along the bottom edge instead of the usual stick-leg pair, and (on
+  // Macho Cat/Mohawk Cat) a pair of curled/flexed arms instead of no arms at all.
+  function buildCatFeetOnto(grid, dx) {
+    dx = dx || 0;
+    [11, 14.5, 18, 21.5, 25].forEach(x => pxTriangleV(grid, x + dx, 29, 27.3, 1, "K"));
+  }
   function buildCatGrid() {
     const grid = makePxGrid();
     pxOctagonBody(grid, 8.5, 28.5, 5.2, 27.3, 6.3, 6.3, "W");
     pxTriangle(grid, 5.4, 2, 9.4, 1.1, "W");
     pxTriangle(grid, 30.6, 2, 9.4, 1.1, "W");
     pxOutline(grid, "K");
-    pxFace(grid, 0);
-    pxLegs(grid, 0);
+    pxFace(grid, 0, true);
+    buildCatFeetOnto(grid, 0);
     return grid;
   }
 
   function buildDualArmsOnto(grid) {
-    // double-bicep pose, per reference: left arm curled up near the head, right arm
-    // extended out - shared by Macho Cat and Mohawk Cat
-    pxRect(grid, 3, 12, 5, 20, "W");
-    pxEllipse(grid, 4, 11, 2.3, 2.2, "W");
-    pxEllipse(grid, 2.5, 21.5, 2.4, 2.2, "W");
-    pxEllipse(grid, 31, 20, 3.2, 3, "W");
-    pxRect(grid, 32, 12, 34, 19, "W");
-    pxEllipse(grid, 33.5, 10.5, 2, 2, "W");
-  }
-  function armDetailOnto(grid) {
-    pxRect(grid, 3, 15, 5, 16, "K"); // left elbow crease
-    pxRect(grid, 32, 15, 34, 16, "K"); // right elbow crease
-    pxRect(grid, 33, 9, 34, 10, "K"); // right knuckle detail
+    // curled/flexed arms, per reference: right arm reaches out from the shoulder and hooks
+    // down, left arm hangs lower and hooks in the same way, mirrored.
+    pxThickLine(grid, 27, 18, 32, 21, 2.6, "W");
+    pxThickLine(grid, 32, 21, 31, 25, 2.4, "W");
+    pxEllipse(grid, 32, 22.5, 1.6, 1.8, "W");
+    pxThickLine(grid, 9, 20, 4, 23, 2.6, "W");
+    pxThickLine(grid, 4, 23, 5, 27, 2.4, "W");
+    pxEllipse(grid, 4, 24.5, 1.6, 1.8, "W");
   }
 
   function buildMachoGrid() {
@@ -4892,25 +4898,24 @@
     pxTriangle(grid, 28, 2, 9.4, 1.1, "W");
     buildDualArmsOnto(grid);
     pxOutline(grid, "K");
-    pxFace(grid, 0);
-    armDetailOnto(grid);
-    pxLegs(grid, 0);
+    pxFace(grid, 0, true);
+    buildCatFeetOnto(grid, 0);
     return grid;
   }
 
   function buildMohawkGrid() {
     const grid = makePxGrid();
     pxOctagonBody(grid, 11, 25, 5.2, 27.3, 3.5, 6.3, "W");
+    pxTriangle(grid, 8, 2, 9.4, 1.1, "W");
+    pxTriangle(grid, 28, 2, 9.4, 1.1, "W");
     buildDualArmsOnto(grid);
+    // mohawk: a solid black wedge between the ears, narrow at the top-left, widening down to
+    // the right ear - matching the asymmetric flag/fin shape in the reference (not a spiky
+    // strip down the center).
+    pxTaper(grid, 16, 0, 2, 22, 8, 8, "K");
     pxOutline(grid, "K");
-    // draped hood instead of a spiky mohawk, per reference: a black wedge over the head.
-    // Kept short (bottom well above y=13, the eye row) so it doesn't cover the face, and
-    // the drooping right-side tail was dropped - it looked better without it.
-    pxTriangle(grid, 14, 0, 6, 3, "K");
-    pxRect(grid, 14, 0, 24, 6, "K");
-    pxFace(grid, 0);
-    armDetailOnto(grid);
-    pxLegs(grid, 0);
+    pxFace(grid, 0, true);
+    buildCatFeetOnto(grid, 0);
     return grid;
   }
 
