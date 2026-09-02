@@ -5362,78 +5362,147 @@
   }
 
   // ---------------------------------------------------------------------------
-  // Gross Cat family: same round head atop increasingly leg-focused bodies (no torso between
-  // head and legs) - Gross Cat has 4 thin criss-crossing stick legs, Sexy Legs Cat has one
-  // long sleek tapered leg, Macho Leg Cat has two thick muscular bowed legs. Scaled up ~20%
-  // from an earlier pass per feedback, so this family reads at the same visual weight as the
-  // other full-body sprites.
-  function buildGrossHeadFace(grid, cx, cy, s) {
-    s = s || 1;
-    pxRect(grid, cx - 3 * s, cy - 1 * s, cx - 2 * s, cy, "K");
-    pxRect(grid, cx + 2 * s, cy - 1 * s, cx + 3 * s, cy, "K");
-    pxLine(grid, cx - 2 * s, cy + 2 * s, cx - 1 * s, cy + 3.5 * s, "K");
-    pxLine(grid, cx - 1 * s, cy + 3.5 * s, cx, cy + 2.7 * s, "K");
-    pxLine(grid, cx, cy + 2.7 * s, cx + 1 * s, cy + 3.5 * s, "K");
-    pxLine(grid, cx + 1 * s, cy + 3.5 * s, cx + 2 * s, cy + 2 * s, "K");
-    pxLine(grid, cx - 1 * s, cy + 4 * s, cx, cy + 6 * s, "K");
-    pxLine(grid, cx, cy + 6 * s, cx + 1 * s, cy + 4 * s, "K");
-  }
-
-  // Head size for this whole family now matches the base Cat's exactly (buildRoundBody is
-  // the same octagon buildCatGrid uses) - a previous pass used a smaller ellipse head, which
-  // read as noticeably smaller than a normal cat. Face features are scaled up (GROSS_FACE_S)
-  // to match, since they were sized for that smaller head. Since the bigger head now eats
-  // into the row budget the legs used to stretch into, legScale is bumped from 1.5 to 2.2 so
-  // the legs stay just as long as the last pass established, not shorter.
-  const GROSS_FACE_S = 1.7;
-  const GROSS_HEAD_CY = 16.25;
-
+  // Gross Cat family: exact pixel-sampled from the user's own reference art (Gross Cat,
+  // Sexy Legs Cat, Macho Leg Cat).
+  // ---------------------------------------------------------------------------
   function buildGrossGrid() {
-    const grid = makePxGrid();
-    buildRoundBody(grid);
-    pxThickLine(grid, 10, 27, 6, 39, 2.4, "W");
-    pxThickLine(grid, 15, 27, 15, 39, 2.4, "W");
-    pxThickLine(grid, 21, 27, 21, 39, 2.4, "W");
-    pxThickLine(grid, 26, 27, 30, 39, 2.4, "W");
-    pxOutline(grid, "K");
-    buildGrossHeadFace(grid, 18, GROSS_HEAD_CY, GROSS_FACE_S);
-    return grid;
+    return gridFromRows([
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "...........K.......K................",
+      "...........KK.....KK................",
+      "...........KWK....KW................",
+      "..........KKWKKKKKKKK...............",
+      ".........KWWWWWWWWWWWK..............",
+      ".........KWWWWWWWWWWWW..............",
+      ".........KWWWWWKWWWWWW..............",
+      ".........KWWWWKKKWWWWW..............",
+      ".........KWWWWWWWWWWWW..............",
+      ".........KWWWWWWWWWWWK..............",
+      "..........KWWWWWWKWWWK..............",
+      "...........KWW...KWKWK..............",
+      "...........KWW...KWKWK..............",
+      "...........KWK..KKWKKW..............",
+      "............KK..KWK.KW..............",
+      "............KK..KWK.KW..............",
+      "...........KKW..KWK.KWK.............",
+      "...........KWW..KWK..KK.............",
+      "...........KWW..KWK..KK.............",
+      "..........KKWWK.KWK..KK.............",
+      "..........KWKKWKKWK..KW.............",
+      "..........KWKKWKKWK..KW.............",
+      "..........KWK.KWKWK..KWKK...........",
+      "..........KWK..KKWK...KWW...........",
+      "..........KK...KKK....KKK...........",
+      "..........KK...KKK.....KW...........",
+      ".........KWK....KK.....KWK..........",
+      ".........KW....KWKK.....KK..........",
+      ".........KW....KWKWK....KW..........",
+      ".........KW....KW.KK.....K..........",
+      ".........KW....KW.KK.....K..........",
+      ".........KK....KK........K..........",
+      "...............K....................",
+      "....................................",
+      "....................................",
+      "....................................",
+    ]);
   }
 
   function buildSexyLegsGrid() {
-    const grid = makePxGrid();
-    buildRoundBody(grid);
-    pxTaper(grid, 18, 27, 9.5, 19, 35, 7, "W");
-    pxTaper(grid, 19, 35, 7, 19, 39, 3.4, "W");
-    pxEllipse(grid, 19, 39.3, 2.3, 1.1, "W");
-    pxOutline(grid, "K");
-    pxLine(grid, 19, 29, 19, 38, "K"); // center divider suggesting two legs pressed together
-    buildGrossHeadFace(grid, 18, GROSS_HEAD_CY, GROSS_FACE_S);
-    return grid;
+    return gridFromRows([
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      ".............K.......K..............",
+      ".............KK.....KK..............",
+      ".............KWK....KW..............",
+      "............KKWKKKKKKKK.............",
+      "...........KWWWWWWWWWWWK............",
+      "...........KWWWWWWWWWWWW............",
+      "...........KWWWWWKWWWWWW............",
+      "...........KWWWWKKKWWWWW............",
+      "...........KWWWWWWWWWWWW............",
+      "...........KWWWWWWWWWWWW............",
+      "............KWWWWWWKWWWW............",
+      ".............KWWWWWKWWWW............",
+      ".............KKWWWWKWWWK............",
+      "..............KWWWWWWWWK............",
+      "..............KWWWWWWWWK............",
+      "...............KWWWWWWWK............",
+      "...............KWWWWWWK.............",
+      "...............KWWWWWWK.............",
+      "...............KWWWWWWK.............",
+      "................KWWWWWK.............",
+      ".................KKWWW..............",
+      ".................KKWWW..............",
+      "..................KWWW..............",
+      ".................KKWWK..............",
+      ".................KWWWK..............",
+      ".................KWKWK..............",
+      ".................KWKWK..............",
+      ".................KWKWW..............",
+      "................KWK.KW..............",
+      "................KWK.KK..............",
+      "....................................",
+      "....................................",
+      "....................................",
+    ]);
   }
 
   function buildMachoLegGrid() {
-    const grid = makePxGrid();
-    buildRoundBody(grid);
-    // thighs pick up directly where the head's own body silhouette ends, no separate neck
-    // taper needed now that the head is full Cat-size (its own bottom curve already reads as
-    // the transition into the thighs)
-    pxEllipse(grid, 11.5, 27, 5.6, 5, "W");
-    pxEllipse(grid, 24.5, 27, 5.6, 5, "W");
-    pxRect(grid, 8, 27, 15, 37, "W");
-    pxRect(grid, 21, 27, 28, 37, "W");
-    pxEllipse(grid, 9.5, 39, 3.4, 1.4, "W");
-    pxEllipse(grid, 26.5, 39, 3.4, 1.4, "W");
-    pxOutline(grid, "K");
-    buildGrossHeadFace(grid, 18, GROSS_HEAD_CY, GROSS_FACE_S);
-    pxLine(grid, 9, 30, 14, 30, "K");
-    pxLine(grid, 22, 30, 27, 30, "K");
-    return grid;
+    return gridFromRows([
+      "....................................",
+      "....................................",
+      ".............K.......K..............",
+      ".............KK.....KK..............",
+      ".............KWK....KW..............",
+      "............KKWKKKKKKKK.............",
+      "...........KWWWWWWWWWWWK............",
+      "...........KWWWWWWWWWGWWK...........",
+      "...........KWWWWWKWWWWWGWK..........",
+      "...........KWWWWKKKWWWWWWWK.........",
+      "...........KWWWWWWWWWWWWWWK.........",
+      "...........KWWWWWWWWWWWWWWK.........",
+      "...........KWWWKWWWWKWWWWWW.........",
+      "..........KWWWWWGGWWKWWWKWW.........",
+      "..........KWWWWWWGWWWWWWWWW.........",
+      ".........KWWWWWWWGWWWWWWWKW.........",
+      ".........KWWWKWWWGWWWWWWKWW.........",
+      "........KWWWWKWWWKKWWWWWKWG.........",
+      "........KWWKWKWWK.KGWWWWKWG.........",
+      "........KWWKWWKWK...KWWWKWG.........",
+      "........KWWKWWGGK...KKGKWGK.........",
+      "........KWWWWWGK....KKKWWKK.........",
+      ".........KWWWGK......KGGWWK.........",
+      ".........KWWGGK......KGGWK..........",
+      "........KWKWKGK.......KKWWK.........",
+      ".........KWWWWKK.....KGWGKG.........",
+      ".........KWWWKWG.....KKWWWG.........",
+      ".........KWWWKWG.....KWWWWG.........",
+      "..........KWWWGK.....KWWWWG.........",
+      "...........KWWK......KWWWWG.........",
+      "............KWWK.....KKWKGK.........",
+      "............KWWK......KWKK..........",
+      ".............KWK......KWWK..........",
+      "............KKWW.....KWWK...........",
+      "............KWWK.....KWWK...........",
+      "..........KKWWK......KKWWK..........",
+      "...........KK........KKKKWK.........",
+      "....................................",
+      "....................................",
+      "....................................",
+    ]);
   }
 
   // ---------------------------------------------------------------------------
-  // Cow Cat family: running quadruped body, side view. All three share the same 4-legged
-  // galloping stance and horizontal oval body/tail; the head changes per evolution.
+  // Whale Cat still uses this shared quadruped-leg helper; Cow Cat family below is exact
+  // pixel-sampled from reference art and draws its own legs directly.
   // ---------------------------------------------------------------------------
   function pxQuadrupedLegs(grid, xOffsets) {
     const [fx1, fx2, bx1, bx2] = xOffsets;
@@ -5443,89 +5512,143 @@
     pxThickLine(grid, bx2, 25, bx2 + 2, 34, 2.2, "W");
   }
 
+  // ---------------------------------------------------------------------------
+  // Cow Cat family: exact pixel-sampled from the user's own reference art (Cow Cat, Giraffe
+  // Cat, Lion Cat).
+  // ---------------------------------------------------------------------------
   function buildCowGrid() {
-    const grid = makePxGrid();
-    // horizontal oval body, scaled up
-    pxEllipse(grid, 21, 21, 12, 9, "W");
-    // wide, blocky bovine head: rounder upper skull + a WIDE flat snout - deliberately
-    // distinct from Giraffe's narrow elongated face
-    pxEllipse(grid, 8, 9, 5.5, 5, "W");
-    pxEllipse(grid, 8, 18, 9, 6, "W");
-    pxRect(grid, 0, 18, 16, 26, "W"); // extended down so the mouth/chin sit on solid muzzle, not the pinched ellipse tip
-    pxThickLine(grid, 4, 3, 2, -1, 1.8, "K");
-    pxThickLine(grid, 12, 3, 14, -1, 1.8, "K");
-    pxThickLine(grid, 32, 19, 36, 10, 1.8, "W");
-    pxEllipse(grid, 36, 9, 2, 2, "K");
-    pxQuadrupedLegs(grid, [12, 19, 26, 31]);
-    pxOutline(grid, "K");
-    pxRect(grid, 5, 12, 6.5, 13.5, "K"); // eyes on the upper skull
-    pxRect(grid, 10, 12, 11.5, 13.5, "K");
-    // no separate snout/nose pad - just the mouth, like the base Cat's face - moved up
-    // closer to the eyes and enlarged per feedback, still clear of the y=25 front leg start
-    pxLine(grid, 4, 17.3, 6, 19.3, "K");
-    pxLine(grid, 6, 19.3, 8, 17.6, "K");
-    pxLine(grid, 8, 17.6, 10, 19.3, "K");
-    pxLine(grid, 10, 19.3, 12, 17.3, "K");
-    pxLine(grid, 6.5, 19.8, 8, 22.3, "K");
-    pxLine(grid, 8, 22.3, 9.5, 19.8, "K");
-    return grid;
+    return gridFromRows([
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      ".....K..........K...................",
+      "....KW.........KW...................",
+      "....KWK........KW...................",
+      ".....KWKKKKKKKKWK...................",
+      "......KKWWWWWKKK....................",
+      ".......KWWWWWW......................",
+      ".....KKKWWWWWWKK....................",
+      ".....KWWWWWWWWKK....................",
+      ".....KWWWWKKWWWWK...KKK.............",
+      ".....KWWWWWWKWWWWKKKWWWK............",
+      ".....KWWWWKKWWWWWWWWWWWWK...........",
+      ".....KWWWWWWWWWWWWWWWWWWKKKK.KK.....",
+      ".......KWWWWWWKWWWWWWWWWWKKWKKK.....",
+      "..........KWWWWWWWWWWWWWWK.KK.......",
+      "..........KWWWWWWWWWWWWWWK..........",
+      ".........KWKKWKWWWWWWWWWK...........",
+      ".........KWK.KKWKWWWWWWWKK..........",
+      ".........KWK.KWWWWWWWKWWWWKK........",
+      "..........KWKKWWKKKWWKWWWWKW........",
+      "..........KWKKWK..KKKKWWKWWK........",
+      "...........KKWK...........KWK.......",
+      "...........KWW.............K........",
+      "...........KWK......................",
+      "....................................",
+      "....................................",
+      "....................................",
+    ]);
   }
 
   function buildGiraffeGrid() {
-    const grid = makePxGrid();
-    pxEllipse(grid, 23, 23, 11, 8, "W");
-    // neck rises STRAIGHT UP (not diagonal) to a NARROW elongated head - deliberately
-    // distinct from Cow's wide blocky face
-    pxTaper(grid, 14, 17, 6.5, 14, 8, 4.5, "W");
-    pxEllipse(grid, 14, 5, 4.5, 6, "W");
-    pxEllipse(grid, 14, 11, 3, 2.6, "W");
-    // ossicones (small knobs) instead of horns
-    pxThickLine(grid, 11, 0.5, 11, -1.5, 1.4, "K");
-    pxEllipse(grid, 11, -2, 1.2, 1.2, "K");
-    pxThickLine(grid, 17, 0.5, 17, -1.5, 1.4, "K");
-    pxEllipse(grid, 17, -2, 1.2, 1.2, "K");
-    pxThickLine(grid, 33, 21, 36, 13, 1.6, "W");
-    pxEllipse(grid, 36, 12, 1.8, 1.8, "K");
-    pxQuadrupedLegs(grid, [15, 21, 27, 32]);
-    pxOutline(grid, "K");
-    pxRect(grid, 12.2, 3, 13.4, 4.2, "K"); // narrow-set eyes
-    pxRect(grid, 14.6, 3, 15.8, 4.2, "K");
-    // full "w" mouth + "u" chin, matching the standard cat face pattern, scaled to the muzzle
-    pxLine(grid, 12.3, 8.3, 13.3, 9.7, "K");
-    pxLine(grid, 13.3, 9.7, 14, 8.5, "K");
-    pxLine(grid, 14, 8.5, 14.7, 9.7, "K");
-    pxLine(grid, 14.7, 9.7, 15.7, 8.3, "K");
-    pxLine(grid, 13.4, 10.3, 14, 11.3, "K");
-    pxLine(grid, 14, 11.3, 14.6, 10.3, "K");
-    return grid;
+    return gridFromRows([
+      "....................................",
+      "....................................",
+      ".........KK..KK.....................",
+      ".........KK..KK.....................",
+      "......KK..K..K..KK..................",
+      "......KWK.K..K.KWK..................",
+      "......KWWKKKKKKWWK..................",
+      ".......KKWWWWWWK....................",
+      ".......KWWWWWWWK....................",
+      ".......KWWWWWWWW....................",
+      ".......KWWWWWWWW....................",
+      ".......KWWKKWWWW....................",
+      ".......KWWKKKWWW....................",
+      ".......KWWKKWWWW....................",
+      ".......KWWWWWWWK....................",
+      ".......KWWWWWWK.....................",
+      ".......KWWWWWWK.....................",
+      ".......KWWWWWK......................",
+      ".......KWWWWWK......................",
+      ".......KWWWWWK......................",
+      ".......KWWWWW.......................",
+      ".......KWWWWW.......................",
+      ".......KWWWWWKKKKKKKK...............",
+      "........KWWWWWWWWWWWWK..............",
+      "........KWWWWWWWWWWWWWKK...KK.......",
+      "........KWWWWWWWWWWWWWKWKKKWK.......",
+      "........KWWWWWWWWWWWWWWKKKW.........",
+      "........KWWWWWWWWWWWWWWK.KK.........",
+      ".......KWWWWKWWKWWWWWWK.............",
+      ".......KWWWWKWKWWWKWWWK.............",
+      ".......KWK.KWW...KWWWWKK............",
+      ".......KWW.KWK...KWWWWWWKK..........",
+      ".......KWWKKWK...KKWWWWWWW..........",
+      ".........KWWK.......KK.KWKK.........",
+      ".........KWK............KWK.........",
+      ".........KWK.............K..........",
+      ".........KK.........................",
+      "....................................",
+      "....................................",
+      "....................................",
+    ]);
   }
 
   function buildLionGrid() {
-    const grid = makePxGrid();
-    pxEllipse(grid, 21, 21, 12, 9, "W");
-    // shaggy mane: thin ring + small tuft spikes around the perimeter, not a solid disc
-    pxEllipse(grid, 8, 15, 8.5, 8, "K");
-    for (let i = 0; i < 16; i++) {
-      const ang = (i / 16) * Math.PI * 2;
-      const bx = 8 + Math.cos(ang) * 8, by = 15 + Math.sin(ang) * 7.6;
-      const tx = 8 + Math.cos(ang) * 10, ty = 15 + Math.sin(ang) * 9.6;
-      pxThickLine(grid, bx, by, tx, ty, 1.5, "K");
-    }
-    pxEllipse(grid, 8, 15, 6.7, 6.3, "W");
-    pxThickLine(grid, 32, 19, 36, 13, 1.8, "W");
-    pxEllipse(grid, 36, 12, 1.8, 2.2, "K");
-    pxQuadrupedLegs(grid, [12, 19, 26, 31]);
-    pxOutline(grid, "K");
-    pxRect(grid, 6, 13, 7.2, 14.2, "K");
-    pxRect(grid, 10.5, 13, 11.7, 14.2, "K");
-    // clear "w" mouth + "u" chin, matching the standard cat face pattern
-    pxLine(grid, 6.3, 16.5, 7.3, 18, "K");
-    pxLine(grid, 7.3, 18, 8, 16.8, "K");
-    pxLine(grid, 8, 16.8, 8.7, 18, "K");
-    pxLine(grid, 8.7, 18, 9.7, 16.5, "K");
-    pxLine(grid, 7.5, 19, 8, 20.5, "K");
-    pxLine(grid, 8, 20.5, 8.5, 19, "K");
-    return grid;
+    return gridFromRows([
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "........KK.KKKK.KKKK................",
+      ".......KKKKKWWKKWKWKK...............",
+      "......KWKKWWWWKKWWKKKK..............",
+      "......KKWKWKKWKKKWKWKWK.............",
+      ".....KWWKWWWWWWWWWWKWWK.............",
+      ".....KWWWWWWKWWWKWWWWWW.............",
+      ".....KKKKWWWWWWWWWWWKKK.............",
+      ".....KKKKWWWKWKWWWWWKKK.............",
+      "......KKKWWWWKWWWWWWKKK.............",
+      ".....KWWKWWWWWWWWWWWWWK.............",
+      ".....KWWWWWWWWWWWWWWWWW.............",
+      "......KKKKWWWWWWWWWKKKK.............",
+      "......KWKKKWWWKKWWWKKK..............",
+      "........KKKWWWKKWWWKK...............",
+      "........KKKWWWKKWKWK................",
+      "...........KWWWWWK..................",
+      "...........KWWWWWK..................",
+      "...........KWWWWWK..................",
+      "...........KWWWWWK..................",
+      "...........KWWWWWWKKKKKK..KKKKK.....",
+      "...........KWWWWWWWWWWWWKKWKKKK.....",
+      "...........KWWWWWWWWWWWWWW..........",
+      "...........KWWWWWWWWWWWWWWK.........",
+      "...........KWWWWWWWWWWWWWWK.........",
+      "...........KWWWKWWWWWWWWWWK.........",
+      "...........KWWWKWWWWWWWWWWK.........",
+      "..........KWWKWWWWWWWKWWWW.KK.......",
+      "........KKWWWKKWWKKKKKKWWWKWW.......",
+      "......KKWWKKKKWWW...KWWKWWWWWK......",
+      "......KWKKKKWWWWK.....KKKKKKWK......",
+      "......KKKKWWWWKK........KWKKWWK.....",
+      ".........KKK............KWK.KWW.....",
+      ".........KK..............KK.KWK.....",
+      "....................................",
+      "....................................",
+      "....................................",
+    ]);
   }
 
   // ---------------------------------------------------------------------------
@@ -8319,16 +8442,14 @@
     tank: { grid: buildTankGrid(), heightScale: 1.25 },
     wallCat: { grid: buildWallGrid(), heightScale: 1.35 },
     eraserCat: { grid: buildEraserGrid(), heightScale: 1.35 },
-    // legSplitRow 27 = the bottom of the head (now full Cat-size), so only the legs below it
-    // stretch - the head itself stays completely undistorted. legScale bumped to 2.2 (from
-    // 1.5) since the bigger head leaves less pre-stretch row budget for the legs than before;
-    // this keeps the legs about as long on screen as the previous pass established.
-    grossCat: { grid: buildGrossGrid(), legSplitRow: 27, legScale: 2.2 },
-    sexyLegsCat: { grid: buildSexyLegsGrid(), legSplitRow: 27, legScale: 2.2 },
-    machoLegCat: { grid: buildMachoLegGrid(), legSplitRow: 27, legScale: 2.2 },
-    cowCat: { grid: buildCowGrid(), heightScale: 1.05 },
-    giraffeCat: { grid: buildGiraffeGrid(), heightScale: 1.25 },
-    lionCat: { grid: buildLionGrid(), heightScale: 1.2 },
+    // Exact pixel-sampled from reference art - no heightScale/legScale stretch, every pixel
+    // the same physical size.
+    grossCat: { grid: buildGrossGrid() },
+    sexyLegsCat: { grid: buildSexyLegsGrid() },
+    machoLegCat: { grid: buildMachoLegGrid() },
+    cowCat: { grid: buildCowGrid() },
+    giraffeCat: { grid: buildGiraffeGrid() },
+    lionCat: { grid: buildLionGrid() },
     birdCat: { grid: buildBirdGrid(), heightScale: 0.85, floatHeight: 46 },
     ufoCat: { grid: buildUfoGrid(), heightScale: 0.9, floatHeight: 50 },
     flyingCat: { grid: buildFlyingGrid(), heightScale: 1.0, floatHeight: 56 },
@@ -8483,7 +8604,7 @@
   // rose, armor) are the point - unlike Titan/Luchador's tall-humanoid case above, cropping
   // these to just the head/face would hide exactly what makes each form distinct, so they're
   // exempted from the auto height-crop below despite naturally being tall.
-  const FULL_BODY_CROP = new Set(["salonCat", "parisCat", "cyborgCat", "dreadPirateCatley", "sanzoCat", "catEastwood", "rodeoCat", "stiltsCat", "totemCat", "acrobatCats", "planeCat", "robocat", "cat", "machoCat", "mohawkCat"]);
+  const FULL_BODY_CROP = new Set(["salonCat", "parisCat", "cyborgCat", "dreadPirateCatley", "sanzoCat", "catEastwood", "rodeoCat", "stiltsCat", "totemCat", "acrobatCats", "planeCat", "robocat", "cat", "machoCat", "mohawkCat", "grossCat", "sexyLegsCat", "machoLegCat", "cowCat", "giraffeCat", "lionCat"]);
   // Like renderSpriteIcon, but crops to the sprite's actual silhouette (no dead space around a
   // small unit) and, for sprites much taller than wide (Titan/Luchador-style humanoids, the
   // boxy vending machines) or forced above, crops further to just the head/upper-body - or, for
