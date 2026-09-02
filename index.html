@@ -4881,6 +4881,13 @@
       "....................................",
       "....................................",
       "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
       "........K.................K.........",
       "........KK...............KK.........",
       "........KK...............KK.........",
@@ -4910,18 +4917,18 @@
       "....................................",
       "....................................",
       "....................................",
-      "....................................",
-      "....................................",
-      "....................................",
-      "....................................",
-      "....................................",
-      "....................................",
-      "....................................",
     ]);
   }
 
   function buildMachoGrid() {
     return gridFromRows([
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
       "....................................",
       "....................................",
       "....................................",
@@ -4955,18 +4962,17 @@
       "....................................",
       "....................................",
       "....................................",
-      "....................................",
-      "....................................",
-      "....................................",
-      "....................................",
-      "....................................",
-      "....................................",
-      "....................................",
     ]);
   }
 
   function buildMohawkGrid() {
     return gridFromRows([
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
       "...............KKKKK................",
       "...............KKKKKK...............",
       "...............KKKKKK...............",
@@ -4998,12 +5004,6 @@
       ".........KKWKWWK....KWWKWKK.........",
       ".........KKWKWWK....KWWKWKK.........",
       "...........K.KK......KK.K...........",
-      "....................................",
-      "....................................",
-      "....................................",
-      "....................................",
-      "....................................",
-      "....................................",
       "....................................",
       "....................................",
       "....................................",
@@ -5148,11 +5148,12 @@
     ]);
   }
 
-  // Shared round Cat-style body - EXACT same octagon dimensions as buildCatGrid, so Axe/
-  // Brave/Dark Cat's heads are the same size as the base Cat's (a previous pass narrowed
-  // this body to leave margin for held weapons, but that made the head noticeably smaller
-  // than a normal cat). Weapons now overlap the body's own silhouette instead of sitting
-  // beside it in a margin, since there's no longer much margin to spare.
+  // Axe Cat/Brave Cat/Dark Cat family - sampled pixel-for-pixel from the user's own reference
+  // art (same method as the Cat and Tank Cat families above), via gridFromRows() rather than
+  // primitive shape calls.
+  // Shared round Cat-style body - EXACT same octagon dimensions as buildCatGrid's old
+  // primitive-composed version (buildCatGrid itself is now pixel-sampled instead, but this
+  // helper is still used by the Gross Cat family below).
   function buildRoundBody(grid, color) {
     color = color || "W";
     pxOctagonBody(grid, 8.5, 28.5, 5.2, 27.3, 6.3, 6.3, color);
@@ -5161,65 +5162,138 @@
   }
 
   function buildAxeGrid() {
-    const grid = makePxGrid();
-    buildRoundBody(grid);
-    // handle: thin diagonal from the paw up, overlapping the body's own left side
-    pxThickLine(grid, 14, 22, 4, 8, 2, "W");
-    pxOutline(grid, "K");
-    pxFace(grid, 0);
-    pxLegs(grid, 0);
-    // blade: a wide diagonal band (the cutting edge) at the top of the handle - kept fully
-    // on-grid (min x including the thick-line offset is 0, not negative) since a previous
-    // pass started it at x=-4 and silently clipped the left portion of the axe head
-    pxThickLine(grid, 1, 2, 6, 8, 5, "S");
-    pxOutline(grid, "K");
-    // wounded eye: a gray patch with an X mark over the right eye, matching the reference
-    pxEllipse(grid, 22, 14, 2.6, 2.3, "G");
-    pxOutline(grid, "K");
-    pxLine(grid, 20.3, 12.3, 23.7, 15.7, "K");
-    pxLine(grid, 23.7, 12.3, 20.3, 15.7, "K");
-    return grid;
+    return gridFromRows([
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "..............K...............K.....",
+      ".......K.K....KK.............KK.....",
+      "......KRKGK...KWK...........KGK.....",
+      "....K.KKWGGK..KWWK.........KGGK.....",
+      "...KGKKWWWK...KKKKKKKKKKKKKKKKK.....",
+      "...KWGGGWKK...KWWWWWWWWKGGKGKGK.....",
+      "...KWGGGKKRK.KWWWWWWWWWKGGGKGGGK....",
+      "....KWGGK.KRKWWWWWWKWWWKGGKGKGGGK...",
+      ".....KWWGK.KKWWWWWWWWWWWKKGGGKGGK...",
+      "......KKK...KWWWWWWWWKWKWWKKKGGKK...",
+      "............KWWWWWWKWWKWWKWWWKKWK...",
+      "............KWWWWWWWKKWKKWWWWWWWK...",
+      "............KWWWWWWWWKWKWWWWWWWWK...",
+      "............KWWWWWWWWWKWWWWWWWWWK...",
+      "............KWWWWWWWWWWWWWWWWWWWK...",
+      ".............KWWWWWWWWWWWWWWWWWK....",
+      "..............KWWWWWWWWWWWWWWWK.....",
+      "...............KKKKKKKKKKKKKKK......",
+      "...............KWKWK.....KWKWK......",
+      "................K.K.......K.K.......",
+      "....................................",
+      "....................................",
+      "....................................",
+    ]);
   }
 
   function buildBraveGrid() {
-    const grid = makePxGrid();
-    buildRoundBody(grid);
-    // sword held upright overlapping the body's left side + a shield overlapping the right
-    pxThickLine(grid, 7, 24, 3, 3, 2, "S");
-    pxRect(grid, 1, 22, 5, 24, "Y"); // crossguard/hilt
-    pxEllipse(grid, 31, 20, 4.5, 5.5, "S"); // shield
-    pxRect(grid, 29.5, 17.5, 32.5, 23, "K"); // cross emblem
-    pxRect(grid, 28, 19.5, 34, 21.5, "K");
-    pxOutline(grid, "K");
-    pxFace(grid, 0);
-    pxLegs(grid, 0);
-    // gold headband + gem
-    pxRect(grid, 12, 10, 24, 11, "Y");
-    pxEllipse(grid, 18, 10.5, 1, 1, "M");
-    pxOutline(grid, "K");
-    return grid;
+    return gridFromRows([
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "........K..K...............K........",
+      ".......KGK.KK.............KK........",
+      ".......KGK.KWK...........KWK........",
+      ".......KGK.KWWK...KKK...KWWK........",
+      ".......KGK.KKKKKKKRRRKKKKKKK........",
+      ".......KGK.KRRRRRRWMMRRRRRRK........",
+      ".......KGKKWKKKKKRMMMRKKKKKWK.......",
+      ".......KGKWWWWWWWKRRRKWWWWWWWK......",
+      ".......KGKWWWWWWKWKKKWKWWWWWWK......",
+      ".......KGKWWWWWWWWWWWWWWWWKKKKK.....",
+      ".......KGKWWWWWWWWKWKWWWWKYYYYYK....",
+      ".....KKKKKWWWWWWKWWKWWKWKYWWKWWYK...",
+      "....KYYYYKWWWWWWWKKWKKWWKYWKKKWYK...",
+      ".....KKKKKWWWWWWWWKWKWWWKYWWKWWYK...",
+      "........KKWWWWWWWWWKWWWWWKYWKWYK....",
+      "........KGKWWWWWWWWWWWWWWWKYWYK.....",
+      ".......KKK.KWWWWWWWWWWWWWWWKYK......",
+      "............KKKKKKKKKKKKKKK.K.......",
+      "............KWKWK.....KWKWK.........",
+      ".............K.K.......K.K..........",
+      "....................................",
+      "....................................",
+      "....................................",
+    ]);
   }
 
   function buildDarkGrid() {
-    const grid = makePxGrid();
-    buildRoundBody(grid);
-    pxThickLine(grid, 7, 24, 3, 3, 2, "S");
-    pxRect(grid, 1, 22, 5, 24, "K"); // black hilt, matching the dark theme
-    pxEllipse(grid, 31, 20, 4.5, 5.5, "S"); // shield
-    pxRect(grid, 29.5, 17.5, 32.5, 23, "K");
-    pxRect(grid, 28, 19.5, 34, 21.5, "K");
-    pxOutline(grid, "K");
-    pxFace(grid, 0);
-    pxLegs(grid, 0);
-    // black knight helm with pointed horns, covering the ears
-    pxTriangle(grid, 9, 1, 10, 2, "K");
-    pxTriangle(grid, 27, 1, 10, 2, "K");
-    pxRect(grid, 9, 6, 27, 12, "K");
-    // pink glowing eyes replace the normal ones
-    pxRect(grid, 13, 13, 15, 15, "M");
-    pxRect(grid, 21, 13, 23, 15, "M");
-    pxOutline(grid, "K");
-    return grid;
+    return gridFromRows([
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "....................................",
+      "...............K.....K..............",
+      "..............KK.....KK.............",
+      "..............KK.....KK.............",
+      ".............KKK.....KKK............",
+      ".......K.....KKK.....KKK............",
+      "......KWK....KKK.....KKK............",
+      "......KWK...KKKKKKKKKKKKK...........",
+      "......KWK..KKMKKKKKKKKKMKK..........",
+      ".....KWWWKKKKKMKKKKKKKMKKKK.........",
+      "......KWKKWWKWKKKKKKKKKWKWWK........",
+      "......KWKWKWKWWKWWWWWKWWKWKWK.......",
+      ".....KWWKWWKWWWWWW.WWWWWWKWWK..K....",
+      "......KWKWWWWWW.WKWKWWWWWWKKKKK.....",
+      ".....KKWKWWWWWWKWWKWWKWWWWKKKKK.....",
+      "....KGKKKWWWWWW.KKWKK.WWWWKKKKK.....",
+      "....KGGMKWWWWWWWWKWKWWWWWWKKKKK.....",
+      "....KGKKKWWKWWWWWWKWWWWWWKWKKK......",
+      ".....K.KKWKWKWWWWWWWWWWWKWKWK.......",
+      ".......KGKKWKWKKKKKKKKKWKWKK........",
+      "......KKK.KKKKKKKKKKKKKKKKK.........",
+      "...........KKKKKKKKKKKKKKK..........",
+      "...........KWKWK.....KWKWK..........",
+      "............K.K.......K.K...........",
+      "....................................",
+      "....................................",
+      "....................................",
+    ]);
   }
 
   // ---------------------------------------------------------------------------
