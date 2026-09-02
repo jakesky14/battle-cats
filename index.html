@@ -537,6 +537,13 @@
     background: rgba(0,0,0,.55); color: #ffd35a; border: 2px solid #ffd35a;
     border-radius: 8px; padding: 6px 16px; font-weight: 900; font-size: 18px; letter-spacing: 1px;
   }
+  .stage-select-row { display: flex; gap: 8px; }
+  .stage-select-btn {
+    background: rgba(0,0,0,.55); color: #ddd; border: 2px solid #888;
+    border-radius: 8px; padding: 6px 12px; font-weight: 800; font-size: 13px; cursor: pointer;
+  }
+  .stage-select-btn.selected { color: #ffd35a; border-color: #ffd35a; }
+  .stage-select-btn.locked { color: #777; border-color: #555; cursor: not-allowed; opacity: .7; }
   .battle-menu-actions { display: flex; align-items: center; gap: 10px; }
   .leadership-btn {
     background: linear-gradient(180deg,#ff5a5a,#b32020); color: #fff;
@@ -1027,6 +1034,7 @@
   <div class="map-marker"></div>
   <button class="back-corner-btn" id="battleMenuBackBtn">◀ Back</button>
   <div class="battle-menu-panel">
+    <div class="stage-select-row" id="stageSelectRow"></div>
     <div class="battle-menu-stage-name" id="battleMenuStageName">KOREA</div>
     <div class="battle-menu-status-row">
       <div class="energy-display">⚡ Energy: <span id="energyAmt">100</span> / <span id="energyMax">100</span></div>
@@ -1547,8 +1555,8 @@
   // drop = ¢ money awarded to the player when this enemy is killed (Accountant boosts this).
   const ENEMIES = {
     doge:   { name:"Doge",   emoji:"🐶", hp:90,   dmg:8,   range:44, cycle:1.57,fore:0.60, tgt:"single", speed:30, kb:3, trait:"Traitless", color:"#e8e0d0", w:26, drop:10 },
-    those:  { name:"Snake",  emoji:"🐍", hp:90,   dmg:22,  range:40, cycle:0.8, fore:0.15, tgt:"single", speed:52, trait:"Red",       color:"#a0d060", w:24, drop:8 },
-    snache: { name:"Snache", emoji:"👺", hp:280,  dmg:32,  range:46, cycle:1.2, fore:0.25, tgt:"single", speed:36, trait:"Traitless", color:"#ff9a8a", w:30, drop:20 },
+    those:  { name:"Those Guys", emoji:"🐍", hp:200, dmg:20, range:44, cycle:1.0, fore:0.33, tgt:"single", speed:60, kb:1, trait:"Traitless", color:"#a0d060", w:24, drop:8 },
+    snache: { name:"Snache", emoji:"👺", hp:100,  dmg:15,  range:44, cycle:1.23,fore:0.27, tgt:"single", speed:48, kb:3, trait:"Traitless", color:"#ff9a8a", w:30, drop:20 },
     pigge:  { name:"Pigge",  emoji:"🐷", hp:420,  dmg:64,  range:50, cycle:1.3, fore:0.3,  tgt:"single", speed:42, trait:"Red",       color:"#ffb3c8", w:32, drop:30 },
     hippoe: { name:"Hippoe", emoji:"🦛", hp:950,  dmg:44,  range:46, cycle:1.6, fore:0.35, tgt:"single", speed:24, trait:"Traitless", color:"#9aa8c0", w:40, drop:60 },
     boss:   { name:"Teacher Bun", emoji:"👿", hp:4500, dmg:170, range:60, cycle:2.0, fore:0.4, tgt:"single", speed:20, trait:"Traitless", color:"#c04040", w:54, drop:250 },
@@ -1557,23 +1565,60 @@
   // ---------------------------------------------------------------------------
   // Stages: real named levels, replacing the old escalating-endless-sandbox battle
   // (pickEnemyType/ENEMY_BASE_HP/bossSpawned - since removed). Each stage picks its own
-  // enemy pool, enemy base HP, energy cost, and spawn schedule instead of one fixed
-  // generic fight. Only one exists so far (KOREA); battleMenuAttackBtn always launches
-  // STAGES[0] until a real stage-select screen exists for picking among more than one.
+  // enemy base HP, energy cost, and spawn groups instead of one fixed generic fight. There's
+  // no stage-select screen yet - battleMenuAttackBtn always launches STAGES[0] (KOREA).
   //
-  // spawn: { first: seconds until the very first spawn (0 = immediately), pauseUntil: no
-  // further spawns happen before this time mark even if the first spawn landed earlier,
-  // minInterval/maxInterval: random delay range between each spawn after that pause ends.
-  // maxOnField: a hard cap on live (non-base) enemy units at once - a spawn due while at the
-  // cap is deferred and retried every frame until room opens, then fires immediately. }
+  // groups: independent spawn timelines running in parallel within one stage (e.g. MONGOLIA's
+  // Doges and Snaches spawn on their own separate schedules, not picked from one shared
+  // pool). Each group is { type: an ENEMIES key, count: how many total (Infinity for an
+  // endless group), first: seconds until that group's first spawn, delayMin/delayMax: random
+  // delay range between that group's own spawns (equal for a fixed, non-random delay). A
+  // finite group (count < Infinity) stops spawning for good once it's used up its count.
+  // maxOnField is a hard cap on live (non-base) enemies at once, shared across every group in
+  // the stage - a spawn due while at the cap is deferred and retried every frame until room
+  // opens, then fires immediately, same as before.
   const STAGES = [
     {
-      id: "korea", name: "KOREA", energyCost: 5, enemyBaseHp: 500,
-      enemyPool: ["doge"], maxOnField: 3,
-      spawn: { first: 0, pauseUntil: 20, minInterval: 6, maxInterval: 10 },
+      id: "korea", name: "KOREA", energyCost: 5, enemyBaseHp: 500, maxOnField: 3,
+      groups: [
+        { type: "doge", count: Infinity, first: 0, delayMin: 6, delayMax: 10 },
+      ],
+    },
+    {
+      id: "mongolia", name: "MONGOLIA", energyCost: 5, enemyBaseHp: 500, maxOnField: 4,
+      groups: [
+        { type: "doge", count: Infinity, first: 0, delayMin: 6, delayMax: 10 },
+        { type: "snache", count: Infinity, first: 20, delayMin: 10, delayMax: 26.67 },
+      ],
+    },
+    {
+      id: "china", name: "CHINA", energyCost: 8, enemyBaseHp: 500, maxOnField: 30,
+      groups: [
+        { type: "doge", count: 3, first: 0.67, delayMin: 26.67, delayMax: 26.67 },
+        { type: "snache", count: 3, first: 10, delayMin: 26.67, delayMax: 26.67 },
+        { type: "those", count: 2, first: 16.67, delayMin: 16.67, delayMax: 16.67 },
+        { type: "snache", count: 2, first: 30, delayMin: 13.33, delayMax: 13.33 },
+      ],
+    },
+    {
+      id: "thailand", name: "THAILAND", energyCost: 8, enemyBaseHp: 500, maxOnField: 5,
+      groups: [
+        { type: "doge", count: Infinity, first: 0, delayMin: 6, delayMax: 10 },
+        { type: "snache", count: Infinity, first: 0, delayMin: 10, delayMax: 26.67 },
+        { type: "those", count: Infinity, first: 40, delayMin: 10, delayMax: 26.67 },
+      ],
     },
   ];
-  const currentStage = STAGES[0];
+  let currentStage = STAGES[0]; // changed via the stage-select row in battleMenuScreen below
+
+  // Linear progression: stage N unlocked once stage N-1 is cleared. First stage always unlocked.
+  // Test mode bypasses this (consistent with test mode's other unlock-everything behavior).
+  function stageUnlocked(stage) {
+    if (profile.testMode) return true;
+    const idx = STAGES.indexOf(stage);
+    if (idx <= 0) return true;
+    return !!profile.clearedStages[STAGES[idx - 1].id];
+  }
 
   const WORKER_MAX = 8;
   // Worker Cat Rate (meta upgrade) raises the base ¢/sec rate; in-battle level still adds +5%/level on top.
@@ -2328,6 +2373,7 @@
     items: { speedUp: 0, treasureRadar: 0, richCat: 0, sniperCat: 0, catCPU: 0, catJobs: 0, leadership: 0 },
     catamin: { a: 0, b: 0, c: 0 }, // Catamin isn't a real system yet (like Catseyes) - display-only zeros
     stageCleared: false,     // set true after the first win - gates Golden Cat CPU's stage-skip
+    clearedStages: {},       // { [stageId]: true } - per-stage clears, gates linear stage unlock progression
     goldenCpuUsesLeft: 10,   // lifetime cap on Golden Cat CPU stage-skips (normal Cat CPU has no cap)
     catForceTier: {},        // AUTO EVOLVE (test mode): id -> force-unlocked tier, bypassing Catfruit/level/XP
     pendingDailyItem: null, // rolled once when a daily reward becomes available, granted on claim
@@ -2388,6 +2434,7 @@
     if (saved.items) Object.assign(profile.items, saved.items);
     if (saved.catamin) Object.assign(profile.catamin, saved.catamin);
     if (typeof saved.stageCleared === "boolean") profile.stageCleared = saved.stageCleared;
+    if (saved.clearedStages) Object.assign(profile.clearedStages, saved.clearedStages);
     if (typeof saved.goldenCpuUsesLeft === "number") profile.goldenCpuUsesLeft = saved.goldenCpuUsesLeft;
     if (saved.catForceTier) Object.assign(profile.catForceTier, saved.catForceTier);
     if (saved.pendingDailyItem === null || typeof saved.pendingDailyItem === "string") {
@@ -2488,8 +2535,9 @@
       cooldowns: roster.map(() => 0),
       cooldownMax: roster.map(() => 1), // avoids divide-by-zero before any deploy; overwritten on first deploy
       stage: currentStage,
-      nextSpawnAt: currentStage.spawn.first,
-      stageInitialSpawned: false,
+      // Per-battle copy of the stage's spawn groups - each tracks its own next-spawn time and
+      // remaining count independently (see the spawn-groups loop in update() below).
+      spawnGroups: currentStage.groups.map(g => ({ ...g, nextSpawnAt: g.first, remaining: g.count })),
       fx: [],               // floating hit sparks
       deployCount: 0,       // total deploy() calls this battle - Capsule Cat's solo-clear unlock check
     };
@@ -2639,10 +2687,6 @@
     G.cannonGauge = 0;
   }
 
-  function pickStageEnemyType() {
-    const pool = G.stage.enemyPool;
-    return pool[Math.floor(Math.random() * pool.length)];
-  }
 
   workerBtn.addEventListener("click", upgradeWorker);
   cannonBtn.addEventListener("click", fireCannon);
@@ -3349,6 +3393,7 @@
   }
   const battleMenuItemsEl = document.getElementById("battleMenuItems");
   const battleMenuStageNameEl = document.getElementById("battleMenuStageName");
+  const stageSelectRowEl = document.getElementById("stageSelectRow");
   const battleMenuAttackBtn = document.getElementById("battleMenuAttackBtn");
   const leadershipBtn = document.getElementById("leadershipBtn");
   const leadershipCountEl = document.getElementById("leadershipCount");
@@ -3366,11 +3411,32 @@
     renderLeadershipBtn();
   });
 
+  // Stage picker - one button per STAGES entry. Locked stages (per stageUnlocked()) are
+  // dimmed and unclickable; clearing a stage unlocks the next one in STAGES order.
+  function renderStageSelectRow() {
+    stageSelectRowEl.innerHTML = "";
+    STAGES.forEach(stage => {
+      const unlocked = stageUnlocked(stage);
+      const btn = document.createElement("button");
+      btn.className = "stage-select-btn" + (stage === currentStage ? " selected" : "") + (unlocked ? "" : " locked");
+      btn.textContent = unlocked ? stage.name : "🔒 " + stage.name;
+      btn.disabled = !unlocked;
+      if (unlocked) {
+        btn.addEventListener("click", () => {
+          currentStage = stage;
+          renderBattleMenu();
+        });
+      }
+      stageSelectRowEl.appendChild(btn);
+    });
+  }
+
   function renderBattleMenu() {
     selectedBattleItems = {};
     regenEnergy();
     energyAmtEl.textContent = Math.floor(profile.energy);
     energyMaxEl.textContent = energyMax();
+    renderStageSelectRow();
     battleMenuStageNameEl.textContent = currentStage.name;
     battleMenuAttackBtn.textContent = `ATTACK (${currentStage.energyCost}⚡)`;
     battleMenuAttackBtn.disabled = profile.energy < currentStage.energyCost;
@@ -4321,6 +4387,7 @@
       profile.xp += xpGained;
       profile.catFood += CAT_FOOD_PER_WIN;
       profile.stageCleared = true; // gates Golden Cat CPU's stage-skip - only usable once cleared for real
+      profile.clearedStages[G.stage.id] = true;
       // Capsule Cat's unlock: clear any stage having sent out only a single unit the whole battle.
       if (G.deployCount === 1 && !profile.capsuleCatUnlocked) {
         profile.capsuleCatUnlocked = true;
@@ -4547,21 +4614,19 @@
       }
     }
 
-    // Enemy spawning: stage-driven (see STAGES/currentStage.spawn) - a spawn due while the
-    // field is already at stage.maxOnField is deferred and retried every frame until room
-    // opens, rather than being skipped outright.
-    if (G.time >= G.nextSpawnAt) {
+    // Enemy spawning: stage-driven (see STAGES) - each spawn group runs on its own
+    // independent timeline (its own type/count/delay), all sharing one stage-wide
+    // maxOnField cap. A spawn due while the field is already at that cap is deferred and
+    // retried every frame until room opens, rather than being skipped outright. A finite
+    // group (remaining a real number, not Infinity) stops spawning for good once used up.
+    for (const grp of G.spawnGroups) {
+      if (grp.remaining <= 0) continue;
+      if (G.time < grp.nextSpawnAt) continue;
       const aliveEnemies = G.units.filter(u => u.team === "enemy" && u.hp > 0 && !u.isBase).length;
-      if (aliveEnemies < G.stage.maxOnField) {
-        spawnEnemy(pickStageEnemyType());
-        if (!G.stageInitialSpawned) {
-          G.stageInitialSpawned = true;
-          G.nextSpawnAt = G.stage.spawn.pauseUntil;
-        } else {
-          const { minInterval, maxInterval } = G.stage.spawn;
-          G.nextSpawnAt = G.time + minInterval + Math.random() * (maxInterval - minInterval);
-        }
-      }
+      if (aliveEnemies >= G.stage.maxOnField) continue;
+      spawnEnemy(grp.type);
+      if (grp.remaining !== Infinity) grp.remaining--;
+      grp.nextSpawnAt = G.time + grp.delayMin + Math.random() * (grp.delayMax - grp.delayMin);
     }
 
     // Units: movement + combat
